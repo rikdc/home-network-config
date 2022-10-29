@@ -1,7 +1,8 @@
 ---
 - name: Copy Blocky configuration
+  become: true
   template:
-    src: ../files/blocky.yaml
+    src: "blocky.conf.j2"
     dest: "{{ blocky_config_path }}"
 
 # Pulls the default docker image (Ubuntu)
