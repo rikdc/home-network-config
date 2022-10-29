@@ -1,0 +1,7 @@
+---
+
+- name: Install common packages
+  become: yes
+  ansible.builtin.package:
+    name: "{{ common_packages }}"
+    state: present
