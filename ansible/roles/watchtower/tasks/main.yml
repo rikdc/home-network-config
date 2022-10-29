@@ -1,0 +1,21 @@
+---
+- name: Pull Image containrrr/watchtower
+  community.docker.docker_image:
+    name: containrrr/watchtower
+    source: pull
+
+- name: Launch Watchtower
+  docker_container:
+    name: watchtower
+    image: containrrr/watchtower
+    restart: true
+    restart_policy: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /etc/timezone:/etc/timezone:ro
+    env:
+      "WATCHTOWER_CLEANUP": "true"
+      "WATCHTOWER_LABEL_ENABLE": "true"
+      "WATCHTOWER_INCLUDE_RESTARTING" : "true"
+    labels:
+      "com.centurylinklabs.watchtower.enable": "true"
