@@ -31,7 +31,7 @@
     state: latest
     update_cache: true
 
-- name: check docker is active
+- name: Check docker is active
   service:
     name: docker
     state: started
@@ -42,7 +42,7 @@
     name: docker
     state: present
 
-- name: adding ubuntu to docker group
+- name: Adding ubuntu to docker group
   user:
     name: ubuntu
     groups: docker
