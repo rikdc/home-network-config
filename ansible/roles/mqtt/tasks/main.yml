@@ -26,6 +26,7 @@
     group: "mosquitto"
   loop:
     - { path: "{{ paths.mosquitto }}/config", mode: "0777" }
+    - { path: "{{ paths.mosquitto }}/certs", mode: "0777" }
     - { path: "{{ paths.mosquitto }}/data", mode: "0755" }
 
 - name: upload mosquitto config
@@ -82,15 +83,15 @@
 
 - name: Ensure private key is present
   community.crypto.openssl_privatekey:
-    path: "{{ paths.mosquitto }}/mqtt-server.key"
+    path: "{{ paths.mosquitto }}/certs/mqtt-server.key"
     size: 2048
     mode: 0600
     type: RSA
 
 - name: Ensure self-signed cert is present
   community.crypto.x509_certificate:
-    path: "{{ paths.mosquitto }}/mqtt-server.crt"
-    privatekey_path: "{{ paths.mosquitto }}/mqtt-server.key"
+    path: "{{ paths.mosquitto }}/certs/mqtt-server.crt"
+    privatekey_path: "{{ paths.mosquitto }}/certs/mqtt-server.key"
     provider: selfsigned
     selfsigned_not_after: "+3650d" # this is the default
     mode: 0644
@@ -100,6 +101,14 @@
     _mosquitto_docker_volumes: "{{ _mosquitto_docker_volumes | union(['{{ mosquitto_certfiles_dir }}:/mosquitto/certs']) }}"
   when: mosquitto_use_ssl
 
+- name: Configuration | add ssl configuration to config
+  ansible.builtin.blockinfile:
+    path: "{{ paths.mosquitto }}/config/mosquitto.conf"
+    block: |
+      certfile /mosquitto/certs/mqtt-server.crt
+      keyfile /mosquitto/certs/mqtt-server.key
+  register: config1
+# cafile /etc/letsencrypt/live/mqtt.example.com/chain.pem
 # - name: Allow MQTT port
 #   firewalld:
 #   port: 1883/tcp
@@ -116,6 +125,7 @@
     restart_policy: always
     volumes:
       - "{{ paths.mosquitto }}/config:/mosquitto/config"
+      - "{{ paths.mosquitto }}/certs:/mosquitto/certs"
       - "{{ paths.mosquitto }}/data:/mosquitto/data"
       - "/etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro"
     ports:
