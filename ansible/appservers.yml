@@ -3,6 +3,9 @@
     - default.config.yml
     - secrets.enc
 
+  vars:
+    ansible_become: yes
+
   pre_tasks:
     - name: Setup | Create credential file (used for fstab entry)
       copy:
@@ -25,4 +28,5 @@
 
   roles:
     - common
+    - docker
     - jellyfin
