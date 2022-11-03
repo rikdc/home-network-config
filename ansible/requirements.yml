@@ -1,0 +1,10 @@
+
+---
+roles:
+  - name: geerlingguy.dotfiles
+  - name: geerlingguy.homebrew
+  - name: geerlingguy.mas
+  - src: geerlingguy.nodejs
+
+collections:
+  - name: geerlingguy.mac
