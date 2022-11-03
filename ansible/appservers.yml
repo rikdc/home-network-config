@@ -1,6 +1,8 @@
 - hosts: appservers
   vars_files:
+    - default.config.yml
     - secrets.enc
+
   pre_tasks:
     - name: Setup | Create credential file (used for fstab entry)
       copy:
@@ -11,15 +13,16 @@
         mode: 0600
       become: true
 
-    - name: Setup | Mount media volume
+    - name: Setup | Mount shared volumes
+      become: true
       ansible.posix.mount:
-        src: //rafiki.local/video
-        path: /mnt/video
+        src: "{{ item.src }}"
+        path: "{{ item.dest }}"
         opts: "credentials=/root/.credential"
         state: mounted
         fstype: cifs
-      become: true
- roles:
-   - common
-   - jellyfin
+      loop: "{{ jellyfin_volumes }}"
 
+  roles:
+    - common
+    - jellyfin
