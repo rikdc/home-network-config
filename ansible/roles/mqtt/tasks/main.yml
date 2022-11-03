@@ -61,26 +61,6 @@
     group: root
     mode: 0640
 
-# # - name: Ensure logrotate is aware of the mosquitto log file
-# #   copy:
-# #     src: logrotate.mosquitto
-# #     dest: "/etc/logrotate.d/mosquitto"
-# #     mode: 0644
-# #   when: mosquitto_enable_logrotate
-
-# - name: get available groups
-#   ansible.builtin.getent:
-#     database: group
-
-# # - name: add mosquitto user to ssl-cert group
-# #   ansible.builtin.user:
-# #     name: mosquitto
-# #     groups: ssl-cert
-# #     append: true
-# #   become: true
-# #   when:
-# #     - mosquitto_add_to_ssl_cert_group and "ssl-cert" in ansible_facts.getent_group
-
 - name: Ensure private key is present
   community.crypto.openssl_privatekey:
     path: "{{ paths.mosquitto }}/certs/mqtt-server.key"
@@ -108,13 +88,6 @@
       certfile /mosquitto/certs/mqtt-server.crt
       keyfile /mosquitto/certs/mqtt-server.key
   register: config1
-# cafile /etc/letsencrypt/live/mqtt.example.com/chain.pem
-# - name: Allow MQTT port
-#   firewalld:
-#   port: 1883/tcp
-#   permanent: yes
-#   state: enabled
-#   immediate: yes
 
 - name: "create docker container"
   community.docker.docker_container:
