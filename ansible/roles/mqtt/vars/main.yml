@@ -4,6 +4,3 @@ base_path: /etc
 paths:
   mosquitto: "{{ base_path }}/mosquitto"
 timezone_value: America/New_York
-
-mosquitto_user: mosquitto
-mosquitto_password: vM3HtZHX
