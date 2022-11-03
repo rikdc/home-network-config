@@ -1,0 +1,16 @@
+---
+# defaults file for ansible-role-mosquitto
+
+mosquitto_docker_version: "latest"
+
+mosquitto_use_ssl: false
+mosquitto_certfiles_dir: ""
+mosquitto_ca_filename: ""
+mosquitto_cert_filename: ""
+mosquitto_key_filename: ""
+
+mosquitto_users:
+  - name: example_admin
+    password: example_password
+
+mosquitto_enable_logrotate: true

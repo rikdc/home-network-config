@@ -1,0 +1,108 @@
+---
+- name: Ensure the container user group exists
+  group:
+    name: "mosquitto"
+    state: present
+    gid: 1883
+    system: true
+
+- name: Ensure the container user exists
+  user:
+    name: "mosquitto"
+    state: present
+    uid: 1883
+    group: "mosquitto"
+    create_home: false
+    system: true
+    shell: "/usr/sbin/nologin"
+
+- name: create docker directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    mode: "{{item.mode}}"
+    state: directory
+    owner: "mosquitto"
+    group: "mosquitto"
+  loop:
+    - { path: "{{ paths.mosquitto }}/config", mode: "0777" }
+    - { path: "{{ paths.mosquitto }}/certs", mode: "0777" }
+    - { path: "{{ paths.mosquitto }}/data", mode: "0755" }
+
+- name: upload mosquitto config
+  become: true
+  ansible.builtin.copy:
+    src: files/mosquitto.conf
+    dest: "{{ paths.mosquitto }}/config/mosquitto.conf"
+
+- name: delete the existing password file
+  file:
+    path: "{{ paths.mosquitto }}/config/passwd"
+    state: absent
+
+- name: start with an empty password file
+  file:
+    path: "{{ paths.mosquitto }}/config/passwd"
+    state: touch
+    mode: 0640
+    owner: "mosquitto"
+    group: "mosquitto"
+
+- name: Write the temporary password file contents
+  command: "docker run --rm -v {{ paths.mosquitto }}/config/passwd:/mosquitto/config/passwd \
+    eclipse-mosquitto:{{ mosquitto_docker_version }} mosquitto_passwd \
+    -b /mosquitto/config/passwd {{ item.name }} {{ item.password }}"
+  with_items: "{{ mosquitto_users }}"
+
+- name: "ensure {{ paths.mosquitto }}/config/passwd }} has restrictive persmissions"
+  ansible.builtin.file:
+    path: "{{ paths.mosquitto }}/config/passwd"
+    owner: mosquitto
+    group: root
+    mode: 0640
+
+- name: Ensure private key is present
+  community.crypto.openssl_privatekey:
+    path: "{{ paths.mosquitto }}/certs/mqtt-server.key"
+    size: 2048
+    mode: 0600
+    type: RSA
+
+- name: Ensure self-signed cert is present
+  community.crypto.x509_certificate:
+    path: "{{ paths.mosquitto }}/certs/mqtt-server.crt"
+    privatekey_path: "{{ paths.mosquitto }}/certs/mqtt-server.key"
+    provider: selfsigned
+    selfsigned_not_after: "+3650d" # this is the default
+    mode: 0644
+
+- name: Add the certificate file directory to the list of volumes, if necessary
+  set_fact:
+    _mosquitto_docker_volumes: "{{ _mosquitto_docker_volumes | union(['{{ mosquitto_certfiles_dir }}:/mosquitto/certs']) }}"
+  when: mosquitto_use_ssl
+
+- name: Configuration | add ssl configuration to config
+  ansible.builtin.blockinfile:
+    path: "{{ paths.mosquitto }}/config/mosquitto.conf"
+    block: |
+      certfile /mosquitto/certs/mqtt-server.crt
+      keyfile /mosquitto/certs/mqtt-server.key
+  register: config1
+
+- name: "create docker container"
+  community.docker.docker_container:
+    name: mosquitto
+    image: eclipse-mosquitto
+    env:
+      "TZ": "{{ timezone_value }}"
+    restart_policy: always
+    volumes:
+      - "{{ paths.mosquitto }}/config:/mosquitto/config"
+      - "{{ paths.mosquitto }}/certs:/mosquitto/certs"
+      - "{{ paths.mosquitto }}/data:/mosquitto/data"
+      - "/etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro"
+    ports:
+      - "8883:8883"
+      - "9001:9001"
+    labels:
+      "com.centurylinklabs.watchtower.enable": "true"
