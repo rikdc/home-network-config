@@ -26,10 +26,5 @@
       PGID: "{{ jellyfin_group_id }}"
     restart_policy: unless-stopped
     memory: "{{ jellyfin_memory }}"
-    # labels:
-    #   traefik.enable: "{{ jellyfin_available_externally | string }}"
-    #   traefik.http.routers.jellyfin.rule: "Host(`{{ jellyfin_hostname }}.{{ ansible_nas_domain }}`)"
-    #   traefik.http.routers.jellyfin.tls.certresolver: "letsencrypt"
-    #   traefik.http.routers.jellyfin.tls.domains[0].main: "{{ ansible_nas_domain }}"
-    #   traefik.http.routers.jellyfin.tls.domains[0].sans: "*.{{ ansible_nas_domain }}"
-    #   traefik.http.services.jellyfin.loadbalancer.server.port: "8096"
+    labels:
+      "com.centurylinklabs.watchtower.enable": "true"
