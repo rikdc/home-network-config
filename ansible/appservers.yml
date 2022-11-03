@@ -1,0 +1,25 @@
+- hosts: appservers
+  vars_files:
+    - secrets.enc
+  pre_tasks:
+    - name: Setup | Create credential file (used for fstab entry)
+      copy:
+        content: |
+          username={{ nas_media_user }}
+          password={{ nas_media_pass }}
+        dest: ~/.credential
+        mode: 0600
+      become: true
+
+    - name: Setup | Mount media volume
+      ansible.posix.mount:
+        src: //rafiki.local/video
+        path: /mnt/video
+        opts: "credentials=/root/.credential"
+        state: mounted
+        fstype: cifs
+      become: true
+ roles:
+   - common
+   - jellyfin
+
