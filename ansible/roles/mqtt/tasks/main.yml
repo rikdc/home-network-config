@@ -94,7 +94,7 @@
     name: mosquitto
     image: eclipse-mosquitto
     env:
-      "TZ": "{{ timezone_value }}"
+      "TZ": "{{ ansible_nas_timezone }}"
     restart_policy: always
     volumes:
       - "{{ paths.mosquitto }}/config:/mosquitto/config"

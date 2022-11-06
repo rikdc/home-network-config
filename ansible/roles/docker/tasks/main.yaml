@@ -1,5 +1,6 @@
 ---
-- name: Install required system packages
+- name: Setup | Install required system packages
+  become: true
   apt:
     pkg:
       - apt-transport-https
@@ -19,35 +20,52 @@
     state: present
 
 # Sets repository containing packages needed to install and run Docker on a Debian-based system.
-- name: Add Docker Repository
+- name: Setup | Add Docker Repository
   apt_repository:
     repo: deb https://download.docker.com/linux/ubuntu {{ ubuntu_version }} stable
     state: present
 
 # Installs Docker community edition
-- name: Update apt and install docker-ce
+- name: Setup | Update apt and install docker-ce
   apt:
     name: docker-ce
     state: latest
     update_cache: true
 
-- name: Check docker is active
+- name: Setup | Check docker is active
   service:
     name: docker
     state: started
     enabled: yes
 
-- name: Ensure group "docker" exists
+- name: Setup | Ensure group "docker" exists
   ansible.builtin.group:
     name: docker
     state: present
 
-- name: Adding ubuntu to docker group
+- name: Setup | Adding ubuntu to docker group
   user:
     name: ubuntu
     groups: docker
     append: yes
 
-- name: Install Docker Module for Python
+- name: Setup | Install Docker Module for Python
   pip:
     name: docker
+
+- name: Setup | Create Docker directories
+  become: true
+  ansible.builtin.file:
+    path: /docker
+    state: directory
+    owner: root
+    group: docker
+    mode: '775'
+
+- name: Setup | Ensure /etc/docker/ directory exists.
+  become: true
+  ansible.builtin.file:
+    path: /etc/docker
+    state: directory
+    mode: 0755
+  when: docker_daemon_options.keys() | length > 0
