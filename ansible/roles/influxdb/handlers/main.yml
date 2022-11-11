@@ -1,2 +1,5 @@
 ---
-# handlers file for influxdb
+
+- name: restart influxdb
+  set_fact:
+    influxdb_docker_restart: true
