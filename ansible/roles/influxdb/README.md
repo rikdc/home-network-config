@@ -1,15 +1,12 @@
-Role Name
-=========
+## Influx
 
 Installs and configures an InfluxDb container
 
-Requirements
-------------
+## Requirements
 
--
+Docker
 
-Role Variables
---------------
+## Variable
 
 | Variable                          | Required | Default                           | Choices | Comments                                      |
 |-----------------------------------|----------|-----------------------------------|---------|-----------------------------------------------|
@@ -21,17 +18,10 @@ Role Variables
 | influxdb_container_restart_policy | yes      | always                            | string  |                                               |
 | influxdb_users                    | yes      |                                   |         |                                               |
 
-Dependencies
-------------
+## Dependencies
 
--
+## Example Playbook
 
-Example Playbook
-----------------
-
--
-
-License
--------
+## License
 
 MIT

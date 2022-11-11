@@ -4,7 +4,7 @@
     - secrets.enc
 
   vars:
-    ansible_become: yes
+    ansible_become: true
 
   pre_tasks:
     - name: Setup | Create credential file (used for fstab entry)

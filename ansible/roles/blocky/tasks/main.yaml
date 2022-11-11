@@ -1,12 +1,13 @@
 ---
 - name: Copy Blocky configuration
   become: true
-  template:
+  ansible.builtin.template:
     src: "blocky.conf.j2"
     dest: "{{ blocky_config_path }}"
+    mode: u=rw,g=r,o=r
 
 - name: Launch Blocky
-  docker_container:
+  community.docker.docker_container:
     name: blocky
     image: spx01/blocky:latest
     restart: true

@@ -1,13 +1,13 @@
 ---
-- name: Ensure the container user group exists
-  group:
+- name: Configuration | Ensure the container user group exists
+  ansible.builtin.group:
     name: "mosquitto"
     state: present
     gid: 1883
     system: true
 
-- name: Ensure the container user exists
-  user:
+- name: Configuration | Ensure the container user exists
+  ansible.builtin.user:
     name: "mosquitto"
     state: present
     uid: 1883
@@ -16,11 +16,11 @@
     system: true
     shell: "/usr/sbin/nologin"
 
-- name: create docker directory
+- name: Configuration | create docker directory
   become: true
   ansible.builtin.file:
     path: "{{ item.path }}"
-    mode: "{{item.mode}}"
+    mode: "{{ item.mode }}"
     state: directory
     owner: "mosquitto"
     group: "mosquitto"
@@ -29,46 +29,41 @@
     - { path: "{{ paths.mosquitto }}/certs", mode: "0777" }
     - { path: "{{ paths.mosquitto }}/data", mode: "0755" }
 
-- name: upload mosquitto config
+- name: Configuration | Create mosquitto config
   become: true
   ansible.builtin.copy:
+    mode: u=rw,g=r,o=r
     src: files/mosquitto.conf
     dest: "{{ paths.mosquitto }}/config/mosquitto.conf"
 
-- name: delete the existing password file
-  file:
+- name: Configuration | delete the existing password file
+  ansible.builtin.file:
     path: "{{ paths.mosquitto }}/config/passwd"
     state: absent
 
-- name: start with an empty password file
-  file:
+- name: Configuration | start with an empty password file
+  ansible.builtin.file:
     path: "{{ paths.mosquitto }}/config/passwd"
     state: touch
     mode: 0640
     owner: "mosquitto"
     group: "mosquitto"
 
-- name: Write the temporary password file contents
-  command: "docker run --rm -v {{ paths.mosquitto }}/config/passwd:/mosquitto/config/passwd \
-    eclipse-mosquitto:{{ mosquitto_docker_version }} mosquitto_passwd \
-    -b /mosquitto/config/passwd {{ item.name }} {{ item.password }}"
-  with_items: "{{ mosquitto_users }}"
-
-- name: "ensure {{ paths.mosquitto }}/config/passwd }} has restrictive persmissions"
+- name: "Configuration | Ensure passwd file has restrictive persmissions"
   ansible.builtin.file:
     path: "{{ paths.mosquitto }}/config/passwd"
     owner: mosquitto
     group: root
     mode: 0640
 
-- name: Ensure private key is present
+- name: Configuration | Ensure private key is present
   community.crypto.openssl_privatekey:
     path: "{{ paths.mosquitto }}/certs/mqtt-server.key"
     size: 2048
     mode: 0600
     type: RSA
 
-- name: Ensure self-signed cert is present
+- name: Configuration | Ensure self-signed cert is present
   community.crypto.x509_certificate:
     path: "{{ paths.mosquitto }}/certs/mqtt-server.crt"
     privatekey_path: "{{ paths.mosquitto }}/certs/mqtt-server.key"
@@ -76,8 +71,8 @@
     selfsigned_not_after: "+3650d" # this is the default
     mode: 0644
 
-- name: Add the certificate file directory to the list of volumes, if necessary
-  set_fact:
+- name: Configuration | Add the certificate file directory to the list of volumes, if necessary
+  ansible.builtin.set_fact:
     _mosquitto_docker_volumes: "{{ _mosquitto_docker_volumes | union(['{{ mosquitto_certfiles_dir }}:/mosquitto/certs']) }}"
   when: mosquitto_use_ssl
 
@@ -89,9 +84,9 @@
       keyfile /mosquitto/certs/mqtt-server.key
   register: config1
 
-- name: "create docker container"
+- name: "Container | create docker container"
   community.docker.docker_container:
-    name: mosquitto
+    name: "{{ mosquitto_docker_container_name }}"
     image: eclipse-mosquitto
     env:
       "TZ": "{{ ansible_nas_timezone }}"
@@ -106,3 +101,14 @@
       - "9001:9001"
     labels:
       "com.centurylinklabs.watchtower.enable": "true"
+
+- name: Configuration | Add Mosquitto user/password entries
+  ansible.builtin.command:
+    mosquitto_passwd -b "{{ paths.mosquitto }}/config/passwd" "{{ item.name }}" "{{ item.password }}"
+  when:
+    - item.state | default("present") == "present"
+    - item.name not in mosquitto_users_list.stdout_lines
+  with_items: "{{ mosquitto_auth_users }}"
+  no_log: true
+  notify:
+    - Restart mosquitto

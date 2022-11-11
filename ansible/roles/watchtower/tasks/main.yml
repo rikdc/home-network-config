@@ -5,7 +5,7 @@
     source: pull
 
 - name: Launch Watchtower
-  docker_container:
+  community.docker.docker_container:
     name: watchtower
     image: containrrr/watchtower
     restart: true
@@ -16,6 +16,6 @@
     env:
       "WATCHTOWER_CLEANUP": "true"
       "WATCHTOWER_LABEL_ENABLE": "true"
-      "WATCHTOWER_INCLUDE_RESTARTING" : "true"
+      "WATCHTOWER_INCLUDE_RESTARTING": "true"
     labels:
       "com.centurylinklabs.watchtower.enable": "true"
