@@ -27,6 +27,5 @@ jobs:
 
       - name: Lint docs
         uses: articulate/actions-markdownlint@v1
-        files: 'docs/**/*.md'
         with:
           version: 1.1.0
