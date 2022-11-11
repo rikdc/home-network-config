@@ -47,9 +47,14 @@
     image: influxdb
     state: "{{ influxdb_docker_state | default('started') }}"
     restart: "{{ influxdb_docker_restart | default(false) | bool }}"
-    #networks: "{{ influxdb_docker_networks }}"
+    #networks: "{{ influxdb_docker_networks }}"pas
     env:
-      "TZ": "{{ ansible_nas_timezone }}"
+      TZ: "{{ ansible_nas_timezone }}"
+      DOCKER_INFLUXDB_INIT_MODE: "setup"
+      DOCKER_INFLUXDB_INIT_USERNAME: "{{ influxdb_users.admin.username }}"
+      DOCKER_INFLUXDB_INIT_PASSWORD: "{{ influxdb_users.admin.password }}"
+      DOCKER_INFLUXDB_INIT_ORG: "{{ influxdb_users.admin.org }}"
+      DOCKER_INFLUXDB_INIT_BUCKET: "{{ influxdb_bucket }}"
     restart_policy: "{{ influxdb_container_restart_policy }}"
     volumes:
       - "{{ influxdb_conf_dir }}/influxdb.conf:/etc/influxdb/influxdb.conf:ro"
@@ -58,3 +63,23 @@
       - "8086:8086"
     labels:
       "com.centurylinklabs.watchtower.enable": "true"
+
+- name: Container | Wait for influxdb to be available
+  shell: docker exec influxdb influx auth list --json
+  register: result
+  until: result.stderr.find("Error") == -1
+  retries: 10
+  delay: 3
+  # todo - this always marks "changed" as true
+
+- name: Container | Create regular influxdb users
+  community.docker.docker_container_exec:
+    container: "{{ influxdb_container_name }}"
+    command: influx user create -n {{ item.username }} -p "{{ item.password }}" -o "{{ item.org }}"
+  loop: "{{ influxdb_users.regular }}"
+  register: _user
+  failed_when:
+    - _user.rc != 0
+    - '"already exists" not in _user.stderr'
+  changed_when: _user.rc == 0
+   when: influxdb_service_state == "started"
