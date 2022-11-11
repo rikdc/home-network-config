@@ -1,16 +1,23 @@
-## Role Name
+# Blocky
 
-Blocky - Configure the Blocky DNS Server.
+Configures the Blocky DNS Server
 
 ## Requirements
 
-Docker
+-
 
-## Variables
+## Role Variables
 
-## Dependencies
+-
+
+##  Dependencies
+
+-
 
 ## Example Playbook
 
+-
+
 ## License
 
+MIT

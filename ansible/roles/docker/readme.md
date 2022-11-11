@@ -1,16 +1,23 @@
-## Role Name
+# Blocky
 
-Docker - Installs docker onto the target machine
+Configures Docker on the given server
 
 ## Requirements
 
-## Variables
+-
 
-ubuntu_version focal
+## Role Variables
 
-## Dependencies
+-
+
+##  Dependencies
+
+-
 
 ## Example Playbook
 
+-
+
 ## License
 
+MIT

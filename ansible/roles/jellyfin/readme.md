@@ -1,14 +1,14 @@
-## Role Name
+# Jellyfin
 
-Jellyfin
+Configures Jellyfin Media Server
 
 ## Requirements
 
-Docker
+-
 
-## Variables
+## Role Variables
 
-### jellyfin_volumes
+jellyfin_volumes
 
 Used by pre-tasks to determine which mounts to configure on the server
 
@@ -18,14 +18,14 @@ jellyfin_volumes:
     - { src: '//media.server/books', dest: '/mnt/books' }
 ```
 
-## Dependencies
+##  Dependencies
 
-### Variables
-
-- docker_daemon_options
-
+-
 
 ## Example Playbook
 
+-
+
 ## License
 
+MIT
