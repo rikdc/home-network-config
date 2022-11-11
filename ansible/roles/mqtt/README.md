@@ -10,7 +10,7 @@ Configures a secured MQTT server
 
 -
 
-##  Dependencies
+## Dependencies
 
 -
 

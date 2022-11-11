@@ -18,7 +18,7 @@ jellyfin_volumes:
     - { src: '//media.server/books', dest: '/mnt/books' }
 ```
 
-##  Dependencies
+## Dependencies
 
 -
 

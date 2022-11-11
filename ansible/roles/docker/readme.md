@@ -10,7 +10,7 @@ Configures Docker on the given server
 
 -
 
-##  Dependencies
+## Dependencies
 
 -
 

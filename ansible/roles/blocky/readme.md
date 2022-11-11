@@ -10,7 +10,7 @@ Configures the Blocky DNS Server
 
 -
 
-##  Dependencies
+## Dependencies
 
 -
 
