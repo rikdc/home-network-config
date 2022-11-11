@@ -1,2 +1,11 @@
 ---
-# defaults file for influxdb
+
+influxdb_container_name: "influxdb"
+
+influxdb_root_dir: "/docker/{{ influxdb_container_name }}"
+influxdb_conf_dir: "{{ influxdb_root_dir }}/conf"
+influxdb_data_dir: "{{ influxdb_root_dir }}/data"
+
+influxdb_docker_networks: []
+
+influxdb_container_restart_policy: "always"
