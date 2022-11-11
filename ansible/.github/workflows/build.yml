@@ -28,9 +28,6 @@ jobs:
       - name: Ansible-lint
         run: ansible-lint site.yml
 
-      - name: Lint yaml files
-        run: yamllint .
-
       - name: Lint docs
         uses: articulate/actions-markdownlint@v1
         with:
