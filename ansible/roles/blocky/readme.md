@@ -1,16 +1,27 @@
-## Role Name
+# Blocky
 
-Blocky - Configure the Blocky DNS Server.
+Configures the Blocky DNS Server
 
 ## Requirements
 
-Docker
+Ansible 2.10 or newer.
 
-## Variables
+## Role Variables
+
+  blocky_config_path
+
+The destination of the Blocky configuration file
 
 ## Dependencies
 
+None
+
 ## Example Playbook
+
+  - hosts: all
+      roles:
+    - role: blocky
 
 ## License
 
+MIT

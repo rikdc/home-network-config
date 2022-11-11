@@ -1,16 +1,27 @@
-## Role Name
+# Docker
 
-Docker - Installs docker onto the target machine
+Configures Docker on the given server
 
 ## Requirements
 
-## Variables
+Ansible 2.10 or newer.
 
-ubuntu_version focal
+## Role Variables
+
+  ubuntu_version
+
+The ubuntu version being used.
 
 ## Dependencies
 
+None
+
 ## Example Playbook
+
+- hosts: all
+    roles:
+  - role: docker
 
 ## License
 
+MIT

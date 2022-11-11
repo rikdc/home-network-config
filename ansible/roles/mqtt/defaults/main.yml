@@ -3,13 +3,15 @@
 
 mosquitto_docker_version: "latest"
 
+mosquitto_docker_container_name: "mosquitto"
+
 mosquitto_use_ssl: false
 mosquitto_certfiles_dir: ""
 mosquitto_ca_filename: ""
 mosquitto_cert_filename: ""
 mosquitto_key_filename: ""
 
-mosquitto_users:
+mosquitto_auth_users:
   - name: example_admin
     password: example_password
 
