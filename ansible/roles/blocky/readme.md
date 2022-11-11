@@ -18,9 +18,9 @@ None
 
 ## Example Playbook
 
-- hosts: all
-    roles:
-  - role: blocky
+  - hosts: all
+      roles:
+    - role: blocky
 
 ## License
 
