@@ -1,0 +1,79 @@
+---
+- name: Configuration | Ensure the container user group exists
+  ansible.builtin.group:
+    name: "influxdb"
+    state: present
+    system: true
+
+- name: Configuration | Ensure the container user exists
+  ansible.builtin.user:
+    name: "influxdb"
+    state: present
+    group: "influxdb"
+    create_home: false
+    system: true
+    shell: "/usr/sbin/nologin"
+
+- name: Configuration | create docker directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    mode: "{{ item.mode }}"
+    state: directory
+    owner: "influxdb"
+    group: "influxdb"
+  loop:
+    - { path: "{{ influxdb_conf_dir }}", mode: "0777" }
+
+- name: Configuration | Create configuration file from template
+  become: true
+  notify: restart influxdb
+  ansible.builtin.template:
+    mode: u=rw,g=r,o=r
+    src: "influxdb.conf.j2"
+    dest: "{{ influxdb_conf_dir }}/influxdb.conf"
+
+# - name: Create a network
+#   become: true
+#   docker_network:
+#     name: "{{ item.name }}"
+#   with_items: "{{ influxdb_docker_networks }}"
+
+- name: Container | Start or restart influxdb container
+  become: true
+  community.docker.docker_container:
+    name: "{{ influxdb_container_name }}"
+    image: influxdb
+    state: "{{ influxdb_docker_state | default('started') }}"
+    restart: "{{ influxdb_docker_restart | default(false) | bool }}"
+    env:
+      TZ: "{{ ansible_nas_timezone }}"
+      DOCKER_INFLUXDB_INIT_MODE: "setup"
+      DOCKER_INFLUXDB_INIT_USERNAME: "{{ influxdb_users.admin.username }}"
+      DOCKER_INFLUXDB_INIT_PASSWORD: "{{ influxdb_users.admin.password }}"
+      DOCKER_INFLUXDB_INIT_ORG: "{{ influxdb_users.admin.org }}"
+      DOCKER_INFLUXDB_INIT_BUCKET: "{{ influxdb_bucket }}"
+    restart_policy: "{{ influxdb_container_restart_policy }}"
+    volumes:
+      - "{{ influxdb_conf_dir }}/influxdb.conf:/etc/influxdb/influxdb.conf:ro"
+      - "{{ influxdb_data_dir }}:/var/lib/influxdb"
+    ports:
+      - "8086:8086"
+    labels:
+      "com.centurylinklabs.watchtower.enable": "true"
+
+- name: Wait for port 8000 to become open on the host, don't start checking for 10 seconds
+  ansible.builtin.wait_for:
+    port: 8086
+    delay: 10
+
+- name: Container | Create regular influxdb users
+  community.docker.docker_container_exec:
+    container: "{{ influxdb_container_name }}"
+    command: influx user create -n {{ item.username }} -p "{{ item.password }}" -o "{{ item.org }}"
+  loop: "{{ influxdb_users.regular }}"
+  register: _user
+  failed_when:
+    - _user.rc != 0
+    - '"already exists" not in _user.stderr'
+  changed_when: _user.rc == 0

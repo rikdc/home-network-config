@@ -1,0 +1,23 @@
+---
+
+influxdb_container_name: "influxdb"
+
+influxdb_root_dir: "/docker/{{ influxdb_container_name }}"
+influxdb_conf_dir: "{{ influxdb_root_dir }}/conf"
+influxdb_data_dir: "{{ influxdb_root_dir }}/data"
+
+influxdb_docker_networks: []
+
+influxdb_container_restart_policy: "always"
+
+influxdb_users:
+  admin:
+    username: 'admin'
+    password: 'password12345'
+    org: "homelab"
+  regular:
+    - {username: 'hass', password: 'homeassistant12345', org: 'homelab'}
+
+influxdb_bucket: homelab
+
+# https://github.com/usegalaxy-eu/ansible-influxdb-container/blob/dc5a1da670311b9181c16ef74aa03e0ebbe00c15/defaults/main.yml
