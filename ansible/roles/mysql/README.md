@@ -98,7 +98,6 @@ None
       - default.config.yml
 
     roles:
-
       - role: mysql
         become: true
 ```
