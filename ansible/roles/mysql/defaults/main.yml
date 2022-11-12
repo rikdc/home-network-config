@@ -12,3 +12,10 @@ mysql_lib_dir: /var/mysql/lib
 mysql_network: mysql
 mysql_port: 3306
 mysql_state: started
+
+mysql_users:
+  admin:
+    username: 'admin'
+    password: 'password12345'
+  regular:
+    - {username: 'homeassistant', password: 'homeassistant', host: "localhost", database: 'homeassistant'}
