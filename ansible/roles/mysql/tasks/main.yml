@@ -1,0 +1,47 @@
+---
+- name: Ensure mysql dirs exist
+  become: true
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    recurse: true
+    mode: 0640
+  with_items:
+    - "{{ mysql_backups_dir }}"
+    - "{{ mysql_conf_dir }}"
+    - "{{ mysql_lib_dir }}"
+
+- name: Copy mysql config files
+  ansible.builtin.template:
+    src: "templates/{{ item }}.j2"
+    dest: "{{ mysql_conf_dir }}/{{ item }}"
+    force: true
+    mode: 0640
+  with_items:
+    - "my.cnf"
+
+- name: Create docker network
+  community.docker.docker_network:
+    name: "{{ mysql_network }}"
+    state: present
+
+- name: Start MySQL Container
+  community.docker.docker_container:
+    env:
+      MYSQL_ROOT_PASSWORD: "{{ mysql_root_password }}"
+    image: mysql:5.7
+    labels:
+      traefik.enable: "false"
+    name: "{{ mysql_container_name }}"
+    networks:
+      - name: "{{ mysql_network }}"
+    ports:
+      - "{{ mysql_port }}:3306"
+    pull: true
+    recreate: true
+    restart_policy: always
+    state: "{{ mysql_state }}"
+    volumes:
+      - "{{ mysql_backups_dir }}:/var/backups/mysql"
+      - "{{ mysql_conf_dir }}:/etc/mysql/conf.d"
+      - "{{ mysql_lib_dir }}:/var/lib/mysql"
