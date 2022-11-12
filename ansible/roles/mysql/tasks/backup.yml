@@ -1,12 +1,7 @@
-- name: Create project folder
+---
+- name: Setup | Create project folder
   ansible.builtin.file:
     path: '{{ project_path }}'
-    state: directory
-    mode: '0764'
-
-- name: Create Findus project folder
-  ansible.builtin.file:
-    path: '{{ project_path }}/build'
     state: directory
     mode: '0764'
 
@@ -50,3 +45,8 @@
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /opt/mysql/backup:/opt/mysql/backup
+
+- name: Setup | Delete project folder
+  ansible.builtin.file:
+    path: '{{ project_path }}'
+    state: absent

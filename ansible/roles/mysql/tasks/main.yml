@@ -89,3 +89,6 @@
     priv: '*.*:ALL'
     state: present
   loop: "{{ mysql_users.regular }}"
+
+- name: Setup | Configure Backup system
+  ansible.builtin.include_tasks: backup.yml
