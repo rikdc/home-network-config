@@ -30,3 +30,4 @@
     - common
     - docker
     - jellyfin
+    - mysql

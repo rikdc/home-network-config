@@ -1,0 +1,52 @@
+---
+- name: Setup | Create project folder
+  ansible.builtin.file:
+    path: '{{ project_path }}'
+    state: directory
+    mode: '0764'
+
+- name: Template | Generate the backup script
+  ansible.builtin.template:
+    src: templates/backup.sh.j2
+    dest: "{{ project_path }}/backup.sh"
+    owner: bin
+    mode: '0644'
+
+- name: Configure | Copy over the config
+  ansible.builtin.copy:
+    src: files/Dockerfile
+    dest: "{{ project_path }}/Dockerfile"
+    mode: 0644
+
+- name: Docker | Build image and with build args
+  community.docker.docker_image:
+    name: mysql-backup-runner
+    build:
+      network: host # not ideal..
+      path: "{{ project_path }}"
+      dockerfile: "{{ project_path }}/Dockerfile"
+    source: build
+  tags: build
+
+- name: Docker | Launch mysql-backup-runner container
+  community.docker.docker_container:
+    name: mysql-backup-runner
+    env:
+      MYSQL_ROOT_PASSWORD: "{{ mysql_root_password }}"
+      MYSQL_CONTAINER_NAME: mysql
+      MYSQL_DATABASE: mysql
+    image: mysql-backup-runner
+    networks:
+      - name: "{{ mysql_network }}"
+    recreate: true
+    restart_policy: always
+    state: "{{ mysql_state }}"
+    command: crond -f -d 8
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /opt/mysql/backup:/opt/mysql/backup
+
+- name: Setup | Delete project folder
+  ansible.builtin.file:
+    path: '{{ project_path }}'
+    state: absent
