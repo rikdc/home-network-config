@@ -14,7 +14,7 @@
   loop:
     - "minicom"
     - "lrzsz"
-  become: yes
+  become: true
   # https://github.com/kpine/zwave-js-server-docker/wiki/700-series-Controller-Firmware-Updates-(Linux)
 
 - name: Configuration | Ensure the container user group exists
