@@ -1,0 +1,72 @@
+---
+- name: "Setup | Set Docker volume list for bind mounts"
+  ansible.builtin.set_fact:
+    _zwavejsui_docker_mount_list:
+      - source: "{{ zwavejs_docker_data_dir }}"
+        target: "/usr/src/app/store"
+        type: "bind"
+  when: "not zwavejsui_docker_use_volumes"
+
+- name: "Setup | Install prereqs to update controller"
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: "latest"
+  loop:
+    - "minicom"
+    - "lrzsz"
+  become: yes
+  # https://github.com/kpine/zwave-js-server-docker/wiki/700-series-Controller-Firmware-Updates-(Linux)
+
+- name: Configuration | Ensure the container user group exists
+  ansible.builtin.group:
+    name: "zwavejsui"
+    state: present
+    system: true
+
+- name: Configuration | Ensure the container user exists
+  ansible.builtin.user:
+    name: "zwavejsui"
+    state: present
+    group: "zwavejsui"
+    create_home: false
+    system: true
+    shell: "/usr/sbin/nologin"
+
+- name: Configuration | create docker directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    mode: "{{ item.mode }}"
+    state: directory
+    owner: "zwavejsui"
+    group: "zwavejsui"
+  loop:
+    - { path: "{{ zwavejs_conf_dir }}", mode: "0777" }
+
+- name: Configuration | Create configuration file from template
+  become: true
+  #notify: restart influxdb
+  ansible.builtin.template:
+    mode: u=rw,g=r,o=r
+    src: "settings.json.j2"
+    dest: "{{ zwavejs_conf_dir }}/settings.json"
+
+- name: Container | Start or restart ZwavejsUI container
+  become: true
+  community.docker.docker_container:
+    name: "{{ zwavejs_container_name }}"
+    image: "{{ zwavejs_docker_image_name }}:{{ zwavejs_docker_image_version }}"
+    env:
+      TZ: "{{ ansible_nas_timezone }}"
+    stop_signal: SIGINT
+    restart_policy: unless-stopped
+    # devices:
+    #   - "{{ zwavejs_docker_device }}:/dev/ttyACM0"
+    # volumes:
+    #   - zwave-config:/usr/src/app/store
+    ports:
+      - '8091:8091' # port for web interface
+      - '3000:3000' # port for Z-Wave JS websocket server
+    labels:
+      "com.centurylinklabs.watchtower.enable": "true"
+  register: status
