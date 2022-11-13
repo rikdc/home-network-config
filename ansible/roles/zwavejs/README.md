@@ -9,13 +9,21 @@ Docker
 
 ## Role Variables
 
-  ansible_nas_timezone
+    ansible_nas_timezone
 
 Timezone code for the container.
 
-  zwavejs_device
+    zwavejs_device
 
 Zwave serial device to attach to the Docker container
+
+
+    zwavejs_keys_s2_unauthenticated
+    zwavejs_keys_s2_authenticated
+    zwavejs_keys_s2_accesscontrol
+    zwavejs_keys_s0_legacy
+
+The various security keys required by S2 Authenication
 
 ## Dependencies
 

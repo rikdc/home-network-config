@@ -1,0 +1,73 @@
+{
+  "mqtt": {
+    "name": "homeassistant",
+    "host": "192.168.10.8",
+    "port": 1883,
+    "qos": 0,
+    "prefix": "homeassistant",
+    "reconnectPeriod": 5000,
+    "retain": true,
+    "clean": true,
+    "auth": false,
+    "_ca": "",
+    "ca": "",
+    "_cert": "",
+    "cert": "",
+    "_key": "",
+    "key": "",
+    "store": true,
+    "disabled": true
+  },
+  "gateway": {
+    "type": 0,
+    "plugins": [
+      "@varet/zj2m-prom-exporter"
+    ],
+    "authEnabled": false,
+    "payloadType": 1,
+    "nodeNames": true,
+    "hassDiscovery": false,
+    "discoveryPrefix": "homeassistant",
+    "logEnabled": false,
+    "logLevel": "debug",
+    "logToFile": false,
+    "values": [],
+    "retainedDiscovery": true,
+    "includeNodeInfo": true,
+    "publishNodeDetails": true,
+    "sendEvents": true
+  },
+  "zwave": {
+    "port": "/dev     /ttyACM0",
+    "commandsTimeout": 15000,
+    "logLevel": "debug",
+    "logEnabled": true,
+    "securityKeys": {
+      "S0_Legacy": "{{ zwavejs_keys_s0_legacy }}",
+      "S2_Unauthenticated": "{{ zwavejs_keys_s2_unauthenticated }}",
+      "S2_AccessControl": "{{ zwavejs_keys_s2_accesscontrol }}",
+      "S2_Authenticated": "{{ zwavejs_keys_s2_authenticated }}"
+    },
+    "deviceConfigPriorityDir": "/usr/src/app/store/config",
+    "logToFile": false,
+    "serverEnabled": true,
+    "serverServiceDiscoveryDisabled": false,
+    "enableSoftReset": true,
+    "enableStatistics": true,
+    "serverPort": 3000,
+    "maxNodeEventsQueueSize": 100,
+    "logging": true,
+    "saveConfig": true,
+    "pollInterval": 5000,
+    "disclaimerVersion": 1
+  },
+  "backup": {
+    "storeBackup": false,
+    "storeCron": "0 0 * * *",
+    "storeKeep": 7,
+    "nvmBackup": false,
+    "nvmBackupOnEvent": false,
+    "nvmCron": "0 0 * * *",
+    "nvmKeep": 7
+  }
+}

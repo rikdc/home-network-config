@@ -70,3 +70,9 @@
     labels:
       "com.centurylinklabs.watchtower.enable": "true"
   register: status
+  # vars:
+  #   ansible_python_interpreter: "/usr/bin/env python3-docker"
+
+# - assert:
+#     that:
+#       - "status.services.zwave.zwavejs_zwavejs2mqtt_1.state.running"
