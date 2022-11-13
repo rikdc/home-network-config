@@ -12,13 +12,13 @@
     owner: bin
     mode: '0644'
 
-- name: Copy over the config
+- name: Configure | Copy over the config
   ansible.builtin.copy:
     src: files/Dockerfile
     dest: "{{ project_path }}/Dockerfile"
     mode: 0644
 
-- name: Build image and with build args
+- name: Docker | Build image and with build args
   community.docker.docker_image:
     name: mysql-backup-runner
     build:
