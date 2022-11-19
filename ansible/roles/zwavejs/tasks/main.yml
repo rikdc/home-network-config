@@ -5,7 +5,7 @@
       - source: "{{ zwavejs_docker_data_dir }}"
         target: "/usr/src/app/store"
         type: "bind"
-  when: "not zwavejsui_docker_use_volumes"
+  when: "not zwavejs_docker_use_volumes"
 
 - name: "Setup | Install prereqs to update controller"
   ansible.builtin.apt:
