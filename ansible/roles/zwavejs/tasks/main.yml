@@ -45,7 +45,6 @@
 
 - name: Configuration | Create configuration file from template
   become: true
-  #notify: restart influxdb
   ansible.builtin.template:
     mode: u=rw,g=r,o=r
     src: "settings.json.j2"
