@@ -1,2 +1,2 @@
-ansible/elliotweiser.osx-command-line-tools
-ansible/geerlingguy*
+ansible/roles/elliotweiser.osx-command-line-tools
+ansible/roles/geerlingguy*
