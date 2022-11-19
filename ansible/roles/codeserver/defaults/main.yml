@@ -1,10 +1,11 @@
 ---
-code_server_enabled: false
+code_server_enabled: true
 code_server_available_externally: false
 
 # directories
-code_server_config_directory: "{{ docker_home }}/code_server"
-code_server_projects_directory: "{{ code_root }}"
+code_server_root_directory: "{{ docker_home }}/code_server"
+code_server_config_directory: "{{ code_server_root_directory }}/config"
+code_server_projects_directory: "{{ code_server_root_directory }}/projects"
 
 # uid / gid
 code_server_user_id: "0"
