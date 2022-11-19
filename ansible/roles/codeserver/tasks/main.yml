@@ -1,29 +1,25 @@
 ---
 - name: Start Code Server
-  block:
-    - name: Code Server Docker Container
-      docker_container:
-        name: "{{ code_server_container_name }}"
-        image: linuxserver/code-server
-        pull: true
-        volumes:
-          - "{{ code_server_config_directory }}:/config"
-          - "{{ code_server_projects_directory }}:/code:rw"
-        ports:
-          - "{{ code_server_port }}:8443"
-        env:
-          TZ: "{{ ansible_nas_timezone }}"
-          DEFAULT_WORKSPACE: "/code"
-          PUID: "{{ code_server_user_id }}"
-          PGID: "{{ code_server_group_id }}"
-        restart_policy: unless-stopped
-        memory: "{{ code_server_memory }}"
+  community.docker.docker_container:
+    name: "{{ code_server_container_name }}"
+    image: linuxserver/code-server
+    pull: true
+    volumes:
+      - "{{ code_server_config_directory }}:/config"
+      - "{{ code_server_projects_directory }}:/code:rw"
+    ports:
+      - "{{ code_server_port }}:8443"
+    env:
+      TZ: "{{ ansible_nas_timezone }}"
+      DEFAULT_WORKSPACE: "/code"
+      PUID: "{{ code_server_user_id }}"
+      PGID: "{{ code_server_group_id }}"
+    restart_policy: unless-stopped
+    memory: "{{ code_server_memory }}"
   when: code_server_enabled is true
 
 - name: Stop Code Server
-  block:
-    - name: Stop Code Server
-      docker_container:
-        name: "{{ code_server_container_name }}"
-        state: absent
+  community.docker.docker_container:
+    name: "{{ code_server_container_name }}"
+    state: absent
   when: code_server_enabled is false
