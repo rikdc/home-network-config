@@ -9,13 +9,6 @@
   when: (pip_version_output is failed) or not pip_version_output.stdout is search(pip_version)
   ansible.builtin.command: python -m ensurepip
 
-# - name: Create a symbolic link
-#   ansible.builtin.file:
-#     become: true
-#     src: /bin/pip3
-#     dest: /bin/pip
-#     state: link
-
 - name: Install docker SDK
   ansible.builtin.pip:
     name: docker
