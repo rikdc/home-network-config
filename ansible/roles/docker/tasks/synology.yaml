@@ -1,13 +1,13 @@
 ---
 - name: Get installed pip version
-  command: "{{ pip_executable }} --version"
+  ansible.builtin.command: "{{ pip_executable }} --version"
   register: pip_version_output
-  ignore_errors: yes
+  ignore_errors: true
   changed_when: false
 
 - name: Install pip
   when: (pip_version_output is failed) or not pip_version_output.stdout is search(pip_version)
-  shell: python -m ensurepip
+  ansible.builtin.shell: python -m ensurepip
 
 # - name: Create a symbolic link
 #   ansible.builtin.file:
@@ -17,12 +17,12 @@
 #     state: link
 
 - name: Install docker SDK
-  pip:
+  ansible.builtin.pip:
     name: docker
 
 # required for docker
 - name: Install six
-  pip:
+  ansible.builtin.pip:
     name: six
 
     # https://github.com/manojm321/ansible-synology/blob/main/roles/python/tasks/main.yaml
