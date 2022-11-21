@@ -1,6 +1,6 @@
 ---
 - name: pip installed?
-  shell: command -v pip >/dev/null 2>&1
+  ansible.builtin.shell: command -v pip >/dev/null 2>&1
   register: pip_installed
   ignore_errors: true
 
