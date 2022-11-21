@@ -1,0 +1,29 @@
+---
+- name: pip installed?
+  shell: command -v pip >/dev/null 2>&1
+  register: pip_installed
+  ignore_errors: true
+
+- name: Install pip
+  when: pip_installed.rc != 0
+  shell: python -m ensurepip
+
+# - name: Create a symbolic link
+#   ansible.builtin.file:
+#     become: true
+#     src: /bin/pip3
+#     dest: /bin/pip
+#     state: link
+
+- name: Install docker SDK
+  pip:
+    name: docker
+
+# required for docker
+- name: Install six
+  pip:
+    name: six
+
+    # https://github.com/manojm321/ansible-synology/blob/main/roles/python/tasks/main.yaml
+
+
