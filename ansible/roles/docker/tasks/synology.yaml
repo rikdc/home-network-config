@@ -1,11 +1,12 @@
 ---
-- name: pip installed?
-  ansible.builtin.shell: command -v pip >/dev/null 2>&1
-  register: pip_installed
-  ignore_errors: true
+- name: Get installed pip version
+  command: "{{ pip_executable }} --version"
+  register: pip_version_output
+  ignore_errors: yes
+  changed_when: false
 
 - name: Install pip
-  when: pip_installed.rc != 0
+  when: (pip_version_output is failed) or not pip_version_output.stdout is search(pip_version)
   shell: python -m ensurepip
 
 # - name: Create a symbolic link
