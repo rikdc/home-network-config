@@ -7,6 +7,10 @@ code_server_root_directory: "{{ docker_home }}/code_server"
 code_server_config_directory: "{{ code_server_root_directory }}/config"
 code_server_projects_directory: "{{ code_server_root_directory }}/projects"
 
+codeserver_mounts:
+  - "{{ code_server_config_directory }}:/config"
+  - "{{ code_server_projects_directory }}:/code:rw"
+
 # uid / gid
 code_server_user_id: "0"
 code_server_group_id: "0"

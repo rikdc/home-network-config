@@ -34,9 +34,7 @@
     name: "{{ code_server_container_name }}"
     image: linuxserver/code-server
     pull: true
-    volumes:
-      - "{{ code_server_config_directory }}:/config"
-      - "{{ code_server_projects_directory }}:/code:rw"
+    volumes: "{{ codeserver_mounts }}"
     ports:
       - "{{ code_server_port }}:8443"
     env:
