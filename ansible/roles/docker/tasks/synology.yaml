@@ -7,7 +7,7 @@
 
 - name: Install pip
   when: (pip_version_output is failed) or not pip_version_output.stdout is search(pip_version)
-  ansible.builtin.shell: python -m ensurepip
+  ansible.builtin.command: python -m ensurepip
 
 # - name: Create a symbolic link
 #   ansible.builtin.file:
@@ -24,7 +24,3 @@
 - name: Install six
   ansible.builtin.pip:
     name: six
-
-    # https://github.com/manojm321/ansible-synology/blob/main/roles/python/tasks/main.yaml
-
-
