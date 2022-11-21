@@ -59,18 +59,16 @@
       TZ: "{{ ansible_nas_timezone }}"
     stop_signal: SIGINT
     restart_policy: unless-stopped
-    # devices:
-    #   - "{{ zwavejs_docker_device }}:/dev/ttyACM0"
-    # volumes:
-    #   - zwave-config:/usr/src/app/store
+    devices:
+      - "{{ zwavejs_docker_device }}:/dev/ttyACM0"
+    volumes:
+      - zwave-config:/usr/src/app/store
     ports:
       - '8091:8091' # port for web interface
       - '3000:3000' # port for Z-Wave JS websocket server
     labels:
       "com.centurylinklabs.watchtower.enable": "true"
   register: status
-  # vars:
-  #   ansible_python_interpreter: "/usr/bin/env python3-docker"
 
 # - assert:
 #     that:

@@ -44,6 +44,10 @@ Create and use Docker volumes for storing data. True when you want to use volume
 
  Directory on filesystem to use for storing data files. Used when zwavejs_docker_use_volumes is false.
 
+    homeassistant_host
+
+Homeassistant Instance Hostname or IP address
+
 ## Dependencies
 
 None
