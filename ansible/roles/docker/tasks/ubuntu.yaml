@@ -1,0 +1,54 @@
+---
+- name: Setup | Install required system packages
+  become: true
+  ansible.builtin.apt:
+    pkg:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - software-properties-common
+      - python3-pip
+      - virtualenv
+      - python3-setuptools
+    state: latest
+    update_cache: true
+
+# Sets key used to verify your install packages are from an authorized source.
+- name: Add Docker GPG apt Key
+  ansible.builtin.apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+# Sets repository containing packages needed to install and run Docker on a Debian-based system.
+- name: Setup | Add Docker Repository
+  ansible.builtin.apt_repository:
+    repo: deb https://download.docker.com/linux/ubuntu {{ ubuntu_version }} stable
+    state: present
+
+# Installs Docker community edition
+- name: Setup | Update apt and install docker-ce
+  ansible.builtin.apt:
+    name: docker-ce
+    state: latest
+    update_cache: true
+
+- name: Setup | Check docker is active
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Setup | Ensure group "docker" exists
+  ansible.builtin.group:
+    name: docker
+    state: present
+
+- name: Setup | Adding ubuntu to docker group
+  ansible.builtin.user:
+    name: ubuntu
+    groups: docker
+    append: true
+
+- name: Setup | Install Docker Module for Python
+  ansible.builtin.pip:
+    name: docker
