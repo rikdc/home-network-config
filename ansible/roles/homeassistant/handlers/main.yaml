@@ -1,0 +1,9 @@
+---
+- name: Restart home-assistant container
+  community.docker.docker_container:
+    name: home-assistant
+    state: started
+    restart: true
+
+- name: Reboot host
+  ansible.builtin.reboot:
