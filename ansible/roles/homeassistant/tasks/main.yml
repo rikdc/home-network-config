@@ -64,6 +64,18 @@
     group: homeassistant
   become: true
 
+- name: Create www/ directory
+  file:
+    path: "{{ home_assistant.config_dir }}/www/"
+    state: directory
+    owner: root
+    group: root
+  become: true
+
+- include_tasks: www.yml
+  with_items:
+    - "{{ home_assistant.frontend_components }}"
+
 - name: Start Home Assistant Docker containers
   community.docker.docker_container:
     name: hass
