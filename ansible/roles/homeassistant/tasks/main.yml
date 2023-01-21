@@ -1,0 +1,77 @@
+---
+- name: Configuration | Setup the MySQL Database
+  community.mysql.mysql_db:
+    name: homeassistant
+    state: present
+    login_host: 127.0.0.1
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+
+- name: Setup | Ensure group "homeassistant" exists
+  ansible.builtin.group:
+    name: homeassistant
+    state: present
+
+- name: Setup | Adding homeassistant to homeassistant group
+  ansible.builtin.user:
+    name: homeassistant
+    groups: homeassistant
+    state: present
+    append: true
+
+- name: Create backup directory
+  ansible.builtin.file:
+    path: "{{ home_assistant_backup_path }}"
+    state: directory
+    owner: homeassistant
+    group: homeassistant
+    mode: 0775
+
+- name: Force all notified handlers to run at this point
+  ansible.builtin.meta: flush_handlers
+
+- name: Clone a home-assistant configuration repository
+  git:
+    repo: https://github.com/rikdc/home-assistant-config.git
+    dest: "{{ homeassistant_data_directory }}"
+    clone: yes
+    update: yes
+
+- name: Configuration | Copy secrets.
+  become: true
+  ansible.builtin.copy:
+    mode: u=rw,g=r,o=r
+    src: files/secrets.yaml
+    dest: "{{ homeassistant_data_directory }}/secrets.yaml"
+
+- name: Configuration | Create custom_components/ directory
+  file:
+    path: "{{ homeassistant_data_directory }}/custom_components/"
+    state: directory
+    owner: homeassistant
+    group: homeassistant
+  become: true
+
+- include_tasks: custom-components.yml
+  with_items:
+    - "{{ home_assistant.custom_components }}"
+
+- name: Create themes/ directory
+  file:
+    path: "{{ home_assistant.config_dir }}/themes/"
+    state: directory
+    owner: homeassistant
+    group: homeassistant
+  become: true
+
+- name: Start Home Assistant Docker containers
+  community.docker.docker_container:
+    name: hass
+    image: homeassistant/home-assistant
+    detach: no
+    dns_servers:
+      - 192.168.88.211
+      - 192.168.88.226
+    volumes:
+      - "{{ homeassistant_data_directory }}:/config"
+
