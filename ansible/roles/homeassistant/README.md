@@ -1,6 +1,6 @@
-# MQTT
+# Home Assistant
 
-Configures a secured MQTT server
+Configures an instance of Home Assistant
 
 ## Requirements
 
