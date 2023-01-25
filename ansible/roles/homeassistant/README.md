@@ -13,7 +13,7 @@ ZWaveJSUI
 
 ## Dependencies
 
-None
+Create a secrets.yaml file in the files/ directory.
 
 ## Example Playbook
 
