@@ -1,6 +1,6 @@
 ---
 - name: Copy Blocky configuration
-  become: true
+  #become: true
   ansible.builtin.template:
     src: "blocky.conf.j2"
     dest: "{{ blocky_config_path }}"
