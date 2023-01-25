@@ -1,7 +1,7 @@
 ---
 - name: "WWW Component {{ item.name }}"
   block:
-    - name: "Check {{ item.name }} presence"
+    - name: "Check component presence {{ item.name }}"
       register: "www_component_installed"
       ansible.builtin.stat:
         path: "{{ home_assistant.config_dir + '/www/community/' + item.name }}"
