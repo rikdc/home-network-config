@@ -52,7 +52,8 @@
     group: homeassistant
   become: true
 
-- include_tasks: custom-components.yml
+- name: "Install custom components"
+  ansible.builtin.include_tasks: custom-components.yml
   with_items:
     - "{{ home_assistant.custom_components }}"
 
@@ -72,7 +73,8 @@
     group: root
   become: true
 
-- include_tasks: www.yml
+- name: "Include all frontend components"
+  ansible.builtin.include_tasks: www.yml
   with_items:
     - "{{ home_assistant.frontend_components }}"
 
@@ -80,10 +82,10 @@
   community.docker.docker_container:
     name: "{{ home_assistant.docker_name }}"
     image: "{{ home_assistant.docker_image }}"
-    detach: no
+    detach: false
     ports:
       - "8123:8123/tcp"
-    restart: yes
+    restart: true
     dns_servers:
       - 192.168.88.211
       - 192.168.88.226
