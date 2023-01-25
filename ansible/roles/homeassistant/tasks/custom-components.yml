@@ -1,12 +1,12 @@
 ---
 - name: "Custom Component | {{ item.name }}"
   block:
-    - name: "Check {{ item.name }} presence"
+    - name: "Check presence for: {{ item.name }}"
       register: "custom_component_installed"
       ansible.builtin.stat:
         path: "{{ home_assistant.component_dir + '/' + item.name }}"
 
-    - name: "Create {{ item.name }} directory"
+    - name: "Create component directory: {{ item.name }}"
       when: "not custom_component_installed.stat.exists"
       ansible.builtin.file:
         owner: root

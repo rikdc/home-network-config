@@ -31,11 +31,11 @@
   ansible.builtin.meta: flush_handlers
 
 - name: Clone a home-assistant configuration repository
-  git:
+  ansible.builtin.git:
     repo: https://github.com/rikdc/home-assistant-config.git
     dest: "{{ homeassistant_data_directory }}"
-    clone: yes
-    update: yes
+    clone: true
+    update: true
 
 - name: Copy secrets.
   become: true
@@ -45,7 +45,7 @@
     dest: "{{ homeassistant_data_directory }}/secrets.yaml"
 
 - name: Create custom_components/ directory
-  file:
+  ansible.builtin.file:
     path: "{{ homeassistant_data_directory }}/custom_components/"
     state: directory
     owner: homeassistant
@@ -57,7 +57,7 @@
     - "{{ home_assistant.custom_components }}"
 
 - name: Create themes/ directory
-  file:
+  ansible.builtin.file:
     path: "{{ home_assistant.config_dir }}/themes/"
     state: directory
     owner: homeassistant
@@ -65,7 +65,7 @@
   become: true
 
 - name: Create www/ directory
-  file:
+  ansible.builtin.file:
     path: "{{ home_assistant.config_dir }}/www/"
     state: directory
     owner: root
