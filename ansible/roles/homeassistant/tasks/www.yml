@@ -1,12 +1,12 @@
 ---
-- name: "WWW Component | {{ item.name }}"
+- name: "WWW Component {{ item.name }}"
   block:
     - name: "Check {{ item.name }} presence"
       register: "www_component_installed"
       ansible.builtin.stat:
         path: "{{ home_assistant.config_dir + '/www/community/' + item.name }}"
 
-    - name: "Create {{ item.name }} directory"
+    - name: "Create directory for {{ item.name }} "
       when: "not www_component_installed.stat.exists"
       ansible.builtin.file:
         owner: root
