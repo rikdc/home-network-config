@@ -7,12 +7,12 @@
     login_user: root
     login_password: "{{ mysql_root_password }}"
 
-- name: Ensure group "homeassistant" exists
+- name: Ensure homeassistant group exists
   ansible.builtin.group:
-    name: homeassistant
+    name: "{{ home_assistant.config_dir_group }}"
     state: present
 
-- name: Adding homeassistant to homeassistant group
+- name: Adding homeassistant user to homeassistant group
   ansible.builtin.user:
     name: "{{ home_assistant.config_dir_user }}"
     groups: "{{ home_assistant.config_dir_group }}"
