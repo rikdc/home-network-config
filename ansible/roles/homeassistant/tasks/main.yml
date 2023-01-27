@@ -25,17 +25,26 @@
     state: directory
     owner: homeassistant
     group: homeassistant
-    mode: 0775
+    mode: u=rw,g=r,o=r
 
 - name: Force all notified handlers to run at this point
   ansible.builtin.meta: flush_handlers
+
+- name: Get latest release of a public repository
+  community.general.github_release:
+    user: rikdc
+    repo: home-assistant-config
+    action: latest_release
+    prerelease: true
+  register: ha_config_latest_release
 
 - name: Clone a home-assistant configuration repository
   ansible.builtin.git:
     repo: https://github.com/rikdc/home-assistant-config.git
     dest: "{{ homeassistant_data_directory }}"
     clone: true
-    update: true
+    update: false
+    version: "{{ ha_config_latest_release }}"
 
 - name: Copy secrets.
   become: true
@@ -50,6 +59,7 @@
     state: directory
     owner: homeassistant
     group: homeassistant
+    mode: u=rw,g=r,o=r
   become: true
 
 - name: "Install custom components"
@@ -63,14 +73,16 @@
     state: directory
     owner: homeassistant
     group: homeassistant
+    mode: u=rw,g=r,o=r
   become: true
 
 - name: Create www/ directory
   ansible.builtin.file:
     path: "{{ home_assistant.config_dir }}/www/"
     state: directory
-    owner: root
-    group: root
+    owner: homeassistant
+    group: homeassistant
+    mode: u=rw,g=r,o=r
   become: true
 
 - name: "Include all frontend components"
