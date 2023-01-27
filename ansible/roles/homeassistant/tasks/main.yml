@@ -14,8 +14,8 @@
 
 - name: Adding homeassistant to homeassistant group
   ansible.builtin.user:
-    name: homeassistant
-    groups: homeassistant
+    name: "{{ home_assistant.config_dir_user }}"
+    groups: "{{ home_assistant.config_dir_group }}"
     state: present
     append: true
 
@@ -23,8 +23,8 @@
   ansible.builtin.file:
     path: "{{ home_assistant_backup_path }}"
     state: directory
-    owner: homeassistant
-    group: homeassistant
+    owner: "{{ home_assistant.config_dir_user }}"
+    group: "{{ home_assistant.config_dir_group }}"
     mode: u=rw,g=r,o=r
 
 - name: Force all notified handlers to run at this point
@@ -57,8 +57,8 @@
   ansible.builtin.file:
     path: "{{ homeassistant_data_directory }}/custom_components/"
     state: directory
-    owner: homeassistant
-    group: homeassistant
+    owner: "{{ home_assistant.config_dir_user }}"
+    group: "{{ home_assistant.config_dir_group }}"
     mode: u=rw,g=r,o=r
   become: true
 
@@ -71,8 +71,8 @@
   ansible.builtin.file:
     path: "{{ home_assistant.config_dir }}/themes/"
     state: directory
-    owner: homeassistant
-    group: homeassistant
+    owner: "{{ home_assistant.config_dir_user }}"
+    group: "{{ home_assistant.config_dir_group }}"
     mode: u=rw,g=r,o=r
   become: true
 
@@ -80,8 +80,8 @@
   ansible.builtin.file:
     path: "{{ home_assistant.config_dir }}/www/"
     state: directory
-    owner: homeassistant
-    group: homeassistant
+    owner: "{{ home_assistant.config_dir_user }}"
+    group: "{{ home_assistant.config_dir_group }}"
     mode: u=rw,g=r,o=r
   become: true
 

@@ -8,6 +8,7 @@ Ansible 2.10 or newer.
 Docker
 MQTT
 ZWaveJSUI
+github3.py
 
 ## Role Variables
 

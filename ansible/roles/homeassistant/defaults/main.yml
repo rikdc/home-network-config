@@ -21,6 +21,8 @@ homeassistant_hostname: "homeassistant"
 homeassistant_memory: 1g
 
 home_assistant:
+  config_dir_user: homeassistant
+  config_dir_group: homeassistant
   docker_name: "homeassistant"
   docker_image: "homeassistant/home-assistant"
   config_dir: "{{ docker_home }}/homeassistant"

@@ -9,8 +9,8 @@
     - name: "Create component directory: {{ item.name }}"
       when: "not custom_component_installed.stat.exists"
       ansible.builtin.file:
-        owner: root
-        group: root
+        owner: "{{ home_assistant.config_dir_user }}"
+        group: "{{ home_assistant.config_dir_group }}"
         path: "{{ home_assistant.component_dir + '/' + item.name }}"
         state: "directory"
         mode: 0750
