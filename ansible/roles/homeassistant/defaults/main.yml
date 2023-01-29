@@ -1,0 +1,43 @@
+---
+homeassistant_enabled: false
+homeassistant_available_externally: false
+
+home_assistant_docker_image_version: latest
+home_assistant_docker_memory: 1G
+home_assistant_docker_labels: {}
+home_assistant_docker_network: bridge
+home_assistant_docker_publish_ports:
+  - 127.0.0.1:8123:8123
+
+# directories
+homeassistant_data_directory: "{{ docker_home }}/homeassistant"
+home_assistant_backup_path: "{{ docker_home }}/backups"
+
+# network
+homeassistant_port: "8123"
+homeassistant_hostname: "homeassistant"
+
+# specs
+homeassistant_memory: 1g
+
+home_assistant:
+  config_dir_user: homeassistant
+  config_dir_group: homeassistant
+  docker_name: "homeassistant"
+  docker_image: "homeassistant/home-assistant"
+  config_dir: "{{ docker_home }}/homeassistant"
+  component_dir: "{{ docker_home }}/homeassistant/custom_components"
+  custom_components:
+    - { name: 'alarmo', repo: 'https://github.com/nielsfaber/alarmo/releases/download/v1.9.7/alarmo.zip' }
+    - { name: 'powercalc', repo: 'https://github.com/bramstroker/homeassistant-powercalc/releases/download/v1.3.0/powercalc.zip' }
+    - { name: 'mikrotik_router', repo: 'https://github.com/tomaae/homeassistant-mikrotik_router/releases/download/v2.1.2/mikrotik_router.zip' }
+    - { name: 'ui-minimalist', repo: 'https://github.com/UI-Lovelace-Minimalist/UI/releases/download/v1.1.6-hotfix/ui_lovelace_minimalist.zip' }
+  frontend_components:
+    - { name: 'auto-entities', repo: 'https://github.com/thomasloven/lovelace-auto-entities/archive/refs/tags/1.12.1.tar.gz' }
+
+
+hacs_archive_url: "https://github.com/hacs/integration/releases/latest/download/hacs.zip"
+hacs_target_path: "{{ home_assistant.config_dir }}/custom_components/hacs"
+home_assistant_version: "2022.12"
+local_config_path: "/config"
+ssh_key_path: "{{ home_assistant_user.home }}/.ssh/github_rsa"
