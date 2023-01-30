@@ -1,15 +1,15 @@
 ---
 - name: Set config_different variable
-  set_fact:
+  ansible.builtin.set_fact:
     config_different: false
 
 - name: Run command to check if container is running
-  command: docker inspect --format='{{'{{'}} .State.Running {{'}}'}}' grafana
+  ansible.builtin.command: docker inspect --format='{{'{{'}} .State.Running {{'}}'}}' grafana
   register: result
   changed_when: false
 
 - name: Set container_running variable
-  set_fact:
+  ansible.builtin.set_fact:
     container_running: "{{ result.stdout == 'true' }}"
 
 - name: Create a volume
@@ -35,13 +35,13 @@
     mode: 0644
 
 - name: Run command to compare files in Docker container
-  command: docker exec grafana  sh -c "diff /etc/grafana/grafana.ini <(cat /tmp/grafana.ini)"
+  ansible.builtin.command: docker exec grafana  sh -c "diff /etc/grafana/grafana.ini <(cat /tmp/grafana.ini)"
   register: result
   changed_when: false
   when: container_running
 
 - name: Set config_different variable
-  set_fact:
+  ansible.builtin.set_fact:
     config_different: "{{ result.rc != 0 }}"
   when: container_running
 
