@@ -1,13 +1,13 @@
 ---
 downloads: ~/.ansible-downloads/
 
-configure_dotfiles: yes
-configure_sudoers: no
-configure_terminal: no
-configure_osx: yes
+configure_dotfiles: true
+configure_sudoers: false
+configure_terminal: false
+configure_osx: true
 
 dotfiles_repo: https://github.com/uschti/dotfiles-default.git
-dotfiles_repo_accept_hostkey: yes
+dotfiles_repo_accept_hostkey: true
 dotfiles_repo_local_destination: ~/.dotfiles-default
 dotfiles_files:
   - .osx
@@ -56,7 +56,7 @@ homebrew_cask_apps:
 
 mas_installed_apps:
   - { id: 497799835, name: "Xcode (9.3)"}
-  - { id: 425955336, name : "Skitch (2.8.1)"}
+  - { id: 425955336, name: "Skitch (2.8.1)"}
   - { id: 409183694, name: "Keynote (7.3.1)"}
   - { id: 409203825, name: "Numbers (5.0)"}
   - { id: 409201541, name: "Pages (7.0)"}
@@ -96,8 +96,8 @@ pip_packages: []
 post_provision_tasks: []
 
 jellyfin_volumes:
-    - { src: '//rafiki.local/video', dest: '/mnt/video' }
-    - { src: '//rafiki.local/books', dest: '/mnt/books' }
+  - { src: '//rafiki.local/video', dest: '/mnt/video' }
+  - { src: '//rafiki.local/books', dest: '/mnt/books' }
 
 movies_root: '/mnt/video/movies'
 tv_root: '/mnt/video/episodes'

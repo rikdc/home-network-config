@@ -1,4 +1,17 @@
 ---
+- name: Set config_different variable
+  set_fact:
+    config_different: false
+
+- name: Run command to check if container is running
+  command: docker inspect --format='{{'{{'}} .State.Running {{'}}'}}' grafana
+  register: result
+  changed_when: false
+
+- name: Set container_running variable
+  set_fact:
+    container_running: "{{ result.stdout == 'true' }}"
+
 - name: Create a volume
   community.docker.docker_volume:
     name: grafana
@@ -11,7 +24,7 @@
   community.docker.docker_container:
     name: container
     image: alpine
-    detach: no
+    detach: false
     volumes:
       - grafana-config:/config
 
@@ -21,9 +34,21 @@
     dest: "/tmp/grafana.ini"
     mode: 0644
 
+- name: Run command to compare files in Docker container
+  command: docker exec grafana  sh -c "diff /etc/grafana/grafana.ini <(cat /tmp/grafana.ini)"
+  register: result
+  changed_when: false
+  when: container_running
+
+- name: Set config_different variable
+  set_fact:
+    config_different: "{{ result.rc != 0 }}"
+  when: container_running
+
 - name: Copy into the container
-  command: docker cp /tmp/grafana.ini container:/config/
+  ansible.builtin.command: docker cp /tmp/grafana.ini container:/config/
   register: grafana_config
+  when: config_different
 
 - name: Remove the hanging container
   community.docker.docker_container:
