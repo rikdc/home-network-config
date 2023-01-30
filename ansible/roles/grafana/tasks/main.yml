@@ -1,0 +1,58 @@
+---
+- name: Create a volume
+  community.docker.docker_volume:
+    name: grafana
+
+- name: Create a volume
+  community.docker.docker_volume:
+    name: grafana-config
+
+- name: Start a container
+  community.docker.docker_container:
+    name: container
+    image: alpine
+    detach: no
+    volumes:
+      - grafana-config:/config
+
+- name: Copy over the config
+  ansible.builtin.copy:
+    src: "grafana.ini"
+    dest: "/tmp/grafana.ini"
+    mode: 0644
+
+- name: Copy into the container
+  command: docker cp /tmp/grafana.ini container:/config/
+  register: grafana_config
+
+- name: Remove the hanging container
+  community.docker.docker_container:
+    name: container
+    image: alpine
+    state: absent
+
+- name: Grafana container
+  community.docker.docker_container:
+    name: grafana
+    image: "grafana/grafana"
+    restart_policy: unless-stopped
+    container_default_behavior: no_defaults
+    log_driver: "json-file"
+    log_options: "max-size=10m"
+    volumes:
+      - "grafana:/var/lib/grafana"
+      - "grafana-config:/etc/grafana"
+    labels:
+      docker-volume-backup.stop-during-backup: "grafana"
+    network_mode: default
+    networks:
+      - name: prod
+    ports:
+      - "3000:3000/tcp"
+
+- name: Maybe restart grafana
+  community.docker.docker_container:
+    name: grafana
+    restart: true
+    container_default_behavior: no_defaults
+  when: grafana_config.changed
