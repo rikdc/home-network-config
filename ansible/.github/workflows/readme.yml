@@ -1,9 +1,11 @@
 name: Generate README
 
 on:
-  push:
+  pull_request:
     branches:
-      - main
+      - '**' # match any branch
+    paths:
+      - '**/roles/meta/*.yml'
 
 jobs:
   generate-readme:
