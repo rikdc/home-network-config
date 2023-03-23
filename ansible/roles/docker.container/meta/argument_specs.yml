@@ -5,7 +5,7 @@ argument_specs:
   main:
     short_description: The main entry point for the docker.container role.
     options:
-      container_name_int:
+      container_name:
         type: "str"
         required: true
         description: "The name of your docker container"
@@ -16,21 +16,21 @@ argument_specs:
         description: "The image to use for the docker container"
 
       volumes:
-        type: "map"
+        type: "list"
         required: false
         description: "Any mounted volumes required"
 
       env:
-        type: "map"
+        type: "list"
         required: false
         description: "Any environment variables required"
 
-      port:
-        type: "map"
+      container_ports:
+        type: "dict"
         required: false
         description: "Any port mappings required"
 
       labels:
-        type: "map"
+        type: "dict"
         required: false
         description: "Any labels to associate with the docker container"

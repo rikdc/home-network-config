@@ -1,21 +1,11 @@
 ---
-# Configures a container.
-
-# - name: Map Volumes
-#   ansible.builtin.file:
-#     path: "{{ item }}"
-#     state: directory
-#     mode: u=rw,g=r,o=r
-#   with_items:
-#     - "{{ jellyfin_config_directory }}"
-
 - name: Configure Docker Container
   community.docker.docker_container:
     name: "{{ container_name }}"
     image: "{{ container_image }}"
     pull: true
     volumes: "{{ volumes }}"
-    ports: "{{ ports }}"
+    ports: "{{ container_ports }}"
     env: "{{ env }}"
     labels:
       "com.centurylinklabs.watchtower.enable": "true"

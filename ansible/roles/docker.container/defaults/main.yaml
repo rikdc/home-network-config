@@ -1,6 +1,6 @@
 container_name:
 container_image:
 volumes:
-port:
+container_ports:
 env:
 labels:
