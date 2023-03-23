@@ -1,0 +1,36 @@
+# roles/docker.container/meta/argument_specs.yml
+---
+argument_specs:
+  # roles/docker.container/tasks/main.yml entry point
+  main:
+    short_description: The main entry point for the docker.container role.
+    options:
+      container_name:
+        type: "str"
+        required: true
+        description: "The name of your docker container"
+
+      container_image:
+        type: "str"
+        required: true
+        description: "The image to use for the docker container"
+
+      volumes:
+        type: "list"
+        required: false
+        description: "Any mounted volumes required"
+
+      env:
+        type: "list"
+        required: false
+        description: "Any environment variables required"
+
+      container_ports:
+        type: "dict"
+        required: false
+        description: "Any port mappings required"
+
+      labels:
+        type: "dict"
+        required: false
+        description: "Any labels to associate with the docker container"
