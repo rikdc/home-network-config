@@ -75,9 +75,3 @@
     ports:
       - "3000:3000/tcp"
 
-- name: Maybe restart grafana
-  community.docker.docker_container:
-    name: grafana
-    restart: true
-    container_default_behavior: no_defaults
-  when: grafana_config.changed
