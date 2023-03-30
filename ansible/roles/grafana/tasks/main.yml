@@ -4,7 +4,7 @@
     config_different: false
 
 - name: Run command to check if container is running
-  ansible.builtin.command: docker inspect --format='{{'{{'}} .State.Running {{'}}'}}' grafana
+  ansible.builtin.command: docker inspect --format='{{ '{{' }} .State.Running {{ '}}' }}' grafana
   register: result
   changed_when: false
 
