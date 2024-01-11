@@ -25,9 +25,9 @@ upstreamTimeout: 5s
 customDNS:
   customTTL: 1h
   mapping:
-    {% for host in hostnames %}
-    - {{ host.hostname }}: {{ host.address }}
-    {% endfor %}
+  {% for host in hostnames %}
+    {{ host.hostname }}: {{ host.address }}
+  {% endfor %}
 
 # optional: definition, which DNS resolver(s) should be used for queries to the domain (with all sub-domains). Multiple resolvers must be separated by a comma
 # Example: Query client.fritz.box will ask DNS server 192.168.178.1. This is necessary for local network, to resolve clients by host name
@@ -44,7 +44,6 @@ blocking:
       - https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
       - https://raw.githubusercontent.com/DandelionSprout/adfilt/master/Alternate%20versions%20Anti-Malware%20List/AntiMalwareHosts.txt
       - https://raw.githubusercontent.com/Sekhan/TheGreatWall/master/TheGreatWall.txt
-      - https://raw.githubusercontent.com/RPiList/specials/master/Blocklisten/DomainSquatting
       - https://s3.amazonaws.com/lists.disconnect.me/simple_ad.txt
       - https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
       - http://sysctl.org/cameleon/hosts
@@ -52,26 +51,32 @@ blocking:
       - https://blocklistproject.github.io/Lists/tracking.txt
       - https://blocklistproject.github.io/Lists/abuse.txt
     special:
-      - https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/fakenews/hosts
       - https://blocklistproject.github.io/Lists/smart-tv.txt
     fraud:
       - https://blocklistproject.github.io/Lists/fraud.txt
     phishing:
       - https://urlhaus.abuse.ch/downloads/hostfile/
       - https://blocklistproject.github.io/Lists/phishing.txt
-  # definition: which groups should be applied for which client
+  whiteLists:
+    white:
+      - |
+        www.googleadservices.com
+        # definition: which groups should be applied for which client
+# definition: which groups should be applied for which client
   clientGroupsBlock:
     # default will be used, if no special definition for a client name exists
     default:
       - ads
       - phishing
-      - special
       - fraud
     # use client name (with wildcard support: * - sequence of any characters, [0-9] - range)
     # or single ip address / client subnet as CIDR notation
     laptop*:
       - ads
-    192.168.178.1/24:
+    192.168.88.35:
+      - ads
+      - white
+    192.168.88.75:
       - special
   # which response will be sent, if query is blocked:
   # zeroIp: 0.0.0.0 will be returned (default)
@@ -144,7 +149,7 @@ queryLog:
   # optional one of: mysql, postgresql, csv, csv-client. If empty, log to console
   type: mysql
   # directory (should be mounted as volume in docker) for csv, db connection string for mysql/postgresql
-  target: {{ blocky_server_connection }}
+  target: blockly:asupersecretpassword@tcp(mariadb:3306)/blockly?charset=utf8mb4&parseTime=True&loc=Local
   #postgresql target: postgres://user:password@db_host_or_ip:5432/db_name
   # if > 0, deletes log files which are older than ... days
   logRetentionDays: 7
@@ -168,13 +173,17 @@ queryLog:
 #   # Time between the connection attempts, default: 1s
 #   connectionCooldown: 3s
 
-# optional: DNS listener port(s) and bind ip address(es), default 53 (UDP and TCP). Example: 53, :53, "127.0.0.1:5353,[::1]:5353"
-port: 53
-# optional: Port(s) and bind ip address(es) for DoT (DNS-over-TLS) listener. Example: 853, 127.0.0.1:853
-#tlsPort: 53
-# optional: HTTPS listener port(s) and bind ip address(es), default empty = no http listener. If > 0, will be used for prometheus metrics, pprof, REST API, DoH... Example: 443, :443, 127.0.0.1:443
-httpPort: 4000
-#httpsPort: 443
+# optional: ports configuration
+ports:
+  # optional: DNS listener port(s) and bind ip address(es), default 53 (UDP and TCP). Example: 53, :53, "127.0.0.1:5353,[::1]:5353"
+  dns: 53
+  # optional: Port(s) and bind ip address(es) for DoT (DNS-over-TLS) listener. Example: 853, 127.0.0.1:853
+  tls: 853
+  # optional: Port(s) and optional bind ip address(es) to serve HTTPS used for prometheus metrics, pprof, REST API, DoH... If you wish to specify a specific IP, you can do so such as 192.168.0.1:443. Example: 443, :443, 127.0.0.1:443,[::1]:443
+  https: 443
+  # optional: Port(s) and optional bind ip address(es) to serve HTTP used for prometheus metrics, pprof, REST API, DoH... If you wish to specify a specific IP, you can do so such as 192.168.0.1:4000. Example: 4000, :4000, 127.0.0.1:4000,[::1]:4000
+  http: 4000
+
 # mandatory, if https port > 0: path to cert and key file for SSL encryption
 #certFile: server.crt
 #keyFile: server.key
@@ -182,11 +191,3 @@ httpPort: 4000
 bootstrapDns: tcp+udp:1.1.1.1
 # optional: Drop all AAAA query if set to true. Default: false
 disableIPv6: false
-# optional: Log level (one from debug, info, warn, error). Default: info
-logLevel: info
-# optional: Log format (text or json). Default: text
-logFormat: text
-# optional: log timestamps. Default: true
-logTimestamp: true
-# optional: obfuscate log output (replace all alphanumeric characters with *) for user sensitive data like request domains or responses to increase privacy. Default: false
-logPrivacy: false
