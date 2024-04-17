@@ -1,5 +1,0 @@
----
-blocky_config_path: /etc/blocky.yaml
-
-hostnames:
-  - { hostname: 'scribe.logs.roku.com', address: '192.168.88.226' }

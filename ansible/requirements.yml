@@ -4,6 +4,8 @@ roles:
   - name: geerlingguy.homebrew
   - name: geerlingguy.mas
   - src: geerlingguy.nodejs
+  - name: ngine_io.blocky_dns
+    version: v0.1.0
 
 collections:
   - name: geerlingguy.mac

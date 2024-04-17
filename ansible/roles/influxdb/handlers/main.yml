@@ -1,5 +1,5 @@
 ---
 
-- name: Restart influxdb
+- name: restart influxdb
   ansible.builtin.set_fact:
     influxdb_docker_restart: true
