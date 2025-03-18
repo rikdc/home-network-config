@@ -2,6 +2,7 @@
 roles:
   - name: geerlingguy.dotfiles
   - name: geerlingguy.homebrew
+  - name: geerlingguy.mysql
   - name: geerlingguy.mas
   - src: geerlingguy.nodejs
   - name: ngine_io.blocky_dns
