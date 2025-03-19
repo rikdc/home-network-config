@@ -1,0 +1,9 @@
+- hosts: dns
+  vars_files:
+    - ../default.config.yml
+    - ../secrets.enc
+
+  vars:
+    ansible_become: true
+  roles:
+    - role: ngine_io.blocky_dns

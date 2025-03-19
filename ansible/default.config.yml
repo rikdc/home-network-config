@@ -28,30 +28,22 @@ homebrew_taps:
 
 homebrew_cask_appdir: /Applications
 homebrew_cask_apps:
-  - avg-antivirus
-  - adobe-acrobat-reader
+  - clamav
   - caffeine
   - cyberduck
-  - dropbox
   - java8
   - firefox
   - gimp
-  - google-chrome
-  - google-earth-pro
   - image2icon
   - istat-menus
   - libreoffice
-  - keepassxc
   - keka
   - synology-drive
   - nextcloud
-  - skype
   - smcfancontrol
-  - thunderbird
   - tunnelblick
   - vmware-fusion
   - vlc
-  - whatsapp
   - youtube-to-mp3
 
 mas_installed_apps:
@@ -94,15 +86,6 @@ pip_packages: []
 
 # Glob pattern to ansible task files to run after all other tasks are finished.
 post_provision_tasks: []
-
-jellyfin_volumes:
-  - { src: '//rafiki.local/video', dest: '/mnt/video' }
-  - { src: '//rafiki.local/books', dest: '/mnt/books' }
-
-movies_root: '/mnt/video/movies'
-tv_root: '/mnt/video/episodes'
-books_root: '/mnt/video/books'
-audiobooks_root: '/mnt/video/books'
 
 # Docker daemon options as a dict
 docker_daemon_options: {}
