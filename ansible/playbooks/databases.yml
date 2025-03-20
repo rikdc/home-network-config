@@ -1,0 +1,88 @@
+---
+# Play 1: Create and configure containers on Proxmox
+- hosts: proxmox  # Proxmox host
+  vars_files:
+    - ../default.config.yml
+    - ../secrets.enc
+
+  vars:
+    ansible_become: true
+
+  tasks:
+    # MySQL Container (simba.local)
+    - name: Create MySQL Container
+      community.general.proxmox:
+        vmid: 120  # Adjust as needed
+        node: pve
+        api_user: ansible@pam
+        api_token_id: "{{ proxmox_api_token_id }}"
+        api_token_secret: "{{ proxmox_api_token }}"
+        api_host: localhost
+        password: "{{ proxmox_api_password }}"
+        storage: local-lvm
+        hostname: simba.local
+        ostemplate: local:vztmpl/debian-12-standard_12.7-1_amd64.tar.zst
+        netif: '{"net0":"name=eth0,gw=192.168.88.1,ip=192.168.88.120/24,bridge=vmbr0"}'
+        pubkey: "{{ rsa_key }}"
+        unprivileged: false
+        cores: 2
+        memory: 2048
+        swap: 2048
+        description: "MySQL Database Server managed by Ansible"
+        features:
+          - nesting=1
+
+    - name: Start MySQL Container
+      community.general.proxmox:
+        vmid: 120  # Same as above
+        api_user: ansible@pam
+        api_token_id: "{{ proxmox_api_token_id }}"
+        api_token_secret: "{{ proxmox_api_token }}"
+        api_host: localhost
+        state: started
+        timeout: 90  # Increased timeout for database container startup
+
+    # PostgreSQL Container (nala.local)
+    - name: Create PostgreSQL Container
+      community.general.proxmox:
+        vmid: 130  # Adjust as needed
+        node: pve
+        api_user: ansible@pam
+        api_token_id: "{{ proxmox_api_token_id }}"
+        api_token_secret: "{{ proxmox_api_token }}"
+        api_host: localhost
+        password: "{{ proxmox_api_password }}"
+        storage: local-lvm
+        hostname: nala.local
+        ostemplate: local:vztmpl/debian-12-standard_12.7-1_amd64.tar.zst
+        netif: '{"net0":"name=eth0,gw=192.168.88.1,ip=192.168.88.130/24,bridge=vmbr0"}'
+        pubkey: "{{ rsa_key }}"
+        unprivileged: false
+        cores: 2
+        memory: 2048
+        swap: 2048
+        description: "PostgreSQL Database Server managed by Ansible"
+
+    - name: Start PostgreSQL Container
+      community.general.proxmox:
+        vmid: 130  # Same as above
+        api_user: ansible@pam
+        api_token_id: "{{ proxmox_api_token_id }}"
+        api_token_secret: "{{ proxmox_api_token }}"
+        api_host: localhost
+        state: started
+        timeout: 90  # Increased timeout for database container startup
+
+- hosts: mysqldev
+  vars:
+    ansible_become: true
+
+  roles:
+    - geerlingguy.mysql
+
+- hosts: postgresdev
+  vars:
+    ansible_become: true
+
+  roles:
+    - geerlingguy.postgresql
