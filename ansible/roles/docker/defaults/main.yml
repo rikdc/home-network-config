@@ -1,4 +1,0 @@
----
-ubuntu_version: focal
-pip_executable: "pip"
-pip_version: "23.3.*"
