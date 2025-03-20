@@ -9,10 +9,9 @@
     ansible_become: true
 
   tasks:
-    # MySQL Container (simba.local)
     - name: Create MySQL Container
       community.general.proxmox:
-        vmid: 120  # Adjust as needed
+        vmid: 120
         node: pve
         api_user: ansible@pam
         api_token_id: "{{ proxmox_api_token_id }}"
@@ -20,7 +19,7 @@
         api_host: localhost
         password: "{{ proxmox_api_password }}"
         storage: local-lvm
-        hostname: simba.local
+        hostname: "{{ mysql_dev_hostname }}"
         ostemplate: local:vztmpl/debian-12-standard_12.7-1_amd64.tar.zst
         netif: '{"net0":"name=eth0,gw=192.168.88.1,ip=192.168.88.120/24,bridge=vmbr0"}'
         pubkey: "{{ rsa_key }}"
@@ -34,7 +33,7 @@
 
     - name: Start MySQL Container
       community.general.proxmox:
-        vmid: 120  # Same as above
+        vmid: 120
         api_user: ansible@pam
         api_token_id: "{{ proxmox_api_token_id }}"
         api_token_secret: "{{ proxmox_api_token }}"
@@ -42,10 +41,9 @@
         state: started
         timeout: 90  # Increased timeout for database container startup
 
-    # PostgreSQL Container (nala.local)
     - name: Create PostgreSQL Container
       community.general.proxmox:
-        vmid: 130  # Adjust as needed
+        vmid: 130
         node: pve
         api_user: ansible@pam
         api_token_id: "{{ proxmox_api_token_id }}"
@@ -53,7 +51,7 @@
         api_host: localhost
         password: "{{ proxmox_api_password }}"
         storage: local-lvm
-        hostname: nala.local
+        hostname: "{{ psql_dev_hostname }}"
         ostemplate: local:vztmpl/debian-12-standard_12.7-1_amd64.tar.zst
         netif: '{"net0":"name=eth0,gw=192.168.88.1,ip=192.168.88.130/24,bridge=vmbr0"}'
         pubkey: "{{ rsa_key }}"

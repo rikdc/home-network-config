@@ -1,0 +1,84 @@
+   # Run this on the Proxmox node first:
+   # apt install -y python-pip
+   # apt install python3-virtualenv
+   # apt install python3-proxmoxer
+   # diagnosis-chevy-overhung
+# Z9>av=!bdGXUu."
+# diagnosis-chevy-overhung
+- hosts: 192.168.88.200
+  vars_files:
+    - ../default.config.yml
+    - ../secrets.enc
+
+  vars:
+    ansible_become: true
+
+  tasks:
+    - name: Create Unifi Container
+      community.general.proxmox:
+        vmid: 105
+        node: pve
+        api_user: ansible@pam
+        api_token_id: "{{ proxmox_api_token_id }}"
+        api_token_secret: "{{ proxmox_api_token }}"
+        api_host: localhost
+        password: "{{ proxmox_api_password }}"
+        storage: local-lvm
+        hostname: unifi.lan
+        ostemplate: local:vztmpl/debian-12-standard_12.0-1_amd64.tar.zst
+        netif: '{"net0":"name=eth0,gw=192.168.88.1,ip=192.168.88.121/24,bridge=vmbr0"}'
+        pubkey:  "{{ rsa_key }}"
+        unprivileged: false
+
+    - name: Create Primary Container
+      community.general.proxmox:
+        vmid: 108
+        node: pve
+        api_user: ansible@pam
+        api_token_id: "{{ proxmox_api_token_id }}"
+        api_token_secret: "{{ proxmox_api_token }}"
+        api_host: localhost
+        password: "{{ proxmox_api_password }}"
+        storage: local-lvm
+        hostname: ns2.trkdg.site
+        ostemplate: local:vztmpl/debian-12-standard_12.0-1_amd64.tar.zst
+        netif: '{"net0":"name=eth0,gw=192.168.88.1,ip=192.168.88.2/24,bridge=vmbr0"}'
+        pubkey: "{{ rsa_key }}"
+        unprivileged: false
+        state: started
+
+    - name: Start container
+      community.general.proxmox:
+        vmid: 108
+        api_user: ansible@pam
+        api_token_id: "{{ proxmox_api_token_id }}"
+        api_token_secret: "{{ proxmox_api_token }}"
+        api_host: localhost
+        state: started
+
+    - name: Create Secondary DNS Container
+      community.general.proxmox:
+        vmid: 111
+        node: pve
+        api_user: ansible@pam
+        api_token_id: "{{ proxmox_api_token_id }}"
+        api_token_secret: "{{ proxmox_api_token }}"
+        api_host: localhost
+        password: "{{ proxmox_api_password }}"
+        storage: local-lvm
+        hostname: ns3.trkdg.site
+        ostemplate: local:vztmpl/debian-12-standard_12.0-1_amd64.tar.zst
+        netif: '{"net0":"name=eth0,gw=192.168.88.1,ip=192.168.88.3/24,bridge=vmbr0"}'
+        pubkey: "{{ rsa_key }}"
+        unprivileged: false
+
+    - name: Start container
+      community.general.proxmox:
+        vmid: 111
+        api_user: ansible@pam
+        api_token_id: "{{ proxmox_api_token_id }}"
+        api_token_secret: "{{ proxmox_api_token }}"
+        api_host: localhost
+        state: started
+
+
