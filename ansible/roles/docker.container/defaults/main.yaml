@@ -1,6 +1,0 @@
-container_name:
-container_image:
-volumes:
-container_ports:
-env:
-labels:
