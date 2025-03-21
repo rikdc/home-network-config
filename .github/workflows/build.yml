@@ -27,8 +27,18 @@ jobs:
         with:
           python-version: "3.x"
 
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
       - name: Install test dependencies
-        run: pip3 install ansible yamllint==1.27.1 ansible-lint==6.5
+        run: |
+          pip3 install ansible yamllint==1.27.1 ansible-lint==6.5
+
+      - name: Install additional tools
+        run: |
+          npm install --global yamllint markdownlint-cli2
 
       - name: Run linters
         run: |
