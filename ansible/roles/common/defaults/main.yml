@@ -1,5 +1,4 @@
 ---
-
 timezone_value: "America/New_York"
 
 sudo_group: wheel

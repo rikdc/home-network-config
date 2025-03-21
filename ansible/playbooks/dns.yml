@@ -1,6 +1,6 @@
 ---
 # Play 1: Create and configure containers on Proxmox
-- hosts: proxmox  # Proxmox host
+- hosts: proxmox # Proxmox host
   vars_files:
     - ../default.config.yml
     - ../secrets.enc

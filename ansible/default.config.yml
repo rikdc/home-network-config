@@ -47,13 +47,13 @@ homebrew_cask_apps:
   - youtube-to-mp3
 
 mas_installed_apps:
-  - { id: 497799835, name: "Xcode (9.3)"}
-  - { id: 425955336, name: "Skitch (2.8.1)"}
-  - { id: 409183694, name: "Keynote (7.3.1)"}
-  - { id: 409203825, name: "Numbers (5.0)"}
-  - { id: 409201541, name: "Pages (7.0)"}
-  - { id: 404010395, name: "TextWrangler (5.5.2)"}
-  - { id: 458887729, name: "Translate Tab (2.0.1)"}
+  - {id: 497799835, name: "Xcode (9.3)"}
+  - {id: 425955336, name: "Skitch (2.8.1)"}
+  - {id: 409183694, name: "Keynote (7.3.1)"}
+  - {id: 409203825, name: "Numbers (5.0)"}
+  - {id: 409201541, name: "Pages (7.0)"}
+  - {id: 404010395, name: "TextWrangler (5.5.2)"}
+  - {id: 458887729, name: "Translate Tab (2.0.1)"}
 
 mas_email: ""
 mas_password: ""
@@ -69,17 +69,20 @@ required_directories:
 # Install packages from other package managers.
 # Note: You are responsible for making sure the required package managers are
 # installed, eg. through homebrew.
-composer_packages: []
+composer_packages:
+  []
   # - name: drush
   #   state: present # present/absent, default: present
   #   version: "^8.1" # default: N/A
-gem_packages: []
+gem_packages:
+  []
   # - name: bundler
   #   state: present # present/absent/latest, default: present
   #   version: "~> 1.15.1" # default: N/A
 npm_packages: []
 
-pip_packages: []
+pip_packages:
+  []
   # - name: mkdocs
   #   state: present # present/absent/latest, default: present
   #   version: "0.16.3" # default: N/A
@@ -89,7 +92,7 @@ post_provision_tasks: []
 
 # Docker daemon options as a dict
 docker_daemon_options: {}
-docker_home: '/docker'
+docker_home: "/docker"
 
 # NAS Defaults
 ansible_nas_timezone: America/New_York
