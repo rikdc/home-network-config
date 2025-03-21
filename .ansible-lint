@@ -2,3 +2,10 @@
 skip_list:
   - package-latest
   - role-name
+
+exclude_paths:
+  - roles/elliotweiser.osx-command-line-tools
+  - roles/geerlingguy*
+  - roles/ngine_io.blocky_dns
+  - inventory/host_vars/*
+  - inventory/group_vars/*

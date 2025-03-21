@@ -1,5 +1,0 @@
----
-# vars file for influxdb
-base_path: /etc
-paths:
-  influxdb: "{{ base_path }}/influxdb"

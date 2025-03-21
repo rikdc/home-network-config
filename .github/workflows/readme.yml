@@ -1,11 +1,12 @@
+---
 name: Generate README
 
 on:
   pull_request:
     branches:
-      - '**' # match any branch
+      - "**"
     paths:
-      - '**/roles/meta/*.yml'
+      - "**/roles/meta/*.yml"
 
 jobs:
   generate-readme:

@@ -1,5 +1,4 @@
 ---
+common_timezone_value: "America/New_York"
 
-timezone_value: "America/New_York"
-
-sudo_group: wheel
+common_sudo_group: wheel

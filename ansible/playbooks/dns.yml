@@ -1,6 +1,6 @@
 ---
-# Play 1: Create and configure containers on Proxmox
-- hosts: proxmox  # Proxmox host
+- name: Create and configure containers on Proxmox
+  hosts: proxmox
   vars_files:
     - ../default.config.yml
     - ../secrets.enc
@@ -61,8 +61,8 @@
         api_host: localhost
         state: started
 
-# Play 2: Setup the DNS Software
-- hosts: dns
+- name: Setup the DNS Software
+  hosts: dns
   vars_files:
     - ../default.config.yml
     - ../secrets.enc

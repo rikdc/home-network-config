@@ -1,0 +1,55 @@
+---
+# .yamllint file for home-network-config
+# This configuration is based on the default yamllint configuration
+# with some customizations for this specific repository
+
+  # - comments.min-spaces-from-content must be 1
+  # - comments-indentation must be false
+  # - braces.max-spaces-inside must be 1
+  # - octal-values.forbid-implicit-octal must be true
+  # - octal-values.forbid-explicit-octal must be true.
+
+extends: default
+
+# Rules configuration
+rules:
+  # Line length is set to 120 chars
+  line-length:
+    max: 120
+    level: warning
+  # Allow non-breaking spaces
+  document-start:
+    level: warning
+  # Don't require document end markers
+  document-end:
+    present: false
+  # Allow some truthy values that are commonly used in Ansible
+  truthy:
+    allowed-values: ['true', 'false', 'yes', 'no', 'on', 'off']
+  # Indentation should be 2 spaces
+  indentation:
+    spaces: 2
+    indent-sequences: true
+    check-multi-line-strings: false
+  comments:
+    level: warning
+    require-starting-space: yes
+    min-spaces-from-content: 1
+  comments-indentation: false
+  braces:
+    max-spaces-inside: 1
+  octal-values:
+    forbid-implicit-octal: true
+    forbid-explicit-octal: true
+# Files to ignore
+ignore: |
+  # Ignore encrypted files
+  ansible/inventory/host_vars/
+  ansible/inventory/group_vars/
+  # Ignore external roles
+  ansible/roles/geerlingguy*
+  ansible/roles/elliotweiser*
+  ansible/roles/ngine_io*
+  ansible/.ansible/roles/
+  # Ignore .git directory
+  .git/

@@ -1,6 +1,0 @@
----
-- name: Restart mosquitto
-  community.docker.docker_container:
-    name: "{{ mosquitto_docker_container_name }}"
-    state: started
-    restart: true

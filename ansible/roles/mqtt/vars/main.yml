@@ -1,5 +1,0 @@
----
-# vars file for ansible-role-mosquitto
-base_path: /etc
-paths:
-  mosquitto: "{{ base_path }}/mosquitto"
