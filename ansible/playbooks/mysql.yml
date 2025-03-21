@@ -1,3 +1,4 @@
+---
 - hosts: mysql
   vars:
     ansible_become: true
