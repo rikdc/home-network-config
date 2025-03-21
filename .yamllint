@@ -3,6 +3,12 @@
 # This configuration is based on the default yamllint configuration
 # with some customizations for this specific repository
 
+  # - comments.min-spaces-from-content must be 1
+  # - comments-indentation must be false
+  # - braces.max-spaces-inside must be 1
+  # - octal-values.forbid-implicit-octal must be true
+  # - octal-values.forbid-explicit-octal must be true.
+
 extends: default
 
 # Rules configuration
@@ -25,7 +31,16 @@ rules:
     spaces: 2
     indent-sequences: true
     check-multi-line-strings: false
-
+  comments:
+    level: warning
+    require-starting-space: yes
+    min-spaces-from-content: 1
+  comments-indentation: false
+  braces:
+    max-spaces-inside: 1
+  octal-values:
+    forbid-implicit-octal: true
+    forbid-explicit-octal: true
 # Files to ignore
 ignore: |
   # Ignore encrypted files
