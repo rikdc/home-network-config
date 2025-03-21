@@ -38,7 +38,7 @@ jobs:
 
       - name: Install additional tools
         run: |
-          npm install --global yamllint markdownlint-cli2
+          npm install --global markdownlint-cli2
 
       - name: Run linters
         run: |
