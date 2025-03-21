@@ -1,7 +1,0 @@
----
-- hosts: mysql
-  vars:
-    ansible_become: true
-
-  roles:
-    - geerlingguy.mysql

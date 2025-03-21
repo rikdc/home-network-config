@@ -1,6 +1,6 @@
 ---
-# Play 1: Create and configure containers on Proxmox
-- hosts: proxmox
+- name: Create and configure containers on Proxmox
+  hosts: proxmox
   vars_files:
     - ../default.config.yml
     - ../secrets.enc
@@ -71,14 +71,16 @@
         state: started
         timeout: 90
 
-- hosts: mysqldev
+- name: Setup MySQL Server
+  hosts: mysqldev
   vars:
     ansible_become: true
 
   roles:
     - geerlingguy.mysql
 
-- hosts: postgresdev
+- name: Setup PostgreSQL Server
+  hosts: postgresdev
   vars:
     ansible_become: true
 

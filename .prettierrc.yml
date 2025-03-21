@@ -1,0 +1,11 @@
+---
+# Prettier configuration for YAML files
+printWidth: 120
+tabWidth: 2
+useTabs: false
+semi: true
+singleQuote: false
+trailingComma: "none"
+arrowParens: "avoid"
+endOfLine: "lf"
+bracketSpacing: false
