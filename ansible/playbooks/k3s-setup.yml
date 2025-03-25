@@ -1,15 +1,15 @@
 ---
-# - name: Update and upgrade packages on all nodes
-#   hosts: k3s
-#   become: true
-#   tasks:
-#     - name: Update apt cache
-#       apt:
-#         update_cache: yes
+- name: Update and upgrade packages on all nodes
+  hosts: k3s
+  become: true
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
 
-#     - name: Upgrade all packages
-#       apt:
-#         upgrade: dist
+    - name: Upgrade all packages
+      apt:
+        upgrade: dist
 
 - name: Install NFS client on all nodes
   hosts: k3s
@@ -68,10 +68,6 @@
       register: nfs_csi_status
       changed_when: false
 
-    - name: Debug NFS CSI driver status
-      debug:
-        var: nfs_csi_status.stdout
-
     - name: Install NFS CSI driver
       shell: |
         helm install csi-driver-nfs csi-driver-nfs/csi-driver-nfs --namespace kube-system --set kubeletDir=/var/lib/kubelet
@@ -119,11 +115,6 @@
       vars:
         kubeconfig_path: /etc/rancher/k3s/k3s.yaml
 
-    - name: Show PVC results
-      debug:
-        var: pvc_results
-      when: pvc_results is defined
-
     - name: Wait for PVCs to be bound
       shell: |
         kubectl get pvc -o jsonpath='{.items[*].status.phase}' | grep -q "Bound"
@@ -133,6 +124,7 @@
       until: pvc_bound_check.rc == 0
       ignore_errors: yes
       changed_when: false
+
 - name: Install k3s agents
   hosts: k3s-node1, k3s-node2
   tasks:
