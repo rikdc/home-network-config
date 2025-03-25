@@ -1,0 +1,82 @@
+---
+- name: Debug storage class configuration
+  debug:
+    msg: "Using storage class: {{ hostvars['k3s-controller']['persistent_storage']['storage_class_name'] }}"
+
+- name: Create PersistentVolumes from host_vars
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: PersistentVolume
+      metadata:
+        name: "{{ item.name }}"
+        labels: "{{ item.labels }}"
+      spec:
+        capacity:
+          storage: "{{ item.capacity.storage }}"
+        accessModes: "{{ item.accessModes }}"
+        persistentVolumeReclaimPolicy: "{{ item.persistentVolumeReclaimPolicy }}"
+        storageClassName: "{{ item.storageClassName }}"
+        nfs:
+          # Use the NFS server and path from the PV definition if provided, otherwise fall back to the global settings
+          server: "{{ item.nfs.server | default(hostvars['k3s-controller']['persistent_storage']['nfs_server']) }}"
+          path: "{{ item.nfs.path | default(hostvars['k3s-controller']['persistent_storage']['nfs_path']) }}"
+    kubeconfig: /etc/rancher/k3s/k3s.yaml
+  loop: "{{ hostvars['k3s-controller']['persistent_volumes'] | default([]) }}"
+  register: pv_results
+
+- name: Debug PV results
+  debug:
+    var: pv_results
+
+- name: Verify PV exists and is Available
+  shell: |
+    kubectl get pv {{ item.name }} -o jsonpath='{.status.phase}'
+  register: pv_status
+  loop: "{{ hostvars['k3s-controller']['persistent_volumes'] | default([]) }}"
+  changed_when: false
+
+- name: Debug PV status
+  debug:
+    msg: "PV {{ item.item.name }} status: {{ item.stdout }}"
+  loop: "{{ pv_status.results }}"
+
+- name: Create PersistentVolumeClaims from host_vars
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: "{{ item.name }}-pvc"
+        namespace: "{{ item.namespace | default('default') }}"
+        annotations:
+          "helm.sh/resource-policy": keep
+      spec:
+        accessModes: "{{ item.accessModes }}"
+        resources:
+          requests:
+            storage: "{{ item.capacity.storage }}"
+        # Use the storage class name from the PV definition to ensure consistency
+        storageClassName: "{{ item.storageClassName }}"
+        volumeName: "{{ item.name }}"
+    kubeconfig: /etc/rancher/k3s/k3s.yaml
+  loop: "{{ hostvars['k3s-controller']['persistent_volumes'] | default([]) }}"
+  register: pvc_results
+
+- name: Debug PVC results
+  debug:
+    var: pvc_results
+
+- name: Verify PVC creation
+  shell: |
+    kubectl get pvc {{ item.name }}-pvc -n {{ item.namespace | default('default') }} -o jsonpath='{.status.phase}' || echo "NotFound"
+  register: pvc_status
+  loop: "{{ hostvars['k3s-controller']['persistent_volumes'] | default([]) }}"
+  changed_when: false
+
+- name: Debug PVC status
+  debug:
+    msg: "PVC {{ item.item.name }}-pvc status: {{ item.stdout }}"
+  loop: "{{ pvc_status.results }}"

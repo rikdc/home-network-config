@@ -1,0 +1,143 @@
+---
+# - name: Update and upgrade packages on all nodes
+#   hosts: k3s
+#   become: true
+#   tasks:
+#     - name: Update apt cache
+#       apt:
+#         update_cache: yes
+
+#     - name: Upgrade all packages
+#       apt:
+#         upgrade: dist
+
+- name: Install NFS client on all nodes
+  hosts: k3s
+  become: true
+  tasks:
+    - name: Install NFS client
+      package:
+        name: nfs-common
+        state: present
+        force: yes
+
+- name: Install k3s controller
+  hosts: k3s-controller
+  vars:
+    helm_charts:
+      - name: csi-driver-nfs
+        repo: https://kubernetes-csi.github.io/charts
+  tasks:
+    - name: Install k3s
+      shell: |
+        curl -sfL https://get.k3s.io | sh -s - server \
+          --cluster-init \
+          --write-kubeconfig-mode 644
+      args:
+        creates: /usr/local/bin/k3s
+
+    - name: Install Helm
+      shell: |
+        curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+      args:
+        creates: /usr/local/bin/helm
+
+    - name: Check if Helm repository exists
+      shell: |
+        helm repo list | grep -q "{{ item.name }}" || echo "NOT_FOUND"
+      register: helm_repo_status
+      loop: "{{ helm_charts }}"
+      changed_when: false
+
+    - name: Add Helm repository for NFS CSI driver
+      shell: |
+        helm repo add {{ item.item.name }} {{ item.item.repo }}
+      loop: "{{ helm_repo_status.results }}"
+      when: item.stdout == "NOT_FOUND"
+
+    - name: Update Helm repositories
+      shell: |
+        helm repo update
+      register: helm_update_result
+      changed_when: helm_update_result.rc == 0
+      when: helm_repo_status.results | selectattr('stdout', 'equalto', 'NOT_FOUND') | list | length > 0
+
+    - name: Check if NFS CSI driver is already installed
+      shell: |
+        helm list -n kube-system | grep csi-driver-nfs || echo "NOT_INSTALLED"
+      register: nfs_csi_status
+      changed_when: false
+
+    - name: Debug NFS CSI driver status
+      debug:
+        var: nfs_csi_status.stdout
+
+    - name: Install NFS CSI driver
+      shell: |
+        helm install csi-driver-nfs csi-driver-nfs/csi-driver-nfs --namespace kube-system --set kubeletDir=/var/lib/kubelet
+      when: nfs_csi_status.stdout == "NOT_INSTALLED"
+
+    - name: Wait for NFS CSI driver to be ready
+      shell: |
+        kubectl wait --for=condition=available --timeout=300s deployment/csi-nfs-controller -n kube-system
+      register: wait_result
+      retries: 5
+      delay: 10
+      until: wait_result.rc == 0
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Check if NFS Storage Class exists
+      shell: |
+        kubectl get storageclass "{{ hostvars['k3s-controller']['persistent_storage']['storage_class_name'] }}" -o name || echo "NOT_FOUND"
+      register: sc_exists
+      changed_when: false
+
+    - name: Create NFS Storage Class
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: storage.k8s.io/v1
+          kind: StorageClass
+          metadata:
+            name: "{{ hostvars['k3s-controller']['persistent_storage']['storage_class_name'] }}"
+          provisioner: nfs.csi.k8s.io
+          parameters:
+            server: "{{ hostvars['k3s-controller']['persistent_storage']['nfs_server'] }}"
+            share: "{{ hostvars['k3s-controller']['persistent_storage']['nfs_path'] }}"
+          reclaimPolicy: Retain
+          volumeBindingMode: Immediate
+          mountOptions:
+            - hard
+            - nfsvers=4.1
+        kubeconfig: /etc/rancher/k3s/k3s.yaml
+      register: sc_result
+
+    - name: Include k8s_persistent_storage role
+      include_role:
+        name: k8s_persistent_storage
+      vars:
+        kubeconfig_path: /etc/rancher/k3s/k3s.yaml
+
+    - name: Show PVC results
+      debug:
+        var: pvc_results
+      when: pvc_results is defined
+
+    - name: Wait for PVCs to be bound
+      shell: |
+        kubectl get pvc -o jsonpath='{.items[*].status.phase}' | grep -q "Bound"
+      register: pvc_bound_check
+      retries: 10
+      delay: 5
+      until: pvc_bound_check.rc == 0
+      ignore_errors: yes
+      changed_when: false
+- name: Install k3s agents
+  hosts: k3s-node1, k3s-node2
+  tasks:
+    - name: Install k3s
+      shell: |
+        curl -sfL https://get.k3s.io | K3S_URL=https://{{ hostvars['k3s-controller']['ansible_host'] }}:6443 K3S_TOKEN={{ lookup('file', '/var/lib/rancher/k3s/server/node-token') }} sh -
+      args:
+        creates: /usr/local/bin/k3s
