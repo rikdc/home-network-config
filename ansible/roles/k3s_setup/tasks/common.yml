@@ -1,0 +1,21 @@
+---
+# Common tasks for all k3s nodes
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+  when: k3s_packages_update | bool
+  tags: [k3s, packages]
+
+- name: Upgrade all packages
+  apt:
+    upgrade: dist
+  when: k3s_packages_upgrade | bool
+  tags: [k3s, packages]
+
+- name: Install NFS client
+  package:
+    name: nfs-common
+    state: present
+    force: yes
+  tags: [k3s, nfs]
