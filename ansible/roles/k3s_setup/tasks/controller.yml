@@ -1,0 +1,93 @@
+---
+# Tasks for k3s controller setup
+
+- name: Install k3s
+  shell: |
+    curl -sfL https://get.k3s.io | sh -s - server \
+      --cluster-init \
+      --write-kubeconfig-mode 644
+  args:
+    creates: /usr/local/bin/k3s
+  tags: [k3s, install]
+
+- name: Install Helm
+  shell: |
+    curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+  args:
+    creates: /usr/local/bin/helm
+  tags: [k3s, helm]
+
+- name: Check if Helm repository exists
+  shell: |
+    helm repo list | grep "{{ item.name }}" || echo "NOT_FOUND"
+  register: helm_repo_status
+  loop: "{{ k3s_helm_charts }}"
+  changed_when: false
+  tags: [k3s, helm]
+
+- name: Add required Helm repositories
+  shell: |
+    helm repo add {{ item.item.name }} {{ item.item.repo }}
+  loop: "{{ helm_repo_status.results }}"
+  when: "'NOT_FOUND' in item.stdout"
+  tags: [k3s, helm]
+
+- name: Update Helm repositories
+  shell: |
+    helm repo update
+  register: helm_update_result
+  changed_when: helm_update_result.rc == 0
+  when: helm_repo_status.results | selectattr('stdout', 'equalto', 'NOT_FOUND') | list | length > 0
+  tags: [k3s, helm]
+
+- name: Check if NFS CSI driver is already installed
+  shell: |
+    helm list -n {{ k3s_nfs_csi_namespace }} | grep csi-driver-nfs || echo "NOT_INSTALLED"
+  register: nfs_csi_status
+  changed_when: false
+  tags: [k3s, nfs-csi]
+
+- name: Install NFS CSI driver
+  shell: |
+    helm install csi-driver-nfs csi-driver-nfs/csi-driver-nfs --namespace {{ k3s_nfs_csi_namespace }} --set kubeletDir={{ k3s_nfs_csi_kubelet_dir }}
+  when: nfs_csi_status.stdout == "NOT_INSTALLED"
+  tags: [k3s, nfs-csi]
+
+- name: Wait for NFS CSI driver to be ready
+  shell: |
+    kubectl wait --for=condition=available --timeout=300s deployment/csi-nfs-controller -n {{ k3s_nfs_csi_namespace }}
+  register: wait_result
+  retries: 5
+  delay: 10
+  until: wait_result.rc == 0
+  ignore_errors: yes
+  changed_when: false
+  tags: [k3s, nfs-csi]
+
+- name: Check if NFS Storage Class exists
+  shell: |
+    kubectl get storageclass "{{ hostvars['k3s-controller']['persistent_storage']['storage_class_name'] }}" -o name || echo "NOT_FOUND"
+  register: sc_exists
+  changed_when: false
+  tags: [k3s, storage-class]
+
+- name: Create NFS Storage Class
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: storage.k8s.io/v1
+      kind: StorageClass
+      metadata:
+        name: "{{ hostvars['k3s-controller']['persistent_storage']['storage_class_name'] }}"
+      provisioner: nfs.csi.k8s.io
+      parameters:
+        server: "{{ hostvars['k3s-controller']['persistent_storage']['nfs_server'] }}"
+        share: "{{ hostvars['k3s-controller']['persistent_storage']['nfs_path'] }}"
+      reclaimPolicy: Retain
+      volumeBindingMode: Immediate
+      mountOptions:
+        - hard
+        - nfsvers=4.1
+    kubeconfig: /etc/rancher/k3s/k3s.yaml
+  register: sc_result
+  tags: [k3s, storage-class]
