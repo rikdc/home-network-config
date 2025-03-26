@@ -12,5 +12,5 @@
 
 - name: Include node setup tasks
   include_tasks: node.yml
-  when: inventory_hostname == 'k3s-node1' or inventory_hostname == 'k3s-node2'
+  when: "'k3s-nodes' in group_names"
   tags: [k3s, node]
