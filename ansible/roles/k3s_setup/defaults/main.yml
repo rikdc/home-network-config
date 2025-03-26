@@ -8,7 +8,7 @@ k3s_packages_upgrade: true
 # Helm settings
 k3s_helm_charts:
   - name: csi-driver-nfs
-    repo: https://kubernetes-csi.github.io/charts
+    repo: https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
 
 # NFS CSI driver settings
 k3s_nfs_csi_namespace: kube-system

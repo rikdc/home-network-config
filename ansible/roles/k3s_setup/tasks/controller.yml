@@ -19,17 +19,17 @@
 
 - name: Check if Helm repository exists
   shell: |
-    helm repo list | grep -q "{{ item.name }}" || echo "NOT_FOUND"
+    helm repo list | grep "{{ item.name }}" || echo "NOT_FOUND"
   register: helm_repo_status
   loop: "{{ k3s_helm_charts }}"
   changed_when: false
   tags: [k3s, helm]
 
-- name: Add Helm repository for NFS CSI driver
+- name: Add required Helm repositories
   shell: |
     helm repo add {{ item.item.name }} {{ item.item.repo }}
   loop: "{{ helm_repo_status.results }}"
-  when: item.stdout == "NOT_FOUND"
+  when: "'NOT_FOUND' in item.stdout"
   tags: [k3s, helm]
 
 - name: Update Helm repositories
