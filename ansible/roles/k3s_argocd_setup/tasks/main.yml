@@ -96,16 +96,16 @@
       spec:
         ingressClassName: traefik
         rules:
-        - host: "{{ argocd_domain | default('argocd.home.lan') }}"
-          http:
-            paths:
-            - path: /
-              pathType: Prefix
-              backend:
-                service:
-                  name: argocd-server
-                  port:
-                    number: 80
+          - host: "{{ argocd_domain | default('argocd.home.lan') }}"
+            http:
+              paths:
+              - path: /
+                pathType: Prefix
+                backend:
+                  service:
+                    name: argocd-server
+                    port:
+                      number: 80
   when: ingress_controller_status.resources | default([]) | length > 0
 
 - name: Clean up temporary values file
