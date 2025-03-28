@@ -40,8 +40,8 @@ argocd-apps:
       namespace: argocd
       generators:
         - git:
-            repoURL: &repoURL {{ argocd_repo_url | default('http://gitea-http.gitea:3000/ops/homelab') }}
-            revision: &revision {{ argocd_repo_revision | default('main') }}
+            repoURL: {{ argocd_repo_url | default('http://github.com/rikdc/home-network-config') }}
+            revision: {{ argocd_repo_revision | default('main') }}
             directories:
               - path: k3s/system/*
               - path: k3s/apps/*
@@ -56,13 +56,13 @@ argocd-apps:
 {% raw %}
             namespace: '{{path.basename}}'
 {% endraw %}
-          project: default  # TODO
+          project: default
           source:
-            repoURL: *repoURL
+            repoURL: {{ argocd_repo_url | default('http://github.com/rikdc/home-network-config') }}
 {% raw %}
             path: '{{path}}'
 {% endraw %}
-            targetRevision: *revision
+            targetRevision: {{ argocd_repo_revision | default('main') }}
           syncPolicy:
             automated:
               prune: true
