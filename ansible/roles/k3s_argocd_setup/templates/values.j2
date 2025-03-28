@@ -1,0 +1,82 @@
+argo-cd:
+  global:
+    domain: {{ argocd_domain | default('argocd.home.lan') }}
+  configs:
+    params:
+      server.insecure: true
+      controller.diff.server.side: true
+    cm:
+      resource.ignoreResourceUpdatesEnabled: true
+      resource.customizations.ignoreResourceUpdates.all: |
+        jsonPointers:
+          - /status
+  server:
+    ingress:
+      enabled: true
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+        nginx.ingress.kubernetes.io/rewrite-target: /
+      tls: false
+      hosts:
+        - host: {{ argocd_domain | default('argocd.home.lan') }}
+          paths:
+            - path: /
+              pathType: ImplementationSpecific
+    metrics: &metrics
+      enabled: true
+      serviceMonitor:
+        enabled: true
+  dex:
+    enabled: false
+  controller:
+    metrics: *metrics
+  repoServer:
+    metrics: *metrics
+  redis:
+    metrics: *metrics
+argocd-apps:
+  applicationsets:
+    root:
+      namespace: argocd
+      generators:
+        - git:
+            repoURL: {{ argocd_repo_url | default('http://github.com/rikdc/home-network-config') }}
+            revision: {{ argocd_repo_revision | default('main') }}
+            directories:
+              - path: k3s/system/*
+              - path: k3s/apps/*
+      template:
+        metadata:
+{% raw %}
+          name: '{{path.basename}}'
+{% endraw %}
+        spec:
+          destination:
+            name: in-cluster
+{% raw %}
+            namespace: '{{path.basename}}'
+{% endraw %}
+          project: default
+          source:
+            repoURL: {{ argocd_repo_url | default('http://github.com/rikdc/home-network-config') }}
+{% raw %}
+            path: '{{path}}'
+{% endraw %}
+            targetRevision: {{ argocd_repo_revision | default('main') }}
+          syncPolicy:
+            automated:
+              prune: true
+              selfHeal: true
+            retry:
+              limit: 10
+              backoff:
+                duration: 1m
+                factor: 2
+                maxDuration: 16m
+          syncOptions:
+            - CreateNamespace=true
+            - ApplyOutOfSyncOnly=true
+            - ServerSideApply=true
+          managedNamespaceMetadata:
+            annotations:
+              volsync.backube/privileged-movers: "true"

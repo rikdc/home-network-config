@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  author: Your Name
+  author: rikdc
   description: Role to set up k3s Kubernetes cluster
   license: MIT
   min_ansible_version: 2.9
