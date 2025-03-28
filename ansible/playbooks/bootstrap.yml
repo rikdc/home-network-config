@@ -1,0 +1,6 @@
+---
+- name: Bootstrap ArgoCD
+  hosts: k3s-controller
+  become: true
+  roles:
+    - role: k3s_argocd_setup

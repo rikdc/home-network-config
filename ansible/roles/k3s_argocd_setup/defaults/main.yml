@@ -1,0 +1,11 @@
+---
+# ArgoCD Helm chart configuration
+argocd_release_name: argocd
+argocd_namespace: argocd
+argocd_chart_path: https://argoproj.github.io/argo-helm
+argocd_chart_name: argo-cd
+
+# ArgoCD configuration
+argocd_domain: argocd.home.lan
+argocd_repo_url: http://git.home.lan/gadmin/home-network-config
+argocd_repo_revision: main

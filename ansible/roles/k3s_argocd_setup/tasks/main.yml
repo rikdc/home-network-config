@@ -1,0 +1,114 @@
+---
+- name: Check if ArgoCD release is already installed
+  kubernetes.core.helm_info:
+    name: "{{ argocd_release_name }}"
+    namespace: "{{ argocd_namespace }}"
+  register: argocd_status
+  ignore_errors: true
+
+- name: Set values file depending on install status
+  set_fact:
+    argocd_values_template: "{{ 'values.j2' if argocd_status.status is defined and argocd_status.status.status == 'deployed' else 'values-seed.j2' }}"
+
+- name: Ensure namespace exists
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: Namespace
+    name: "{{ argocd_namespace }}"
+    state: present
+
+- name: Render selected values template to remote
+  template:
+    src: "{{ argocd_values_template }}"
+    dest: "/tmp/rendered-values.yaml"
+    mode: '0644'
+
+- name: Debug - Display which values template is being used
+  debug:
+    msg: "Using values template: {{ argocd_values_template }}"
+
+- name: Debug - Display rendered values content
+  command: cat /tmp/rendered-values.yaml
+  register: rendered_values_content
+  changed_when: false
+
+- name: Debug - Show rendered values
+  debug:
+    msg: "{{ rendered_values_content.stdout_lines }}"
+
+- name: Add ArgoCD Helm repo
+  kubernetes.core.helm_repository:
+    name: argo
+    repo_url: "{{ argocd_chart_path }}"
+
+- name: Install or upgrade ArgoCD
+  kubernetes.core.helm:
+    name: "{{ argocd_release_name }}"
+    chart_ref: argo/{{ argocd_chart_name }}
+    release_namespace: "{{ argocd_namespace }}"
+    create_namespace: true
+    values_files:
+      - "/tmp/rendered-values.yaml"
+    state: present
+    update_repo_cache: true
+    wait: true
+    timeout: 600s
+
+- name: Debug - Check if an ingress controller is running
+  kubernetes.core.k8s_info:
+    kind: Pod
+    namespace: kube-system
+    label_selectors:
+      - app=traefik
+  register: ingress_controller_status
+
+- name: Debug - Display ingress controller status
+  debug:
+    msg: "Ingress controller pods found: {{ ingress_controller_status.resources | default([]) | length }}"
+
+- name: Debug - Check if ArgoCD ingress exists
+  kubernetes.core.k8s_info:
+    api_version: networking.k8s.io/v1
+    kind: Ingress
+    namespace: "{{ argocd_namespace }}"
+  register: ingress_status
+
+- name: Debug - Display ingress status
+  debug:
+    msg: "Ingress resources found: {{ ingress_status.resources | default([]) | length }}"
+
+- name: Debug - Display ingress details if any exist
+  debug:
+    var: ingress_status.resources
+  when: ingress_status.resources is defined and ingress_status.resources | length > 0
+
+- name: Create ArgoCD HTTP ingress
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: argocd-server-http-ingress
+        namespace: "{{ argocd_namespace }}"
+        annotations:
+          traefik.ingress.kubernetes.io/router.entrypoints: web
+      spec:
+        ingressClassName: traefik
+        rules:
+        - host: "{{ argocd_domain | default('argocd.home.lan') }}"
+          http:
+            paths:
+            - path: /
+              pathType: Prefix
+              backend:
+                service:
+                  name: argocd-server
+                  port:
+                    number: 80
+  when: ingress_controller_status.resources | default([]) | length > 0
+
+- name: Clean up temporary values file
+  file:
+    path: "/tmp/rendered-values.yaml"
+    state: absent
