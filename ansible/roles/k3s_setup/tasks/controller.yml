@@ -49,13 +49,19 @@
 
 - name: Install NFS CSI driver
   shell: |
-    helm install csi-driver-nfs csi-driver-nfs/csi-driver-nfs --namespace {{ k3s_nfs_csi_namespace }} --set kubeletDir={{ k3s_nfs_csi_kubelet_dir }}
+    helm install csi-driver-nfs csi-driver-nfs/csi-driver-nfs \
+      --namespace {{ k3s_nfs_csi_namespace }} \
+      --set kubeletDir={{ k3s_nfs_csi_kubelet_dir }}
   when: nfs_csi_status.stdout == "NOT_INSTALLED"
   tags: [k3s, nfs-csi]
 
 - name: Wait for NFS CSI driver to be ready
   shell: |
-    kubectl wait --for=condition=available --timeout=300s deployment/csi-nfs-controller -n {{ k3s_nfs_csi_namespace }}
+    kubectl wait \
+      --for=condition=available \
+      --timeout=300s \
+      deployment/csi-nfs-controller \
+      -n {{ k3s_nfs_csi_namespace }}
   register: wait_result
   retries: 5
   delay: 10
