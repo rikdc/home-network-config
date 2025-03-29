@@ -72,7 +72,9 @@
 
 - name: Check if NFS Storage Class exists
   shell: |
-    kubectl get storageclass "{{ hostvars['k3s-controller']['persistent_storage']['storage_class_name'] }}" -o name || echo "NOT_FOUND"
+    kubectl get
+      storageclass "{{ hostvars['k3s-controller']['persistent_storage']['storage_class_name'] }}"
+      -o name || echo "NOT_FOUND"
   register: sc_exists
   changed_when: false
   tags: [k3s, storage-class]

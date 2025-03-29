@@ -27,9 +27,6 @@
     K3S_URL={{ k3s_server_url_template }} \_URL={{ k3s_server_url_template }} \
     K3S_TOKEN={{ lookup('file', '/tmp/node-token') }} \ '/tmp/node-token') }} \
     sh -
-  args:  args:
-
-
-
-  tags: [k3s, node]    creates: /usr/local/bin/k3s    creates: /usr/local/bin/k3s
+  args:
+    creates: /usr/local/bin/k3s
   tags: [k3s, node]
