@@ -8,7 +8,12 @@
 
 - name: Set values file depending on install status
   set_fact:
-    argocd_values_template: "{{ 'values.j2' if argocd_status.status is defined and argocd_status.status.status == 'deployed' else 'values-seed.j2' }}"
+    argocd_values_template: >-
+      {{
+        'values.j2' if argocd_status.status is defined and
+        argocd_status.status.status == 'deployed'
+        else 'values-seed.j2'
+      }}
 
 - name: Ensure namespace exists
   kubernetes.core.k8s:
@@ -99,13 +104,13 @@
           - host: "{{ argocd_domain | default('argocd.home.lan') }}"
             http:
               paths:
-              - path: /
-                pathType: Prefix
-                backend:
-                  service:
-                    name: argocd-server
-                    port:
-                      number: 80
+                - path: /
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: argocd-server
+                      port:
+                        number: 80
   when: ingress_controller_status.resources | default([]) | length > 0
 
 - name: Clean up temporary values file
