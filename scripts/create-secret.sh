@@ -11,10 +11,10 @@ NAMESPACE=$2
 shift 2
 
 # Create temporary file
-TEMP_FILE=$(mktemp)
+TARGET_FILE="k3s/secrets/apps/$APP_NAME/secrets.enc.yaml"
 
 # Create YAML structure
-cat > $TEMP_FILE << EOF
+cat > $TARGET_FILE << EOF
 apiVersion: v1
 kind: Secret
 metadata:
@@ -38,7 +38,7 @@ mkdir -p k3s/secrets/apps/$APP_NAME
 AGE_PUBLIC_KEY=$(grep "age:" .sops.yaml | awk '{print $2}')
 
 # Encrypt the file
-sops --encrypt --age $AGE_PUBLIC_KEY $TEMP_FILE > k3s/secrets/apps/$APP_NAME/secrets.enc.yaml
+sops --verbose --encrypt --age $AGE_PUBLIC_KEY --in-place "$TARGET_FILE"
 
 # Create ExternalSecret resource
 mkdir -p k3s/apps/$APP_NAME
@@ -60,9 +60,6 @@ spec:
     - extract:
         key: k3s/secrets/apps/${APP_NAME}/secrets.enc.yaml
 EOF
-
-# Clean up
-rm $TEMP_FILE
 
 echo "Created encrypted secret for $APP_NAME in namespace $NAMESPACE"
 echo "Created ExternalSecret resource in k3s/apps/$APP_NAME/external-secret.yaml"
