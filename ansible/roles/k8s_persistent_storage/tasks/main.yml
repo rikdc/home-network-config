@@ -71,7 +71,9 @@
 
 - name: Verify PVC creation
   shell: |
-    kubectl get pvc {{ item.name }}-pvc -n {{ item.namespace | default('default') }} -o jsonpath='{.status.phase}' || echo "NotFound"
+    kubectl get pvc {{ item.name }}-pvc \
+      -n {{ item.namespace | default('default') }} \
+      -o jsonpath='{.status.phase}' || echo "NotFound"
   register: pvc_status
   loop: "{{ hostvars['k3s-controller']['persistent_volumes'] | default([]) }}"
   changed_when: false
