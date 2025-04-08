@@ -74,7 +74,7 @@ argocd-apps:
       generators:
         - git:
             repoURL: {{ argocd_repo_url | default('http://github.com/rikdc/home-network-config') }}
-            revision: {{ argocd_repo_revision | default('f25e8e047501aa76bb23e9d94a1acf600e0525f0') }}
+            revision: {{ argocd_repo_revision | default('main') }}
             directories:
               - path: k3s/platform/*
               - path: k3s/system/*
@@ -96,7 +96,7 @@ argocd-apps:
 {% raw %}
             path: '{{path}}'
 {% endraw %}
-            targetRevision: {{ argocd_repo_revision | default('f25e8e047501aa76bb23e9d94a1acf600e0525f0') }}
+            targetRevision: {{ argocd_repo_revision | default('main') }}
           syncPolicy:
             automated:
               prune: true
