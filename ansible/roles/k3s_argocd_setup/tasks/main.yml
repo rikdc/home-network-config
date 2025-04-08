@@ -36,19 +36,6 @@
       - "/tmp/argocd-values.yaml"
   register: argocd_manifests
 
-# - name: Install ArgoCD using Helm
-#   kubernetes.core.helm:
-#     name: "{{ argocd_release_name }}"
-#     chart_ref: argo/{{ argocd_chart_name }}
-#     release_namespace: "{{ argocd_namespace }}"
-#     create_namespace: true
-#     values_files:
-#       - "/tmp/argocd-values.yaml"
-#     state: present
-#     update_repo_cache: true
-#     wait: true
-#     timeout: 600s
-
 - name: Apply ArgoCD manifests
   kubernetes.core.k8s:
     resource_definition: "{{ argocd_manifests.stdout }}"
@@ -56,16 +43,16 @@
     server_side_apply:
       field_manager: argocd-controller
 
-# - name: Wait for ArgoCD server to be ready
-#   kubernetes.core.k8s_info:
-#     api_version: apps/v1
-#     kind: Deployment
-#     name: "{{ argocd_release_name }}-server"
-#     namespace: "{{ argocd_namespace }}"
-#   register: server_deployment
-#   until: server_deployment.resources[0].status.readyReplicas is defined and server_deployment.resources[0].status.readyReplicas > 0
-#   retries: 30
-#   delay: 10
+- name: Wait for ArgoCD server to be ready
+  kubernetes.core.k8s_info:
+    api_version: apps/v1
+    kind: Deployment
+    name: "{{ argocd_release_name }}-server"
+    namespace: "{{ argocd_namespace }}"
+  register: server_deployment
+  until: server_deployment.resources[0].status.readyReplicas is defined and server_deployment.resources[0].status.readyReplicas > 0
+  retries: 30
+  delay: 10
 
 - name: Check if ingress is accessible
   uri:
