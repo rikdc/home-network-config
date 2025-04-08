@@ -76,6 +76,7 @@ argocd-apps:
             repoURL: {{ argocd_repo_url | default('http://github.com/rikdc/home-network-config') }}
             revision: {{ argocd_repo_revision | default('f25e8e047501aa76bb23e9d94a1acf600e0525f0') }}
             directories:
+              - path: k3s/platform/*
               - path: k3s/system/*
               - path: k3s/apps/*
       template:
@@ -91,7 +92,7 @@ argocd-apps:
 {% endraw %}
           project: default
           source:
-            repoURL: {{ argocd_repo_url | default('http://github.com/rikdc/home-network-config') }}
+            repoURL: {{ argocd_repo_url | default('https://github.com/rikdc/home-network-config') }}
 {% raw %}
             path: '{{path}}'
 {% endraw %}
@@ -106,7 +107,7 @@ argocd-apps:
                 duration: 1m
                 factor: 2
                 maxDuration: 16m
-          syncOptions:
-            - CreateNamespace=true
-            - ApplyOutOfSyncOnly=true
-            - ServerSideApply=true
+            syncOptions:
+              - CreateNamespace=true
+              - ApplyOutOfSyncOnly=true
+              - ServerSideApply=true
