@@ -1,40 +1,73 @@
+# Simple ArgoCD configuration with Traefik ingress
 argo-cd:
+  # Global settings
   global:
     domain: {{ argocd_domain | default('argocd.home.lan') }}
+
+  # Configure the ArgoCD server component
+  server:
+    extraArgs:
+      - --insecure # Allow HTTP access
+    ingress:
+      # Enable the built-in ingress
+      enabled: true
+      # Use Traefik as the ingress controller
+      ingressClassName: traefik
+      # Configure the hostname
+      hosts:
+        - {{ argocd_domain | default('argocd.home.lan') }}
+      # Add Traefik-specific annotations
+      annotations:
+        kubernetes.io/ingress.class: traefik
+        traefik.ingress.kubernetes.io/router.entrypoints: web
+
+  # Configure the controller component
+  controller:
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+  # Configure the repo server component
+  repoServer:
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+  # Configure Redis
+  redis:
+    resources:
+      limits:
+        cpu: 200m
+        memory: 128Mi
+      requests:
+        cpu: 100m
+        memory: 64Mi
+
+  # Disable Dex (use built-in auth)
+  dex:
+    enabled: false
+
+  # Configure ArgoCD projects
   configs:
     params:
       server.insecure: true
-      controller.diff.server.side: true
     cm:
-      resource.ignoreResourceUpdatesEnabled: true
-      resource.customizations.ignoreResourceUpdates.all: |
-        jsonPointers:
-          - /status
-  server:
-    ingress:
-      enabled: true
-      annotations:
-        cert-manager.io/cluster-issuer: letsencrypt-prod
-        nginx.ingress.kubernetes.io/rewrite-target: /
-      tls: false
-      hosts:
-        - host: {{ argocd_domain | default('argocd.home.lan') }}
-          paths:
-            - path: /
-              pathType: ImplementationSpecific
-    metrics: &metrics
-      enabled: true
-      serviceMonitor:
-        enabled: true
-  dex:
-    enabled: false
-  controller:
-    metrics: *metrics
-  repoServer:
-    metrics: *metrics
-  redis:
-    metrics: *metrics
+      # Add any ConfigMap settings here
+      url: https://{{ argocd_domain | default('argocd.home.lan') }}
+      application.instanceLabelKey: argocd.argoproj.io/instance
+
+# Configure ArgoCD applications
+# This will be installed as a separate chart
 argocd-apps:
+  # Define application sets
   applicationsets:
     root:
       namespace: argocd
@@ -43,6 +76,7 @@ argocd-apps:
             repoURL: {{ argocd_repo_url | default('http://github.com/rikdc/home-network-config') }}
             revision: {{ argocd_repo_revision | default('main') }}
             directories:
+              - path: k3s/platform/*
               - path: k3s/system/*
               - path: k3s/apps/*
       template:
@@ -58,7 +92,7 @@ argocd-apps:
 {% endraw %}
           project: default
           source:
-            repoURL: {{ argocd_repo_url | default('http://github.com/rikdc/home-network-config') }}
+            repoURL: {{ argocd_repo_url | default('https://github.com/rikdc/home-network-config') }}
 {% raw %}
             path: '{{path}}'
 {% endraw %}
@@ -73,10 +107,7 @@ argocd-apps:
                 duration: 1m
                 factor: 2
                 maxDuration: 16m
-          syncOptions:
-            - CreateNamespace=true
-            - ApplyOutOfSyncOnly=true
-            - ServerSideApply=true
-          managedNamespaceMetadata:
-            annotations:
-              volsync.backube/privileged-movers: "true"
+            syncOptions:
+              - CreateNamespace=true
+              - ApplyOutOfSyncOnly=true
+              - ServerSideApply=true
