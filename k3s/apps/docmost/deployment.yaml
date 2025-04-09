@@ -96,6 +96,6 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: docmost-data-pvc
+            claimName: docmost-data-pv-pvc
         - name: redis-data
           emptyDir: {}
