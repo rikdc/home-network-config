@@ -50,7 +50,8 @@
     name: "{{ argocd_release_name }}-server"
     namespace: "{{ argocd_namespace }}"
   register: server_deployment
-  until: server_deployment.resources[0].status.readyReplicas is defined and server_deployment.resources[0].status.readyReplicas > 0
+  until: server_deployment.resources[0].status.readyReplicas is defined and
+         server_deployment.resources[0].status.readyReplicas > 0
   retries: 30
   delay: 10
 
