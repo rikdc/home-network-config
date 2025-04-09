@@ -41,8 +41,8 @@ spec:
             - name: APP_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: docmost-app-secret
-                  key: app-secret
+                  name: app-secrets
+                  key: APP_SECRET
           resources:
             limits:
               cpu: "1000m"
