@@ -6,18 +6,6 @@ ollamaUrls:
 
 ollama:
   enabled: false
-  resources:
-    requests:
-      cpu: "2000m"
-      memory: "2Gi"
-    limits:
-      cpu: "4000m"
-      memory: "4Gi"
-      nvidia.com/gpu: "0"
-  service:
-    type: ClusterIP
-  gpu:
-    enabled: false
 
 pipelines:
   enabled: true
