@@ -1,3 +1,4 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -32,9 +33,9 @@ spec:
               value: "America/New_York"
             - name: DATABASE_URL
               valueFrom:
-                secretKeyRef:
-                  name: docmost-db-credentials
-                  key: database-url
+                secretKey:
+                  name: app-secrets
+                  key: DATABASE_URL
             - name: REDIS_URL
               value: "redis://localhost:6379"
             - name: APP_SECRET
