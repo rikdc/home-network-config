@@ -1,0 +1,25 @@
+ingress:
+  enabled: true
+  className: ""
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+  hosts:
+    - host: drive.home.lan
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+
+persistence:
+  enabled: true
+  storageClass: ""
+  accessModes:
+    - ReadWriteMany
+  size: 8Gi
+
+ownCloud:
+  externalDatabase:
+    host: "192.168.88.20"
+    database: owncloud
+    username: owncloud
+    password: owncloud
