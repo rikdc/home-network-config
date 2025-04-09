@@ -33,7 +33,7 @@ spec:
               value: "America/New_York"
             - name: DATABASE_URL
               valueFrom:
-                secretKey:
+                secretKeyRef:
                   name: app-secrets
                   key: DATABASE_URL
             - name: REDIS_URL
