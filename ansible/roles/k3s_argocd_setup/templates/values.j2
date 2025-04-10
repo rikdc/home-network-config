@@ -78,7 +78,6 @@ argocd-apps:
             directories:
               - path: k3s/platform/*
               - path: k3s/system/*
-              - path: k3s/platform/*
               - path: k3s/apps/*
       template:
         metadata:
@@ -89,7 +88,7 @@ argocd-apps:
           destination:
             name: in-cluster
 {% raw %}
-            namespace: '{{path.basename}}'
+            namespace: ""
 {% endraw %}
           project: default
           source:
@@ -98,6 +97,10 @@ argocd-apps:
             path: '{{path}}'
 {% endraw %}
             targetRevision: {{ argocd_repo_revision | default('main') }}
+            helm:
+              valueFiles:
+                - values.yaml
+                - secrets.yaml
           syncPolicy:
             automated:
               prune: true
