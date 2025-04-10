@@ -97,6 +97,10 @@ argocd-apps:
             path: '{{path}}'
 {% endraw %}
             targetRevision: {{ argocd_repo_revision | default('main') }}
+            helm:
+              valueFiles:
+                - values.yaml
+                - secrets.yaml
           syncPolicy:
             automated:
               prune: true
