@@ -1,3 +1,24 @@
+storage:
+  pv:
+    name: openwebui-config-pv
+    labels:
+      type: config
+      app: openwebui
+    capacity: 1Gi
+    accessModes: ReadWriteMany
+    reclaimPolicy: Retain
+    storageClassName: nfs-storage
+    nfs:
+      server: 192.168.88.211
+      path: /volume1/docker/openwebui
+  pvc:
+    name: openwebui-config-pvc
+    namespace: tools
+    accessModes: ReadWriteMany
+    requests:
+      storage: 1Gi
+    storageClassName: nfs-storage
+
 externalSecret:
   name: openwebui-external-secret
   namespace: tools
