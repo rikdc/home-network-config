@@ -26,9 +26,6 @@ gitea:
       NAME: gitea
       SCHEMA: public
       SSL_MODE: disable
-      USER: "{{ .Values.gitea.databaseSecret.user }}"
-      PASSWD: "{{ .Values.gitea.databaseSecret.password }}"
-      HOST: "{{ .Values.gitea.databaseSecret.host }}"
     indexer:
       ISSUE_INDEXER_TYPE: bleve
       REPO_INDEXER_ENABLED: true
@@ -55,27 +52,27 @@ gitea:
     passwordKey: GITEA_DATABASE_PASSWD
     hostKey: GITEA_DATABASE_HOST
 
-  additionalConfigFromEnvs:
-    - name: GITEA__DATABASE__USER
-      valueFrom:
-        secretKeyRef:
-          name: vault-gitea-secrets
-          key: GITEA_DATABASE_USER
-    - name: GITEA__DATABASE__PASSWD
-      valueFrom:
-        secretKeyRef:
-          name: vault-gitea-secrets
-          key: GITEA_DATABASE_PASSWD
-    - name: GITEA__DATABASE__HOST
-      valueFrom:
-        secretKeyRef:
-          name: vault-gitea-secrets
-          key: GITEA_DATABASE_HOST
-    - name: GITEA__REDIS__PASSWD
-      valueFrom:
-        secretKeyRef:
-          name: vault-gitea-secrets
-          key: GITEA_REDIS_PASSWD
+  # additionalConfigFromEnvs:
+  #   - name: GITEA__DATABASE__USER
+  #     valueFrom:
+  #       secretKeyRef:
+  #         name: vault-gitea-secrets
+  #         key: GITEA_DATABASE_USER
+  #   - name: GITEA__DATABASE__PASSWD
+  #     valueFrom:
+  #       secretKeyRef:
+  #         name: vault-gitea-secrets
+  #         key: GITEA_DATABASE_PASSWD
+  #   - name: GITEA__DATABASE__HOST
+  #     valueFrom:
+  #       secretKeyRef:
+  #         name: vault-gitea-secrets
+  #         key: GITEA_DATABASE_HOST
+  #   - name: GITEA__REDIS__PASSWD
+  #     valueFrom:
+  #       secretKeyRef:
+  #         name: vault-gitea-secrets
+  #         key: GITEA_REDIS_PASSWD
 
   # Disable built-in PostgreSQL as we're using external database
   postgresql:
