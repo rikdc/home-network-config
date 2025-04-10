@@ -26,6 +26,9 @@ gitea:
       NAME: gitea
       SCHEMA: public
       SSL_MODE: disable
+      USER: "{{ .Values.gitea.databaseSecret.user }}"
+      PASSWD: "{{ .Values.gitea.databaseSecret.password }}"
+      HOST: "{{ .Values.gitea.databaseSecret.host }}"
     indexer:
       ISSUE_INDEXER_TYPE: bleve
       REPO_INDEXER_ENABLED: true
@@ -45,6 +48,12 @@ gitea:
     email: ""
     existingSecret: gitea-admin-credentials
 
+  databaseSecret:
+    enabled: true
+    name: gitea-secrets
+    userKey: GITEA_DATABASE_USER
+    passwordKey: GITEA_DATABASE_PASSWD
+    hostKey: GITEA_DATABASE_HOST
 
   additionalConfigFromEnvs:
     - name: GITEA__DATABASE__USER
