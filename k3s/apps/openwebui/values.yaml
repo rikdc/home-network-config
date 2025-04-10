@@ -33,15 +33,15 @@ open-webui:
   pipelines:
     enabled: true
     persistence:
-      # We're using the same PVC for both the main app and pipelines
-      # since we don't have a separate PVC for pipelines
-      existingClaim: "openwebui-config-pv-pvc"
+      # Update the PVC name to match the one in storage.yaml
+      existingClaim: "openwebui-config-pvc"
       # The following settings are ignored when using existingClaim
       # but kept for reference
       storageClass: "nfs-storage"
 
   persistence:
-    existingClaim: "openwebui-config-pv-pvc"
+    # Update the PVC name to match the one in storage.yaml
+    existingClaim: "openwebui-config-pvc"
     # The following settings are ignored when using existingClaim
     # but kept for reference
     storageClass: "nfs-storage"
