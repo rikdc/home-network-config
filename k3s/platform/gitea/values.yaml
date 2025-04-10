@@ -23,7 +23,10 @@ gitea:
   config:
     database:
       DB_TYPE: postgres
+      HOST: ${GITEA_DATABASE_HOST}  # This will be replaced with the value from your secret
       NAME: gitea
+      USER: ${GITEA_DATABASE_USER}  # This will be replaced with the value from your secret
+      PASSWD: ${GITEA_DATABASE_PASSWD}  # This will be replaced with the value from your secret
       SCHEMA: public
       SSL_MODE: disable
     indexer:
@@ -34,45 +37,35 @@ gitea:
       PORT: 6379
 
   env:
-    # Redis config
     - name: GITEA_REDIS_HOST
       value: gitea-redis-master.default.svc.cluster.local
     - name: GITEA_REDIS_PORT
       value: "6379"
+    - name: GITEA_REDIS_PASSWD
+      valueFrom:
+        secretKeyRef:
+          name: vault-gitea-secrets
+          key: GITEA_REDIS_PASSWD
+    - name: GITEA_DATABASE_USER
+      valueFrom:
+        secretKeyRef:
+          name: vault-gitea-secrets
+          key: GITEA_DATABASE_USER
+    - name: GITEA_DATABASE_PASSWD
+      valueFrom:
+        secretKeyRef:
+          name: vault-gitea-secrets
+          key: GITEA_DATABASE_PASSWD
+    - name: GITEA_DATABASE_HOST
+      valueFrom:
+        secretKeyRef:
+          name: vault-gitea-secrets
+          key: GITEA_DATABASE_HOST
   admin:
     username: ""
     password: ""
     email: ""
     existingSecret: gitea-admin-credentials
-
-  databaseSecret:
-    enabled: true
-    name: gitea-secrets
-    userKey: GITEA_DATABASE_USER
-    passwordKey: GITEA_DATABASE_PASSWD
-    hostKey: GITEA_DATABASE_HOST
-
-  # additionalConfigFromEnvs:
-  #   - name: GITEA__DATABASE__USER
-  #     valueFrom:
-  #       secretKeyRef:
-  #         name: vault-gitea-secrets
-  #         key: GITEA_DATABASE_USER
-  #   - name: GITEA__DATABASE__PASSWD
-  #     valueFrom:
-  #       secretKeyRef:
-  #         name: vault-gitea-secrets
-  #         key: GITEA_DATABASE_PASSWD
-  #   - name: GITEA__DATABASE__HOST
-  #     valueFrom:
-  #       secretKeyRef:
-  #         name: vault-gitea-secrets
-  #         key: GITEA_DATABASE_HOST
-  #   - name: GITEA__REDIS__PASSWD
-  #     valueFrom:
-  #       secretKeyRef:
-  #         name: vault-gitea-secrets
-  #         key: GITEA_REDIS_PASSWD
 
   # Disable built-in PostgreSQL as we're using external database
   postgresql:
