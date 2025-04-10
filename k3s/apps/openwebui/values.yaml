@@ -56,21 +56,15 @@ open-webui:
 
   pipelines:
     enabled: true
+    namespaceOverride: tools
     persistence:
-      # Update the PVC name to match the one in storage.yaml
       existingClaim: "openwebui-config-pvc"
-      # The following settings are ignored when using existingClaim
-      # but kept for reference
       storageClass: "nfs-storage"
 
   persistence:
-    # Update the PVC name to match the one in storage.yaml
     existingClaim: "openwebui-config-pvc"
-    # The following settings are ignored when using existingClaim
-    # but kept for reference
     storageClass: "nfs-storage"
 
-  # Replace direct database URL with a reference to a Kubernetes secret
   extraEnvVars:
     - name: DATABASE_URL
       valueFrom:
