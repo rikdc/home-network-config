@@ -1,57 +1,77 @@
-ollamaUrls:
-  - valueFrom:
-      secretKeyRef:
-        name: openwebui-secrets
-        key: ollamaUrls
+externalSecret:
+  name: openwebui-external-secret
+  namespace: tools
+  refreshInterval: "15s"
+  secretStoreRef:
+    name: vault-backend
+    kind: ClusterSecretStore
+  target:
+    name: openwebui-secrets
+  data:
+    - secretKey: DATABASE_URL
+      remoteRef:
+        key: secrets/data/openwebui
+        property: DATABASE_URL
+    - secretKey: ollamaUrls
+      remoteRef:
+        key: secrets/data/openwebui
+        property: ollamaUrls
 
-ollama:
-  enabled: false
-  replicaCount: 0 # Because enabled = false was not working, ffs.
-  image:
-    repository: ""
+open-webui:
+  ollamaUrls:
+    - valueFrom:
+        secretKeyRef:
+          name: openwebui-secrets
+          key: ollamaUrls
 
-pipelines:
-  enabled: true
+  ollama:
+    enabled: false
+    replicaCount: 0 # Because enabled = false was not working, ffs.
+    image:
+      repository: ""
+
+  pipelines:
+    enabled: true
+    persistence:
+      # We're using the same PVC for both the main app and pipelines
+      # since we don't have a separate PVC for pipelines
+      existingClaim: "openwebui-config-pvc"
+      # The following settings are ignored when using existingClaim
+      # but kept for reference
+      storageClass: "nfs-storage"
+
   persistence:
-    # We're using the same PVC for both the main app and pipelines
-    # since we don't have a separate PVC for pipelines
     existingClaim: "openwebui-config-pvc"
     # The following settings are ignored when using existingClaim
     # but kept for reference
     storageClass: "nfs-storage"
 
-persistence:
-  existingClaim: "openwebui-config-pvc"
-  # The following settings are ignored when using existingClaim
-  # but kept for reference
-  storageClass: "nfs-storage"
+  # Replace direct database URL with a reference to a Kubernetes secret
+  extraEnvVars:
+    - name: DATABASE_URL
+      valueFrom:
+        secretKeyRef:
+          name: openwebui-secrets
+          key: DATABASE_URL
+    - name: TZ
+      value: "America/New_York"
 
-# Replace direct database URL with a reference to a Kubernetes secret
-extraEnvVars:
-  - name: DATABASE_URL
-    valueFrom:
-      secretKeyRef:
-        name: openwebui-secrets
-        key: DATABASE_URL
-  - name: TZ
-    value: "America/New_York"
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "500Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
 
-resources:
-  requests:
-    cpu: "500m"
-    memory: "500Mi"
-  limits:
-    cpu: "1000m"
-    memory: "1Gi"
+  ingress:
+    enabled: true
+    annotations: {}
+    host: chat.home.lan
 
-ingress:
-  enabled: true
-  annotations: {}
-  host: chat.home.lan
+  service:
+    type: NodePort
+    port: 8080
+    targetPort: 8080
 
-service:
-  type: NodePort
-  port: 8080
-  targetPort: 8080
-
-namespace: tools
+  namespace: tools
