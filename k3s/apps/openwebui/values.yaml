@@ -40,7 +40,7 @@ externalSecret:
         property: OLLAMA_URL
 
 open-webui:
-  namespace: tools
+  namespaceOverride: tools
 
   ollamaUrls:
     - valueFrom:
@@ -97,5 +97,3 @@ open-webui:
     type: NodePort
     port: 8080
     targetPort: 8080
-
-  namespace: tools
