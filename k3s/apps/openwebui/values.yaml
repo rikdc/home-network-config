@@ -1,3 +1,4 @@
+---
 storage:
   pv:
     name: openwebui-config-pv
@@ -39,6 +40,8 @@ externalSecret:
         property: OLLAMA_URL
 
 open-webui:
+  namespace: tools
+
   ollamaUrls:
     - valueFrom:
         secretKeyRef:
