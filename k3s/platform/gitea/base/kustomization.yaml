@@ -4,8 +4,11 @@ kind: Kustomization
 namespace: tools
 
 resources:
-- ../helm
-- ../helm/values.yaml
+  - secrets.yaml
 
-patches:
-- path: secrets.yaml
+helmCharts:
+  - name: gitea
+    path: ../helm
+    version: 0.1.0
+    releaseName: gitea
+    valuesFile: ../helm/values.yaml
