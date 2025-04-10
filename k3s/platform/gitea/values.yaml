@@ -42,23 +42,23 @@ gitea:
     - name: GITEA__DATABASE__USER
       valueFrom:
         secretKeyRef:
-          name: gitea-db-credentials
-          key: db-user
+          name: vault-gitea-secrets
+          key: GITEA_DATABASE_USER
     - name: GITEA__DATABASE__PASSWD
       valueFrom:
         secretKeyRef:
-          name: gitea-db-credentials
-          key: db-password
+          name: vault-gitea-secrets
+          key: GITEA_DATABASE_PASSWD
     - name: GITEA__DATABASE__HOST
       valueFrom:
         secretKeyRef:
-          name: gitea-db-credentials
-          key: db-host
+          name: vault-gitea-secrets
+          key: GITEA_DATABASE_HOST
     - name: GITEA__REDIS__PASSWD
       valueFrom:
         secretKeyRef:
-          name: gitea-redis-credentials
-          key: redis-password
+          name: vault-gitea-secrets
+          key: GITEA_REDIS_PASSWD
 
   # Disable built-in PostgreSQL as we're using external database
   postgresql:
