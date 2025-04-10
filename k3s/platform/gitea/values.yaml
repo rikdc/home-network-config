@@ -35,7 +35,7 @@ gitea:
       valueFrom:
         secretKeyRef:
           name: gitea-secrets
-          key: GITEA_DATABASE_USER.
+          key: GITEA_DATABASE_USER
     - name: GITEA__DATABASE__PASSWD
       valueFrom:
         secretKeyRef:
