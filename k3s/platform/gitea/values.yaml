@@ -13,36 +13,35 @@ ingress:
 
 gitea:
   env:
-    # Redis config
     - name: GITEA_REDIS_HOST
       value: gitea-redis-master.default.svc.cluster.local
     - name: GITEA_REDIS_PORT
       value: "6379"
-    # Database config - use standard Gitea environment variables
-    - name: GITEA_DATABASE_TYPE
+  additionalConfigFromEnvs:
+    - name: GITEA__DATABASE__TYPE
       value: postgres
-    - name: GITEA_DATABASE_NAME
+    - name: GITEA__DATABASE__NAME
       value: gitea
-    - name: GITEA_DATABASE_SCHEMA
+    - name: GITEA__DATABASE__SCHEMA
       value: public
-    - name: GITEA_DATABASE_SSL_MODE
+    - name: GITEA__DATABASE__SSL_MODE
       value: disable
-    - name: GITEA_DATABASE_HOST
+    - name: GITEA__DATABASE__HOST
       valueFrom:
         secretKeyRef:
           name: gitea-secrets
           key: GITEA_DATABASE_HOST
-    - name: GITEA_DATABASE_USER
+    - name: GITEA__DATABASE__USER
       valueFrom:
         secretKeyRef:
           name: gitea-secrets
-          key: GITEA_DATABASE_USER
-    - name: GITEA_DATABASE_PASSWORD
+          key: GITEA_DATABASE_USER.
+    - name: GITEA__DATABASE__PASSWD
       valueFrom:
         secretKeyRef:
           name: gitea-secrets
           key: GITEA_DATABASE_PASSWD
-    - name: GITEA_REDIS_PASSWORD
+    - name: GITEA__REDIS__PASSWD
       valueFrom:
         secretKeyRef:
           name: gitea-secrets
