@@ -12,6 +12,14 @@ ingress:
   tls: []
 
 gitea:
+  externalSecret:
+    name: vault-gitea-secrets
+    namespace: tools
+    secretStoreRef:
+      name: vault-backend
+      kind: ClusterSecretStore
+    targetName: gitea-secrets
+
   config:
     database:
       DB_TYPE: postgres
