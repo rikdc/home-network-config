@@ -44,22 +44,22 @@ gitea:
     - name: GITEA_REDIS_PASSWD
       valueFrom:
         secretKeyRef:
-          name: vault-gitea-secrets
+          name: gitea-secrets
           key: GITEA_REDIS_PASSWD
     - name: GITEA_DATABASE_USER
       valueFrom:
         secretKeyRef:
-          name: vault-gitea-secrets
+          name: gitea-secrets
           key: GITEA_DATABASE_USER
     - name: GITEA_DATABASE_PASSWD
       valueFrom:
         secretKeyRef:
-          name: vault-gitea-secrets
+          name: gitea-secrets
           key: GITEA_DATABASE_PASSWD
     - name: GITEA_DATABASE_HOST
       valueFrom:
         secretKeyRef:
-          name: vault-gitea-secrets
+          name: gitea-secrets
           key: GITEA_DATABASE_HOST
   admin:
     username: ""
