@@ -8,7 +8,7 @@ resources:
 
 helmCharts:
   - name: gitea
-    path: file://helm
+    repo: file://helm
     version: 0.1.0
     releaseName: gitea
     valuesFile: ./helm/values.yaml
