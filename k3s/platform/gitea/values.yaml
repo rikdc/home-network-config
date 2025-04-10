@@ -12,6 +12,42 @@ ingress:
   tls: []
 
 gitea:
+  env:
+    # Redis config
+    - name: GITEA_REDIS_HOST
+      value: gitea-redis-master.default.svc.cluster.local
+    - name: GITEA_REDIS_PORT
+      value: "6379"
+    # Database config - use standard Gitea environment variables
+    - name: GITEA_DATABASE_TYPE
+      value: postgres
+    - name: GITEA_DATABASE_NAME
+      value: gitea
+    - name: GITEA_DATABASE_SCHEMA
+      value: public
+    - name: GITEA_DATABASE_SSL_MODE
+      value: disable
+    - name: GITEA_DATABASE_HOST
+      valueFrom:
+        secretKeyRef:
+          name: gitea-secrets
+          key: GITEA_DATABASE_HOST
+    - name: GITEA_DATABASE_USER
+      valueFrom:
+        secretKeyRef:
+          name: gitea-secrets
+          key: GITEA_DATABASE_USER
+    - name: GITEA_DATABASE_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: gitea-secrets
+          key: GITEA_DATABASE_PASSWD
+    - name: GITEA_REDIS_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: gitea-secrets
+          key: GITEA_REDIS_PASSWD
+
   externalSecret:
     name: vault-gitea-secrets
     namespace: tools
@@ -21,11 +57,11 @@ gitea:
     targetName: gitea-secrets
 
   config:
-    database:
-      DB_TYPE: postgres
-      NAME: gitea
-      SCHEMA: public
-      SSL_MODE: disable
+    # database:
+    #   DB_TYPE: postgres
+    #   NAME: gitea
+    #   SCHEMA: public
+    #   SSL_MODE: disable
     indexer:
       ISSUE_INDEXER_TYPE: bleve
       REPO_INDEXER_ENABLED: true
@@ -38,28 +74,6 @@ gitea:
       value: gitea-redis-master.default.svc.cluster.local
     - name: GITEA_REDIS_PORT
       value: "6379"
-
-  additionalConfigFromEnvs:
-    - name: GITEA__DATABASE__USER
-      valueFrom:
-        secretKeyRef:
-          name: gitea-secrets
-          key: GITEA_DATABASE_USER
-    - name: GITEA__DATABASE__PASSWD
-      valueFrom:
-        secretKeyRef:
-          name: gitea-secrets
-          key: GITEA_DATABASE_PASSWD
-    - name: GITEA__DATABASE__HOST
-      valueFrom:
-        secretKeyRef:
-          name: gitea-secrets
-          key: GITEA_DATABASE_HOST
-    - name: GITEA__REDIS__PASSWD
-      valueFrom:
-        secretKeyRef:
-          name: gitea-secrets
-          key: GITEA_REDIS_PASSWD
 
   admin:
     username: ""
