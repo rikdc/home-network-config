@@ -7,6 +7,8 @@ ollamaUrls:
 ollama:
   enabled: false
   replicaCount: 0 # Because enabled = false was not working, ffs.
+  image:
+    repository: ""
 
 pipelines:
   enabled: true
