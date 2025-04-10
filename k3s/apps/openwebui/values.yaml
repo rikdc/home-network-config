@@ -36,7 +36,7 @@ externalSecret:
     - secretKey: ollamaUrls
       remoteRef:
         key: secrets/openwebui
-        property: ollamaUrls
+        property: OLLAMA_URL
 
 open-webui:
   ollamaUrls:
