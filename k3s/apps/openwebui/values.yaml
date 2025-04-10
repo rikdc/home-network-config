@@ -10,11 +10,11 @@ externalSecret:
   data:
     - secretKey: DATABASE_URL
       remoteRef:
-        key: secrets/data/openwebui
+        key: secrets/openwebui
         property: DATABASE_URL
     - secretKey: ollamaUrls
       remoteRef:
-        key: secrets/data/openwebui
+        key: secrets/openwebui
         property: ollamaUrls
 
 open-webui:
@@ -35,13 +35,13 @@ open-webui:
     persistence:
       # We're using the same PVC for both the main app and pipelines
       # since we don't have a separate PVC for pipelines
-      existingClaim: "openwebui-config-pvc"
+      existingClaim: "openwebui-config-pv-pvc"
       # The following settings are ignored when using existingClaim
       # but kept for reference
       storageClass: "nfs-storage"
 
   persistence:
-    existingClaim: "openwebui-config-pvc"
+    existingClaim: "openwebui-config-pv-pvc"
     # The following settings are ignored when using existingClaim
     # but kept for reference
     storageClass: "nfs-storage"
