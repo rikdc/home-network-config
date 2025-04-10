@@ -23,10 +23,7 @@ gitea:
   config:
     database:
       DB_TYPE: postgres
-      HOST: ${GITEA_DATABASE_HOST}  # This will be replaced with the value from your secret
       NAME: gitea
-      USER: ${GITEA_DATABASE_USER}  # This will be replaced with the value from your secret
-      PASSWD: ${GITEA_DATABASE_PASSWD}  # This will be replaced with the value from your secret
       SCHEMA: public
       SSL_MODE: disable
     indexer:
@@ -41,26 +38,29 @@ gitea:
       value: gitea-redis-master.default.svc.cluster.local
     - name: GITEA_REDIS_PORT
       value: "6379"
-    - name: GITEA_REDIS_PASSWD
-      valueFrom:
-        secretKeyRef:
-          name: gitea-secrets
-          key: GITEA_REDIS_PASSWD
-    - name: GITEA_DATABASE_USER
+
+  additionalConfigFromEnvs:
+    - name: GITEA__DATABASE__USER
       valueFrom:
         secretKeyRef:
           name: gitea-secrets
           key: GITEA_DATABASE_USER
-    - name: GITEA_DATABASE_PASSWD
+    - name: GITEA__DATABASE__PASSWD
       valueFrom:
         secretKeyRef:
           name: gitea-secrets
           key: GITEA_DATABASE_PASSWD
-    - name: GITEA_DATABASE_HOST
+    - name: GITEA__DATABASE__HOST
       valueFrom:
         secretKeyRef:
           name: gitea-secrets
           key: GITEA_DATABASE_HOST
+    - name: GITEA__REDIS__PASSWD
+      valueFrom:
+        secretKeyRef:
+          name: gitea-secrets
+          key: GITEA_REDIS_PASSWD
+
   admin:
     username: ""
     password: ""
