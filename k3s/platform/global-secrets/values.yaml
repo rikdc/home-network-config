@@ -1,0 +1,16 @@
+secretStore:
+  name: vault-backend
+
+vault:
+  server: "https://192.168.88.43:8200"
+  path: "secrets"
+  version: "v2"
+  caProvider:
+    name: "vault-ca"
+    key: "ca.crt"
+    namespace: "external-secrets"
+  auth:
+    tokenSecretRef:
+      name: "vault-token"
+      key: "token"
+      namespace: "argocd"
