@@ -1,6 +1,7 @@
+# Specify the namespace for all resources
+namespace: homepage
+
 app-template:
-  # Specify the namespace for all resources
-  namespace: homepage
 
   controllers:
     main:
