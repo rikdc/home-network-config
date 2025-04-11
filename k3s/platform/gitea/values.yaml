@@ -76,7 +76,6 @@ gitea:
   postgresql-ha:
     enabled: false
 
-  # Configure Redis for caching
   redis-cluster:
     enabled: false
     cluster:
@@ -85,13 +84,7 @@ gitea:
 
   redis:
     enabled: true
-    #architecture: standalone
-    # auth:
-    #   enabled: true
-    #   existingSecret: gitea-redis-credentials
-    #   existingSecretPasswordKey: redis-password
 
-  # Use the persistent volume claim we created
   persistence:
     enabled: true
     existingClaim: gitea-data-pvc
