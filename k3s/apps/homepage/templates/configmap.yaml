@@ -36,10 +36,6 @@ data:
           href: https://git.home.lan
           description: Git forge
           icon: gitea.svg
-      - Woodpecker:
-          href: https://ci.home.lan
-          description: Continuous integration
-          icon: woodpecker-ci.svg
       - ArgoCD:
           href: https://argocd.home.lan
           description: Continuous deployment
@@ -53,10 +49,6 @@ data:
               url: '{{`{{HOMEPAGE_VAR_MIKROTIK_URL}}`}}'
               username: '{{`{{HOMEPAGE_VAR_MIKROTIK_USERNAME}}`}}'
               password: '{{`{{HOMEPAGE_VAR_MIKROTIK_PASSWORD}}`}}'
-      - Registry:
-          href: https://registry.home.lan
-          description: Container registry
-          icon: docker.svg
       - Grafana:
           href: https://grafana.home.lan
           description: Observability dashboards
@@ -75,20 +67,7 @@ data:
       - Documentation:
         - href: https://homelab.home.lan
           icon: google-docs.svg
-    - Managed services:
-      - Cloudflare:
-        - href: https://dash.cloudflare.com
-          icon: cloudflare.svg
-      - Terraform Cloud:
-        - href: https://app.terraform.io
-          icon: terraform.svg
     - Infrastructure:
       - Proxmox:
         - href: https://proxmox:8006
           icon: proxmox.svg
-      - Google Cloud:
-        - href: https://console.cloud.google.com
-          icon: google-cloud-platform.svg
-      - Oracle Cloud:
-        - href: https://cloud.oracle.com
-          icon: oracle-cloud.svg
