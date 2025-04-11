@@ -25,21 +25,11 @@ spec:
               containerPort: 80
               protocol: TCP
           env:
-            - name: DATABASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: example-secrets
-                  key: database-url
-            - name: API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: example-secrets
-                  key: api-key
             - name: APP_SECRET
               valueFrom:
                 secretKeyRef:
                   name: example-secrets
-                  key: app-secret
+                  key: app-secrets
           resources:
             limits:
               cpu: "500m"
