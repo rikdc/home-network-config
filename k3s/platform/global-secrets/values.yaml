@@ -1,3 +1,4 @@
+---
 secretStore:
   name: vault-backend
 

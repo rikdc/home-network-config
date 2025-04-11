@@ -29,7 +29,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: example-secrets
-                  key: app-secret
+                  key: app-secrets
           resources:
             limits:
               cpu: "500m"
