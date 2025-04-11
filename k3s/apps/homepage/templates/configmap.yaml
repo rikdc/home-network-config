@@ -44,14 +44,14 @@ data:
           description: Continuous deployment
           icon: argocd.svg
       - MikroTik:
-          href: '{{HOMEPAGE_VAR_MIKROTIK_URL}}'
+          href: '{{`{{HOMEPAGE_VAR_MIKROTIK_URL}}`}}'
           description: MikroTik Router
           icon: router.svg
           widget:
               type: mikrotik
-              url: ""
-              username: ""
-              password: ""
+              url: '{{`{{HOMEPAGE_VAR_MIKROTIK_URL}}`}}'
+              username: '{{`{{HOMEPAGE_VAR_MIKROTIK_USERNAME}}`}}'
+              password: '{{`{{HOMEPAGE_VAR_MIKROTIK_PASSWORD}}`}}'
       - Registry:
           href: https://registry.home.lan
           description: Container registry
