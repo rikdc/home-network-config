@@ -1,17 +1,17 @@
 ---
-ingress:
-  enabled: true
-  className: traefik
-  annotations:
-    kubernetes.io/ingress.class: traefik
-  hosts:
-    - host: git.home.lan
-      paths:
-        - path: /
-          pathType: Prefix
-  tls: []
-
 gitea:
+  ingress:
+    enabled: true
+    className: traefik
+    annotations:
+      kubernetes.io/ingress.class: traefik
+    hosts:
+      - host: git.home.lan
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+
   env:
     - name: GITEA_REDIS_HOST
       value: gitea-redis-master.default.svc.cluster.local
