@@ -44,6 +44,7 @@ data:
       - MikroTik:
           href: http://gw.home.lan
           description: MikroTik Router
+          router.svg
           widgets:
             - type: mikrotik
               url: ""
@@ -79,9 +80,6 @@ data:
         - href: https://app.terraform.io
           icon: terraform.svg
     - Infrastructure:
-      - Router:
-        - href: https://192.168.1.1
-          icon: router.svg
       - Proxmox:
         - href: https://proxmox:8006
           icon: proxmox.svg
