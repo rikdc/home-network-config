@@ -44,9 +44,9 @@ data:
       - MikroTik:
           href: http://gw.home.lan
           description: MikroTik Router
-          router.svg
-          widgets:
-            - type: mikrotik
+          icon: router.svg
+          widget:
+              type: mikrotik
               url: ""
               username: ""
               password: ""
