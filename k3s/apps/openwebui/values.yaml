@@ -91,3 +91,5 @@ open-webui:
     type: NodePort
     port: 8080
     targetPort: 8080
+
+  priorityClassName: low-priority
