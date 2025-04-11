@@ -1,0 +1,3 @@
+# Homepage configuration
+# This file is no longer used as we're using direct Kubernetes resources
+# See the templates directory for the actual resources
