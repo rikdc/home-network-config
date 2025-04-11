@@ -41,7 +41,7 @@ data:
           href: https://argocd.home.lan
           description: Continuous deployment
           icon: argocd.svg
-      - MikroTik
+      - MikroTik:
           href: http://gw.home.lan
           description: MikroTik Router
           widgets:
