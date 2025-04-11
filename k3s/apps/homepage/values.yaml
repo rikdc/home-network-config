@@ -1,7 +1,6 @@
 ---
-homepage:
-  ingress:
-    main:
-      enabled: true
+ingress:
+  main:
+    enabled: true
 
-  namespace: tools
+namespace: tools
