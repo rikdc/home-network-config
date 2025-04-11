@@ -42,7 +42,7 @@ data:
           description: Continuous deployment
           icon: argocd.svg
       - MikroTik:
-          href: http://gw.home.lan
+          href: {{ .Env.WIDGET_MIKROTIK_URL }}
           description: MikroTik Router
           icon: router.svg
           widget:
