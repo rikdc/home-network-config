@@ -1,0 +1,10 @@
+{{- $namespace := "homepage" -}}
+
+{{- define "homepage.namespace" -}}
+namespace: {{ $namespace }}
+{{- end -}}
+
+{{- define "homepage.metadata" -}}
+metadata:
+  namespace: {{ $namespace }}
+{{- end -}}
