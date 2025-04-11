@@ -17,35 +17,6 @@ gitea:
       value: gitea-redis-master.default.svc.cluster.local
     - name: GITEA_REDIS_PORT
       value: "6379"
-  additionalConfigFromEnvs:
-    - name: GITEA__DATABASE__TYPE
-      value: postgres
-    - name: GITEA__DATABASE__NAME
-      value: gitea
-    - name: GITEA__DATABASE__SCHEMA
-      value: public
-    - name: GITEA__DATABASE__SSL_MODE
-      value: disable
-    - name: GITEA__DATABASE__HOST
-      valueFrom:
-        secretKeyRef:
-          name: gitea-secrets
-          key: GITEA_DATABASE_HOST
-    - name: GITEA__DATABASE__USER
-      valueFrom:
-        secretKeyRef:
-          name: gitea-secrets
-          key: GITEA_DATABASE_USER
-    - name: GITEA__DATABASE__PASSWD
-      valueFrom:
-        secretKeyRef:
-          name: gitea-secrets
-          key: GITEA_DATABASE_PASSWD
-    - name: GITEA__REDIS__PASSWD
-      valueFrom:
-        secretKeyRef:
-          name: gitea-secrets
-          key: GITEA_REDIS_PASSWD
 
   externalSecret:
     name: vault-gitea-secrets
@@ -55,15 +26,39 @@ gitea:
       kind: ClusterSecretStore
     targetName: gitea-secrets
 
-  config:
-    # database:
-    #   DB_TYPE: postgres
-    #   NAME: gitea
-    #   SCHEMA: public
-    #   SSL_MODE: disable
-    indexer:
-      ISSUE_INDEXER_TYPE: bleve
-      REPO_INDEXER_ENABLED: true
+  gitea:
+    config:
+      database:
+        DB_TYPE: postgres
+        NAME: gitea
+        SCHEMA: public
+        SSL_MODE: disable
+      indexer:
+        ISSUE_INDEXER_TYPE: bleve
+        REPO_INDEXER_ENABLED: true
+
+      additionalConfigFromEnvs:
+        - name: GITEA__DATABASE__HOST
+          valueFrom:
+            secretKeyRef:
+              name: gitea-secrets
+              key: GITEA_DATABASE_HOST
+        - name: GITEA__DATABASE__USER
+          valueFrom:
+            secretKeyRef:
+              name: gitea-secrets
+              key: GITEA_DATABASE_USER
+        - name: GITEA__DATABASE__PASSWD
+          valueFrom:
+            secretKeyRef:
+              name: gitea-secrets
+              key: GITEA_DATABASE_PASSWD
+        - name: GITEA__REDIS__PASSWD
+          valueFrom:
+            secretKeyRef:
+              name: gitea-secrets
+              key: GITEA_REDIS_PASSWD
+
     redis:
       HOST: gitea-redis-master.default.svc.cluster.local
       PORT: 6379
