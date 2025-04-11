@@ -1,0 +1,8 @@
+---
+apiVersion: v2
+name: blog
+version: 0.0.0
+dependencies:
+  - name: examples
+    version: 2.2.0
+    repository: https://helm.github.io/examples
