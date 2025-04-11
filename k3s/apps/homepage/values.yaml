@@ -1,9 +1,0 @@
----
-homepage:
-  namespace: tools
-
-  ingress:
-    main:
-      enabled: true
-
-
