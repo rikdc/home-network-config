@@ -15,9 +15,9 @@ data:
         provider: google
         target: _blank
     - mikrotik:
-        url: "{{ .Env.WIDGET_MIKROTIK_URL }}"
-        username: "{{ .Env.WIDGET_MIKROTIK_USERNAME }}"
-        password: "{{ .Env.WIDGET_MIKROTIK_PASSWORD }}"
+        url: ""
+        username: ""
+        password: ""
   services.yaml: |
     - Popular:
       - Matrix:
