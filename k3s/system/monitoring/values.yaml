@@ -14,24 +14,6 @@ kube-prometheus-stack:
       podMonitorSelectorNilUsesHelmValues: false
       probeSelectorNilUsesHelmValues: false
   alertmanager:
-    alertmanagerSpec:
-      containers:
-        - name: ntfy-relay
-          image: ghcr.io/khuedoan/webhook-transformer:v0.0.3
-          args:
-            - --port=8081
-            - --config=/config/alertmanager-to-ntfy.jsonnet
-            - --upstream-host=https://ntfy.sh
-          envFrom:
-            - secretRef:
-                name: webhook-transformer
-          volumeMounts:
-            - name: config
-              mountPath: /config
-      volumes:
-        - name: config
-          configMap:
-            name: webhook-transformer
     config:
       route:
         receiver: ntfy
