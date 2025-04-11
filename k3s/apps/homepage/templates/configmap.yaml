@@ -44,7 +44,7 @@ data:
           description: Continuous deployment
           icon: argocd.svg
       - MikroTik:
-          href: '{{`{{HOMEPAGE_VAR_MIKROTIK_URL}}`}}'
+          href: '{{HOMEPAGE_VAR_MIKROTIK_URL}}'
           description: MikroTik Router
           icon: router.svg
           widget:
