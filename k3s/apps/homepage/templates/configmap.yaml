@@ -3,6 +3,8 @@ kind: ConfigMap
 metadata:
   name: homepage-config
   namespace: homepage
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 data:
   settings.yaml: |
     background: https://images.unsplash.com/photo-1502790671504-542ad42d5189?auto=format&fit=crop&w=2560&q=80
@@ -42,7 +44,7 @@ data:
           description: Continuous deployment
           icon: argocd.svg
       - MikroTik:
-          href: "{{{{HOMEPAGE_VAR_MIKROTIK_URL}}}}"
+          href: '{{`{{HOMEPAGE_VAR_MIKROTIK_URL}}`}}'
           description: MikroTik Router
           icon: router.svg
           widget:
