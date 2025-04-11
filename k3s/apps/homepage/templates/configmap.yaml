@@ -14,10 +14,6 @@ data:
     - search:
         provider: google
         target: _blank
-    - mikrotik:
-        url: ""
-        username: ""
-        password: ""
   services.yaml: |
     - Popular:
       - Matrix:
@@ -78,6 +74,11 @@ data:
       - Router:
         - href: https://192.168.1.1
           icon: router.svg
+          widgets:
+            - type: mikrotik
+              url: ""
+              username: ""
+              password: ""
       - Proxmox:
         - href: https://proxmox:8006
           icon: proxmox.svg
