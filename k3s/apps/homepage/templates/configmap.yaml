@@ -1,0 +1,94 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homepage-config
+  namespace: homepage
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+data:
+  settings.yaml: |
+    background: https://images.unsplash.com/photo-1502790671504-542ad42d5189?auto=format&fit=crop&w=2560&q=80
+    cardBlur: md
+    theme: dark
+    headerStyle: boxed
+    hideVersion: true
+  widgets.yaml: |
+    - search:
+        provider: google
+        target: _blank
+  services.yaml: |
+    - Popular:
+      - Matrix:
+          href: https://chat.home.lan
+          description: Chat client
+          icon: element.svg
+      - Jellyfin:
+          href: https://jellyfin.home.lan
+          description: Media system (movies, music, etc.)
+          icon: jellyfin.svg
+      - Paperless:
+          href: https://paperless.home.lan
+          description: Document management system
+          icon: paperless.svg
+    - Development:
+      - Gitea:
+          href: https://git.home.lan
+          description: Git forge
+          icon: gitea.svg
+      - Woodpecker:
+          href: https://ci.home.lan
+          description: Continuous integration
+          icon: woodpecker-ci.svg
+      - ArgoCD:
+          href: https://argocd.home.lan
+          description: Continuous deployment
+          icon: argocd.svg
+      - MikroTik:
+          href: '{{`{{HOMEPAGE_VAR_MIKROTIK_URL}}`}}'
+          description: MikroTik Router
+          icon: router.svg
+          widget:
+              type: mikrotik
+              url: '{{`{{HOMEPAGE_VAR_MIKROTIK_URL}}`}}'
+              username: '{{`{{HOMEPAGE_VAR_MIKROTIK_USERNAME}}`}}'
+              password: '{{`{{HOMEPAGE_VAR_MIKROTIK_PASSWORD}}`}}'
+      - Registry:
+          href: https://registry.home.lan
+          description: Container registry
+          icon: docker.svg
+      - Grafana:
+          href: https://grafana.home.lan
+          description: Observability dashboards
+          icon: grafana.svg
+    - Utilities:
+      - Excalidraw:
+          href: https://draw.home.lan
+          description: Virtual whiteboard
+          icon: excalidraw.svg
+      - Speedtest:
+          href: https://speedtest.home.lan
+          description: Internal network speed test
+          icon: openspeedtest.png
+  bookmarks.yaml: |
+    - Homelab:
+      - Documentation:
+        - href: https://homelab.home.lan
+          icon: google-docs.svg
+    - Managed services:
+      - Cloudflare:
+        - href: https://dash.cloudflare.com
+          icon: cloudflare.svg
+      - Terraform Cloud:
+        - href: https://app.terraform.io
+          icon: terraform.svg
+    - Infrastructure:
+      - Proxmox:
+        - href: https://proxmox:8006
+          icon: proxmox.svg
+      - Google Cloud:
+        - href: https://console.cloud.google.com
+          icon: google-cloud-platform.svg
+      - Oracle Cloud:
+        - href: https://cloud.oracle.com
+          icon: oracle-cloud.svg
