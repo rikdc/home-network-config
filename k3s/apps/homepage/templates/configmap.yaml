@@ -41,6 +41,14 @@ data:
           href: https://argocd.home.lan
           description: Continuous deployment
           icon: argocd.svg
+      - MikroTik
+          href: http://gw.home.lan
+          description: MikroTik Router
+          widgets:
+            - type: mikrotik
+              url: ""
+              username: ""
+              password: ""
       - Registry:
           href: https://registry.home.lan
           description: Container registry
@@ -74,11 +82,6 @@ data:
       - Router:
         - href: https://192.168.1.1
           icon: router.svg
-          widgets:
-            - type: mikrotik
-              url: ""
-              username: ""
-              password: ""
       - Proxmox:
         - href: https://proxmox:8006
           icon: proxmox.svg
