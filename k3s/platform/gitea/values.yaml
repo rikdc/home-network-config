@@ -63,12 +63,6 @@ gitea:
       HOST: gitea-redis-master.default.svc.cluster.local
       PORT: 6379
 
-  env:
-    - name: GITEA_REDIS_HOST
-      value: gitea-redis-master.default.svc.cluster.local
-    - name: GITEA_REDIS_PORT
-      value: "6379"
-
   admin:
     username: ""
     password: ""
