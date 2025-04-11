@@ -51,5 +51,6 @@ ignore: |
   ansible/roles/elliotweiser*
   ansible/roles/ngine_io*
   ansible/.ansible/roles/
+  k3s/apps/openwebui/templates/secrets.yaml
   # Ignore .git directory
   .git/
