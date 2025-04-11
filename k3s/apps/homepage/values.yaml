@@ -3,3 +3,5 @@ homepage:
   ingress:
     main:
       enabled: true
+
+  namespace: tools
