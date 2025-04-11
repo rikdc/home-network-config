@@ -37,27 +37,27 @@ gitea:
         ISSUE_INDEXER_TYPE: bleve
         REPO_INDEXER_ENABLED: true
 
-      additionalConfigFromEnvs:
-        - name: GITEA__DATABASE__HOST
-          valueFrom:
-            secretKeyRef:
-              name: gitea-secrets
-              key: GITEA_DATABASE_HOST
-        - name: GITEA__DATABASE__USER
-          valueFrom:
-            secretKeyRef:
-              name: gitea-secrets
-              key: GITEA_DATABASE_USER
-        - name: GITEA__DATABASE__PASSWD
-          valueFrom:
-            secretKeyRef:
-              name: gitea-secrets
-              key: GITEA_DATABASE_PASSWD
-        - name: GITEA__REDIS__PASSWD
-          valueFrom:
-            secretKeyRef:
-              name: gitea-secrets
-              key: GITEA_REDIS_PASSWD
+    additionalConfigFromEnvs:
+      - name: GITEA__DATABASE__HOST
+        valueFrom:
+          secretKeyRef:
+            name: gitea-secrets
+            key: GITEA_DATABASE_HOST
+      - name: GITEA__DATABASE__USER
+        valueFrom:
+          secretKeyRef:
+            name: gitea-secrets
+            key: GITEA_DATABASE_USER
+      - name: GITEA__DATABASE__PASSWD
+        valueFrom:
+          secretKeyRef:
+            name: gitea-secrets
+            key: GITEA_DATABASE_PASSWD
+      - name: GITEA__REDIS__PASSWD
+        valueFrom:
+          secretKeyRef:
+            name: gitea-secrets
+            key: GITEA_REDIS_PASSWD
 
     redis:
       HOST: gitea-redis-master.default.svc.cluster.local
