@@ -1,6 +1,12 @@
-# cert-manager configuration
+# Enable cert-manager installation
 cert-manager:
+  enabled: true
+  # Install CRDs
   installCRDs: true
+  # Global settings
+  global:
+    leaderElection:
+      namespace: cert-manager
 
   # General settings
   replicaCount: 1
@@ -15,9 +21,10 @@ cert-manager:
       memory: 256Mi
 
   # Security settings
-  securityContext:
-    enabled: true
+  podSecurityContext:
     fsGroup: 1001
+  securityContext:
+    runAsNonRoot: true
     runAsUser: 1001
 
   # Webhook configuration
@@ -25,6 +32,12 @@ cert-manager:
     enabled: true
     securePort: 10250
     timeoutSeconds: 10
+    hostNetwork: false
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1001
+    podSecurityContext:
+      fsGroup: 1001
 
   # Extra arguments
   extraArgs:

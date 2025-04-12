@@ -1,5 +1,11 @@
+{{- if and .Values.cert-manager.enabled .Values.externalSecrets }}
+# Wait for cert-manager webhook to be ready
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
+metadata:
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "1"
 metadata:
   name: ca-key-pair
   namespace: cert-manager

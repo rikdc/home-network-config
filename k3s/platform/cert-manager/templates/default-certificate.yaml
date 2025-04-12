@@ -1,5 +1,11 @@
+{{- if .Values.cert-manager.enabled }}
+# Wait for cert-manager and ClusterIssuer to be ready
 apiVersion: cert-manager.io/v1
 kind: Certificate
+metadata:
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "2"
 metadata:
   name: wildcard-home-lan
   namespace: cert-manager

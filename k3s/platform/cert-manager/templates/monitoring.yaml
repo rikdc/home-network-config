@@ -5,7 +5,9 @@ metadata:
   name: cert-manager
   namespace: cert-manager
   labels:
-    {{- include "cert-manager.labels" . | nindent 4 }}
+    app.kubernetes.io/name: cert-manager
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
     release: prometheus
 spec:
   selector:
@@ -24,7 +26,9 @@ metadata:
   name: cert-manager-alerts
   namespace: cert-manager
   labels:
-    {{- include "cert-manager.labels" . | nindent 4 }}
+    app.kubernetes.io/name: cert-manager
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
     release: prometheus
 spec:
   groups:
