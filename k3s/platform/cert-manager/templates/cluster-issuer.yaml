@@ -22,7 +22,7 @@ spec:
         key: cert/ca  # Changed from intermediate/cert to cert/ca
     - secretKey: tls.key
       remoteRef:
-        key: private_key  # This might need adjustment based on further exploration
+        key: key/default  # Use the default key
 {{- end }}
 ---
 {{- if and .Values.certmanager.enabled .Values.externalSecrets }}
