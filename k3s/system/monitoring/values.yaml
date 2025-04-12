@@ -1,3 +1,25 @@
+---
+storage:
+  pv:
+    name: prometheus-storage-pv
+    labels:
+      type: config
+      app: openwebui
+    capacity: 1Gi
+    accessModes: ReadWriteMany
+    reclaimPolicy: Retain
+    storageClassName: nfs-storage
+    nfs:
+      server: 192.168.88.211
+      path: /volume1/docker/prometheus
+  pvc:
+    name: prometheus-storage-pvc
+    namespace: tools
+    accessModes: ReadWriteMany
+    requests:
+      storage: 1Gi
+    storageClassName: nfs-storage
+
 kube-prometheus-stack:
   grafana:
     enabled: true
@@ -17,12 +39,23 @@ kube-prometheus-stack:
       - name: Loki
         type: loki
         url: http://loki.loki:3100
+
   prometheus:
     prometheusSpec:
       ruleSelectorNilUsesHelmValues: false
       serviceMonitorSelectorNilUsesHelmValues: false
       podMonitorSelectorNilUsesHelmValues: false
       probeSelectorNilUsesHelmValues: false
+      storageSpec:
+        volumeClaimTemplate: null
+        volumeMounts:
+          - name: prometheus-storage
+            mountPath: /prometheus
+        volumes:
+          - name: prometheus-storage
+            persistentVolumeClaim:
+              claimName: prometheus-storage-pvc
+
   alertmanager:
     config:
       route:
