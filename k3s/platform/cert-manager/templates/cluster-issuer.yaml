@@ -10,7 +10,7 @@ metadata:
 spec:
   refreshInterval: "1h"
   secretStoreRef:
-    name: vault-pki-backend  # Changed from vault-backend to vault-pki-backend
+    name: vault-pki-backend
     kind: ClusterSecretStore
   target:
     name: ca-key-pair
@@ -19,10 +19,10 @@ spec:
   data:
     - secretKey: tls.crt
       remoteRef:
-        key: /intermediate/cert
+        key: cert/ca  # Changed from intermediate/cert to cert/ca
     - secretKey: tls.key
       remoteRef:
-        key: /intermediate/private_key
+        key: private_key  # This might need adjustment based on further exploration
 {{- end }}
 ---
 {{- if and .Values.certmanager.enabled .Values.externalSecrets }}
