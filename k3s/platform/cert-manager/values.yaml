@@ -56,7 +56,6 @@ externalSecrets:
       tokenSecretRef:
         name: "vault-token"
         key: "token"
-        namespace: "argocd"
 
 # Monitoring configuration
 monitoring:
