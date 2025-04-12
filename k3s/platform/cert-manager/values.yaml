@@ -47,8 +47,34 @@ certmanager:
 # External Secrets configuration for PKI
 externalSecrets:
   vault:
+    # Vault server URL
+    server: "https://vault.home.lan:8200"
+
     # Path in Vault where PKI is mounted
     pkiPath: "pki_homelab"
+
+    # CA Provider configuration
+    caProvider:
+      type: ConfigMap
+      name: "vault-ca"
+      key: "ca.crt"
+      namespace: "external-secrets"
+
+    # Authentication configuration
+    auth:
+      # Token authentication (current method)
+      tokenSecretRef:
+        name: "vault-token"
+        key: "token"
+        namespace: "argocd"
+
+      # Kubernetes authentication (for future use)
+      # kubernetes:
+      #   mountPath: "kubernetes"
+      #   role: "cert-manager"
+      #   serviceAccountRef:
+      #     name: "cert-manager"
+      #     namespace: "cert-manager"
 
 # Monitoring configuration
 monitoring:

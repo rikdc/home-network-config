@@ -1,5 +1,4 @@
 {{- if and .Values.certmanager.enabled .Values.externalSecrets }}
-# Wait for certmanager webhook to be ready
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
@@ -11,7 +10,7 @@ metadata:
 spec:
   refreshInterval: "1h"
   secretStoreRef:
-    name: vault-backend
+    name: vault-pki-backend  # Changed from vault-backend to vault-pki-backend
     kind: ClusterSecretStore
   target:
     name: ca-key-pair

@@ -197,10 +197,11 @@ vault read auth/kubernetes/config
 # Verify the role
 vault read auth/kubernetes/role/cert-manager
 ```
-
 ### 5. External Secrets Integration
 
-The SecretStore configuration for Vault integration is included in the Helm chart's templates (`templates/secret-store.yaml`) and will be automatically deployed by ArgoCD. Configure the Vault integration in your values.yaml:
+The SecretStore configuration for Vault integration is included in the Helm chart's templates (`templates/secret-store.yaml`) and will be automatically deployed by ArgoCD. This chart uses a dedicated ClusterSecretStore named `vault-pki-backend` specifically for PKI operations, separate from the general-purpose `vault-backend` ClusterSecretStore defined in `k3s/platform/global-secrets/secret-store.yaml`.
+
+Configure the Vault integration in your values.yaml:
 
 ```yaml
 # External Secrets configuration
@@ -210,11 +211,22 @@ externalSecrets:
     server: "https://vault.home.lan:8200"
     # Path in Vault where PKI is mounted
     pkiPath: "pki_homelab"
-    # Authentication configuration
+    # Authentication configuration (currently using token auth)
     auth:
-      kubernetes:
-        mountPath: "kubernetes"
-        role: "cert-manager"
+      # Token authentication is currently used
+      # Future support for Kubernetes auth is planned
+      tokenSecretRef:
+        name: "vault-token"
+        key: "token"
+        namespace: "argocd"
+
+      # Kubernetes authentication (for future use)
+      # kubernetes:
+      #   mountPath: "kubernetes"
+      #   role: "cert-manager"
+      #   serviceAccountRef:
+      #     name: "cert-manager"
+      #     namespace: "cert-manager"
 ```
 
 You can override these values in your ArgoCD application configuration or through a values file:
@@ -230,13 +242,30 @@ externalSecrets:
 To verify the SecretStore deployment:
 ```bash
 # Check SecretStore status
-kubectl get secretstore -n cert-manager vault-backend
+kubectl get clustersecretstore vault-pki-backend
 
 # Verify Vault connectivity
-kubectl describe secretstore -n cert-manager vault-backend
+kubectl describe clustersecretstore vault-pki-backend
 
 # Validate configuration
-kubectl get secretstore vault-backend -n cert-manager -o jsonpath='{.spec.provider.vault.server}'
+kubectl get clustersecretstore vault-pki-backend -o jsonpath='{.spec.provider.vault.server}'
+```
+
+#### Dual ClusterSecretStore Architecture
+
+This setup uses two separate ClusterSecretStores for different purposes:
+
+1. **vault-backend** (defined in global-secrets):
+   - Used for general application secrets
+   - Accesses the KV v2 secrets engine at path "secrets"
+   - Used by most applications
+
+2. **vault-pki-backend** (defined in cert-manager):
+   - Used specifically for certificate operations
+   - Accesses the PKI secrets engine at path "pki_homelab"
+   - Used by cert-manager for certificate issuance and renewal
+
+This separation provides clearer configuration, better security isolation, and easier troubleshooting. For more details on this architecture, see the [Vault Integration Plan](../../docs/vault-integration-plan.md).
 ```
 
 Common verification checks:
