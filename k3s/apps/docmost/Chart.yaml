@@ -1,0 +1,9 @@
+---
+apiVersion: v2
+name: docmost
+version: 0.1.0
+description: A Helm chart for deploying Docmost, an open-source collaborative wiki and documentation platform
+type: application
+maintainers:
+  - name: Home Network Admin
+appVersion: "latest"

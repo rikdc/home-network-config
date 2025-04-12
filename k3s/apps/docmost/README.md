@@ -1,149 +1,150 @@
-# Docmost
+# Docmost Helm Chart
 
-This directory contains the configuration for deploying [Docmost](https://github.com/docmost/docmost) on the k3s cluster.
-
-Docmost is an open-source knowledge base and documentation platform that helps teams organize and share knowledge efficiently.
+This Helm chart deploys [Docmost](https://github.com/docmost/docmost), an open-source collaborative wiki and documentation platform, on Kubernetes.
 
 ## Prerequisites
 
 - Kubernetes cluster
-- PostgreSQL database (external or in-cluster)
-- NFS storage for persistent data
+- Helm 3.0+
+- External PostgreSQL database
+- Vault for secrets management
 
-## Storage Configuration
+## Installation
 
-The persistent volume and claim for Docmost are defined in:
-- `k8s/persistent-volumes/tools/docmost.yaml`
+1. Add the repository:
+```bash
+helm repo add docmost https://charts.home.lan
+helm repo update
+```
 
-This configuration creates:
-- A 5Gi persistent volume for Docmost data
-- A corresponding persistent volume claim in the `tools` namespace
+2. Install the chart:
+```bash
+helm install docmost . -n tools
+```
 
-## Database Configuration
+## Configuration
 
-Docmost requires a PostgreSQL database. The connection details are stored in a Kubernetes secret.
+The following table lists the configurable parameters of the Docmost chart and their default values.
 
-To create the database secret:
+### Global Configuration
 
-1. Run the provided script:
-   ```bash
-   ./k8s/apps/docmost/create-db-secret.sh
-   ```
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `replicaCount` | Number of Docmost replicas | `1` |
+| `nameOverride` | Override the name of the chart | `""` |
+| `fullnameOverride` | Override the full name of the chart | `""` |
 
-2. Follow the prompts to enter:
-   - Database password
-   - Database username (default: docmost)
-   - Database host (default: 192.168.88.30)
-   - Database name (default: docmost)
-   - Kubernetes namespace (default: tools)
+### Image Configuration
 
-The script will create a secret named `docmost-db-credentials` in the specified namespace.
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `image.repository` | Docmost image repository | `docmost/docmost` |
+| `image.tag` | Docmost image tag | `latest` |
+| `image.pullPolicy` | Image pull policy | `IfNotPresent` |
 
-## Application Secret Configuration
+### Service Configuration
 
-Docmost requires a secure application secret for encryption and session management. This secret must be at least 32 characters long.
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `service.type` | Kubernetes service type | `ClusterIP` |
+| `service.port` | Service port | `3000` |
+| `service.targetPort` | Container port | `3000` |
 
-To create the application secret:
+### Ingress Configuration
 
-1. Run the provided script:
-   ```bash
-   ./k8s/apps/docmost/create-app-secret.sh
-   ```
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `ingress.enabled` | Enable ingress | `true` |
+| `ingress.className` | Ingress class name | `traefik` |
+| `ingress.annotations` | Ingress annotations | `{}` |
+| `ingress.hosts` | Ingress hosts configuration | `[{host: wiki.home.lan, paths: [{path: /, pathType: Prefix}]}]` |
+| `ingress.tls` | Ingress TLS configuration | See values.yaml |
 
-2. The script will:
-   - Generate a secure random string
-   - Prompt for the namespace (default: tools)
-   - Create a Kubernetes secret named `docmost-app-secret`
+### Resources Configuration
 
-This secret will be used by the application for secure operations.
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `resources.limits.cpu` | CPU limit | `1000m` |
+| `resources.limits.memory` | Memory limit | `1Gi` |
+| `resources.requests.cpu` | CPU request | `500m` |
+| `resources.requests.memory` | Memory request | `500Mi` |
 
-## Redis Configuration
+### Persistence Configuration
 
-Docmost requires Redis for caching and session management. The deployment includes a Redis sidecar container that runs alongside the main application. This approach simplifies deployment by not requiring a separate Redis instance.
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `persistence.enabled` | Enable persistence | `true` |
+| `persistence.existingClaim` | Use existing PVC | `docmost-data-pv-pvc` |
+| `persistence.size` | Storage size | `10Gi` |
+| `persistence.storageClass` | Storage class | `nfs-client` |
 
-The Redis container:
-- Uses the official Redis Alpine image
-- Stores data in an ephemeral volume (data will be lost on pod restart)
-- Is accessible to the main application via localhost
+### Redis Configuration
 
-## Deployment
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `redis.enabled` | Enable Redis sidecar | `true` |
+| `redis.image.repository` | Redis image repository | `redis` |
+| `redis.image.tag` | Redis image tag | `7-alpine` |
+| `redis.resources` | Redis resource requirements | See values.yaml |
 
-Since Docmost doesn't have an official Helm chart, we'll deploy it using Kubernetes manifests.
+### External Secrets Configuration
 
-1. Apply the persistent volume and claim:
-   ```bash
-   kubectl apply -f k8s/persistent-volumes/tools/docmost.yaml
-   ```
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `externalSecrets.enabled` | Enable external secrets | `true` |
+| `externalSecrets.secretStore.name` | Secret store name | `vault-backend` |
+| `externalSecrets.secretStore.kind` | Secret store kind | `ClusterSecretStore` |
+| `externalSecrets.target.name` | Target secret name | `app-secrets` |
+| `externalSecrets.data` | Secret data configuration | See values.yaml |
 
-2. Create the database secret:
-   ```bash
-   ./k8s/apps/docmost/create-db-secret.sh
-   ```
+## Usage
 
-3. Create the application secret:
-   ```bash
-   ./k8s/apps/docmost/create-app-secret.sh
-   ```
+1. Configure your values in a custom values.yaml file:
+```yaml
+ingress:
+  hosts:
+    - host: your-wiki.domain.com
+      paths:
+        - path: /
+          pathType: Prefix
+```
 
-4. Apply all resources at once:
-   ```bash
-   kubectl apply -f k8s/apps/docmost/
-   ```
-
-## Configuration Options
-
-The deployment files contain the following key configurations:
-
-- **Persistence**: Uses the `docmost-data-pvc` persistent volume claim
-- **Database**: Uses the `docmost-db-credentials` secret for database connection
-- **Application Secret**: Uses the `docmost-app-secret` for secure operations
-- **Redis**: Runs as a sidecar container within the same pod
-- **Ingress**: Configured to use `docs.home.lan` as the host
-- **Resources**: CPU and memory limits and requests
-- **Environment Variables**: Configuration for the Docmost application
-
-## Accessing Docmost
-
-Once deployed, Docmost will be available at:
-- http://docs.home.lan
+2. Install the chart with custom values:
+```bash
+helm install docmost . -f custom-values.yaml -n tools
+```
 
 ## Upgrading
 
-To upgrade an existing Docmost deployment:
-
+To upgrade the chart:
 ```bash
-kubectl apply -f k8s/apps/docmost/
+helm upgrade docmost . -n tools
+```
+
+## Uninstalling
+
+To uninstall/delete the deployment:
+```bash
+helm uninstall docmost -n tools
 ```
 
 ## Troubleshooting
 
-If you encounter issues:
-
 1. Check the pod status:
-   ```bash
-   kubectl get pods -n tools -l app=docmost
-   ```
+```bash
+kubectl get pods -n tools -l app.kubernetes.io/name=docmost
+```
 
-2. View the docmost container logs:
-   ```bash
-   kubectl logs -n tools -l app=docmost -c docmost
-   ```
+2. View the logs:
+```bash
+kubectl logs -n tools -l app.kubernetes.io/name=docmost
+```
 
-3. View the redis container logs:
-   ```bash
-   kubectl logs -n tools -l app=docmost -c redis
-   ```
+3. Check the ingress configuration:
+```bash
+kubectl get ingress -n tools
+```
 
-4. Verify the database connection:
-   ```bash
-   kubectl describe secret docmost-db-credentials -n tools
-   ```
-
-5. Verify the application secret:
-   ```bash
-   kubectl describe secret docmost-app-secret -n tools
-   ```
-
-6. Check persistent volume claim status:
-   ```bash
-   kubectl get pvc -n tools | grep docmost
+4. Verify external secrets:
+```bash
+kubectl get externalsecret -n tools
