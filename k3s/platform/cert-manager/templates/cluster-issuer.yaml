@@ -19,10 +19,10 @@ spec:
   data:
     - secretKey: tls.crt
       remoteRef:
-        key: {{ .Values.externalSecrets.vault.pkiPath }}/intermediate/cert
+        key: /intermediate/cert
     - secretKey: tls.key
       remoteRef:
-        key: {{ .Values.externalSecrets.vault.pkiPath }}/intermediate/private_key
+        key: /intermediate/private_key
 {{- end }}
 ---
 {{- if and .Values.certmanager.enabled .Values.externalSecrets }}
