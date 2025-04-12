@@ -14,13 +14,6 @@ cert-manager:
       cpu: 200m
       memory: 256Mi
 
-  # Prometheus monitoring
-  prometheus:
-    enabled: true
-    servicemonitor:
-      enabled: true
-      namespace: monitoring
-
   # Security settings
   securityContext:
     enabled: true
@@ -50,6 +43,24 @@ externalSecrets:
       kubernetes:
         mountPath: "kubernetes"
         role: "cert-manager"
+
+# Monitoring configuration
+monitoring:
+  # Enable monitoring resources
+  enabled: true
+  # Metrics scrape interval
+  interval: "30s"
+  # ServiceMonitor configuration
+  serviceMonitor:
+    enabled: true
+    namespace: monitoring
+  # Alert configuration
+  alerts:
+    # Certificate expiration thresholds (in days)
+    criticalExpiry: 7
+    warningExpiry: 21
+    # Error rate threshold
+    errorRateThreshold: 0.1
 
   # Global settings
   global:

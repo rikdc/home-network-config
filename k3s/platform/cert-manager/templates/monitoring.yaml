@@ -1,9 +1,11 @@
+{{- if .Values.monitoring.enabled }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: cert-manager
   namespace: cert-manager
   labels:
+    {{- include "cert-manager.labels" . | nindent 4 }}
     release: prometheus
 spec:
   selector:
@@ -14,7 +16,7 @@ spec:
       - cert-manager
   endpoints:
     - port: metrics
-      interval: 30s
+      interval: {{ .Values.monitoring.interval | default "30s" }}
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
@@ -22,6 +24,7 @@ metadata:
   name: cert-manager-alerts
   namespace: cert-manager
   labels:
+    {{- include "cert-manager.labels" . | nindent 4 }}
     release: prometheus
 spec:
   groups:
@@ -29,21 +32,21 @@ spec:
       rules:
         # Certificate expiration alerts
         - alert: CertificateExpirationCritical
-          expr: certmanager_certificate_expiration_timestamp_seconds - time() < (7 * 24 * 3600)
+          expr: certmanager_certificate_expiration_timestamp_seconds - time() < ({{ .Values.monitoring.alerts.criticalExpiry }} * 24 * 3600)
           for: 1h
           labels:
             severity: critical
           annotations:
-            description: "Certificate {{ $labels.name }} in namespace {{ $labels.namespace }} expires in less than 7 days"
+            description: 'Certificate {{ "{{" }} $labels.name {{ "}}" }} in namespace {{ "{{" }} $labels.namespace {{ "}}" }} expires in less than {{ .Values.monitoring.alerts.criticalExpiry }} days'
             summary: "Certificate expiring soon"
 
         - alert: CertificateExpirationWarning
-          expr: certmanager_certificate_expiration_timestamp_seconds - time() < (21 * 24 * 3600)
+          expr: certmanager_certificate_expiration_timestamp_seconds - time() < ({{ .Values.monitoring.alerts.warningExpiry }} * 24 * 3600)
           for: 1h
           labels:
             severity: warning
           annotations:
-            description: "Certificate {{ $labels.name }} in namespace {{ $labels.namespace }} expires in less than 21 days"
+            description: 'Certificate {{ "{{" }} $labels.name {{ "}}" }} in namespace {{ "{{" }} $labels.namespace {{ "}}" }} expires in less than {{ .Values.monitoring.alerts.warningExpiry }} days'
             summary: "Certificate expiration approaching"
 
         # Certificate renewal failure alerts
@@ -53,7 +56,7 @@ spec:
           labels:
             severity: critical
           annotations:
-            description: "Certificate {{ $labels.name }} in namespace {{ $labels.namespace }} failed to renew"
+            description: 'Certificate {{ "{{" }} $labels.name {{ "}}" }} in namespace {{ "{{" }} $labels.namespace {{ "}}" }} failed to renew'
             summary: "Certificate renewal failed"
 
         # External Secret sync alerts
@@ -63,7 +66,7 @@ spec:
           labels:
             severity: critical
           annotations:
-            description: "External Secret {{ $labels.name }} in namespace {{ $labels.namespace }} failed to sync"
+            description: 'External Secret {{ "{{" }} $labels.name {{ "}}" }} in namespace {{ "{{" }} $labels.namespace {{ "}}" }} failed to sync'
             summary: "External Secret sync failed"
 
         # cert-manager controller health
@@ -78,10 +81,11 @@ spec:
 
         # High error rate
         - alert: CertManagerHighErrorRate
-          expr: rate(certmanager_controller_errors_total[5m]) > 0.1
+          expr: rate(certmanager_controller_errors_total[5m]) > {{ .Values.monitoring.alerts.errorRateThreshold }}
           for: 15m
           labels:
             severity: warning
           annotations:
-            description: "cert-manager is experiencing a high error rate"
+            description: "cert-manager is experiencing a high error rate (> {{ .Values.monitoring.alerts.errorRateThreshold }})"
             summary: "High error rate in cert-manager"
+{{- end }}
