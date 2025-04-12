@@ -44,18 +44,11 @@ certmanager:
     - --enable-certificate-owner-ref=true
     - --dns01-recursive-nameservers=1.1.1.1:53
 
-# External Secrets configuration
+# External Secrets configuration for PKI
 externalSecrets:
   vault:
-    # Vault server URL
-    server: "https://vault.home.lan:8200"
     # Path in Vault where PKI is mounted
     pkiPath: "pki_homelab"
-    # Authentication configuration
-    auth:
-      tokenSecretRef:
-        name: "vault-token"
-        key: "token"
 
 # Monitoring configuration
 monitoring:
