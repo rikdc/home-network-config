@@ -1,5 +1,5 @@
-{{- if and .Values.cert-manager.enabled .Values.externalSecrets }}
-# Wait for cert-manager webhook to be ready
+{{- if and .Values.certmanager.enabled .Values.externalSecrets }}
+# Wait for certmanager webhook to be ready
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:

@@ -1,5 +1,5 @@
-# Enable cert-manager installation
-cert-manager:
+# Enable certmanager installation
+certmanager:
   enabled: true
   # Install CRDs
   installCRDs: true
