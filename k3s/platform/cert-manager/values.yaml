@@ -46,6 +46,12 @@ certmanager:
 
 # External Secrets configuration
 externalSecrets:
+  # Service account configuration
+  serviceAccount:
+    # Name of the service account to use for Vault authentication
+    name: "cert-manager"
+    # Create the service account
+    create: true
   vault:
     # Vault server URL
     server: "https://vault.home.lan:8200"
