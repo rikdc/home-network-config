@@ -33,3 +33,4 @@ metadata:
 spec:
   ca:
     secretName: ca-key-pair
+{{- end }}
