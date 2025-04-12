@@ -6,10 +6,8 @@ kube-prometheus-stack:
       annotations:
         kubernetes.io/ingress.class: traefik
       hosts:
-        - host: grafana.home.lan
-          paths:
-            - path: /
-              pathType: Prefix
+        - grafana.home.lan
+      path: /
     forceDeployDatasources: true
     forceDeployDashboards: true
     additionalDataSources:
