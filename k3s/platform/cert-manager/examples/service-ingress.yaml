@@ -1,0 +1,106 @@
+# Example ingress configurations using TLS certificates
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: homepage
+  namespace: home
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`homepage.home.lan`)
+      kind: Rule
+      middlewares:
+        - name: https-redirect
+      services:
+        - name: homepage
+          port: 3000
+  tls:
+    secretName: homepage-tls-secret
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: docmost
+  namespace: tools
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`docs.home.lan`)
+      kind: Rule
+      middlewares:
+        - name: https-redirect
+      services:
+        - name: docmost
+          port: 8080
+  tls:
+    secretName: docmost-tls-secret
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: openwebui
+  namespace: tools
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`ai.home.lan`)
+      kind: Rule
+      middlewares:
+        - name: https-redirect
+      services:
+        - name: openwebui
+          port: 8080
+  tls:
+    secretName: openwebui-tls-secret
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: gitea
+  namespace: tools
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`git.home.lan`)
+      kind: Rule
+      middlewares:
+        - name: https-redirect
+      services:
+        - name: gitea
+          port: 3000
+  tls:
+    secretName: gitea-tls-secret
+---
+# HTTP to HTTPS redirect for all services
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: http-redirect
+  namespace: tools
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: PathPrefix(`/`)
+      kind: Rule
+      middlewares:
+        - name: https-redirect
+      services:
+        - name: noop@internal
+          kind: TraefikService
+---
+# Global middleware for HTTPS redirect
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: https-redirect
+  namespace: tools
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true

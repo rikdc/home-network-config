@@ -1,0 +1,9 @@
+apiVersion: v2
+name: cert-manager
+description: Certificate management for k3s cluster
+type: application
+version: 1.0.0
+dependencies:
+  - name: cert-manager
+    version: v1.13.3
+    repository: https://charts.jetstack.io

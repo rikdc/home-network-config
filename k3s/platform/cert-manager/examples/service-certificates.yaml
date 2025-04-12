@@ -1,0 +1,93 @@
+# Example certificates for various services
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: homepage-tls
+  namespace: home
+spec:
+  secretName: homepage-tls-secret
+  duration: 2160h  # 90 days
+  renewBefore: 360h  # 15 days
+  subject:
+    organizations:
+      - Home Lab
+  commonName: homepage.home.lan
+  dnsNames:
+    - homepage.home.lan
+    - homepage.home.home.lan
+  issuerRef:
+    name: vault-issuer
+    kind: ClusterIssuer
+  secretTemplate:
+    annotations:
+      reloader.stakater.com/reload: "true"
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: docmost-tls
+  namespace: tools
+spec:
+  secretName: docmost-tls-secret
+  duration: 2160h
+  renewBefore: 360h
+  subject:
+    organizations:
+      - Home Lab
+  commonName: docs.home.lan
+  dnsNames:
+    - docs.home.lan
+    - docmost.tools.home.lan
+  issuerRef:
+    name: vault-issuer
+    kind: ClusterIssuer
+  secretTemplate:
+    annotations:
+      reloader.stakater.com/reload: "true"
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: openwebui-tls
+  namespace: tools
+spec:
+  secretName: openwebui-tls-secret
+  duration: 2160h
+  renewBefore: 360h
+  subject:
+    organizations:
+      - Home Lab
+  commonName: ai.home.lan
+  dnsNames:
+    - ai.home.lan
+    - openwebui.tools.home.lan
+  issuerRef:
+    name: vault-issuer
+    kind: ClusterIssuer
+  secretTemplate:
+    annotations:
+      reloader.stakater.com/reload: "true"
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: gitea-tls
+  namespace: tools
+spec:
+  secretName: gitea-tls-secret
+  duration: 2160h
+  renewBefore: 360h
+  subject:
+    organizations:
+      - Home Lab
+  commonName: git.home.lan
+  dnsNames:
+    - git.home.lan
+    - gitea.tools.home.lan
+  issuerRef:
+    name: vault-issuer
+    kind: ClusterIssuer
+  secretTemplate:
+    annotations:
+      reloader.stakater.com/reload: "true"

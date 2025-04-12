@@ -1,0 +1,29 @@
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: ca-key-pair
+  namespace: cert-manager
+spec:
+  refreshInterval: "1h"
+  secretStoreRef:
+    name: vault-backend
+    kind: ClusterSecretStore
+  target:
+    name: ca-key-pair
+    template:
+      type: kubernetes.io/tls
+  data:
+    - secretKey: tls.crt
+      remoteRef:
+        key: pki_homelab/intermediate/cert
+    - secretKey: tls.key
+      remoteRef:
+        key: pki_homelab/intermediate/private_key
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: vault-issuer
+spec:
+  ca:
+    secretName: ca-key-pair

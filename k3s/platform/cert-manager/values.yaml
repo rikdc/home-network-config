@@ -1,0 +1,82 @@
+# cert-manager configuration
+cert-manager:
+  installCRDs: true
+
+  # General settings
+  replicaCount: 1
+
+  # Resource limits
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+  # Prometheus monitoring
+  prometheus:
+    enabled: true
+    servicemonitor:
+      enabled: true
+      namespace: monitoring
+
+  # Security settings
+  securityContext:
+    enabled: true
+    fsGroup: 1001
+    runAsUser: 1001
+
+  # Webhook configuration
+  webhook:
+    enabled: true
+    securePort: 10250
+    timeoutSeconds: 10
+
+  # Extra arguments
+  extraArgs:
+    - --enable-certificate-owner-ref=true
+    - --dns01-recursive-nameservers=1.1.1.1:53
+
+# External Secrets configuration
+externalSecrets:
+  vault:
+    # Vault server URL
+    server: "https://vault.home.lan:8200"
+    # Path in Vault where PKI is mounted
+    pkiPath: "pki_homelab"
+    # Authentication configuration
+    auth:
+      kubernetes:
+        mountPath: "kubernetes"
+        role: "cert-manager"
+
+  # Global settings
+  global:
+    logLevel: 2
+    leaderElection:
+      namespace: cert-manager
+
+  # Affinity and tolerations
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values:
+                    - cert-manager
+            topologyKey: kubernetes.io/hostname
+
+  tolerations: []
+
+  # Node selector
+  nodeSelector: {}
+
+  # Service configuration
+  service:
+    type: ClusterIP
+    port: 9402

@@ -1,0 +1,49 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wildcard-home-lan
+  namespace: cert-manager
+spec:
+  secretName: wildcard-home-lan-tls
+  duration: 2160h  # 90 days
+  renewBefore: 360h  # 15 days
+  subject:
+    organizations:
+      - Home Lab
+  commonName: "*.home.lan"
+  dnsNames:
+    - "*.home.lan"
+    - "*.*.home.lan"
+  issuerRef:
+    name: vault-issuer
+    kind: ClusterIssuer
+  secretTemplate:
+    annotations:
+      reloader.stakater.com/reload: "true"
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: TLSOption
+metadata:
+  name: default
+  namespace: cert-manager
+spec:
+  minVersion: VersionTLS12
+  maxVersion: VersionTLS13
+  curvePreferences:
+    - CurveP521
+    - CurveP384
+  cipherSuites:
+    - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+    - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+    - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
+    - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: ssl-redirect
+  namespace: cert-manager
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true
