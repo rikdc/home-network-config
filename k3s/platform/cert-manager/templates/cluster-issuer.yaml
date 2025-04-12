@@ -20,10 +20,10 @@ spec:
   data:
     - secretKey: tls.crt
       remoteRef:
-        key: pki_homelab/intermediate/cert
+        key: {{ .Values.externalSecrets.vault.pkiPath }}/intermediate/cert
     - secretKey: tls.key
       remoteRef:
-        key: pki_homelab/intermediate/private_key
+        key: {{ .Values.externalSecrets.vault.pkiPath }}/intermediate/private_key
 {{- end }}
 ---
 {{- if and .Values.certmanager.enabled .Values.externalSecrets }}
