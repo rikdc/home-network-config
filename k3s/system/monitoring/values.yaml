@@ -1,0 +1,70 @@
+---
+storage:
+  pv:
+    name: prometheus-storage-pv
+    labels:
+      type: config
+      app: openwebui
+    capacity: 1Gi
+    accessModes: ReadWriteMany
+    reclaimPolicy: Retain
+    storageClassName: nfs-storage
+    nfs:
+      server: 192.168.88.211
+      path: /volume1/docker/prometheus
+
+kube-prometheus-stack:
+  grafana:
+    enabled: true
+    ingress:
+      enabled: true
+      ingressClassName: traefik
+      annotations:
+        kubernetes.io/ingress.class: traefik
+        traefik.ingress.kubernetes.io/router.entrypoints: web
+      hosts:
+        - grafana.home.lan
+      path: /
+      pathType: Prefix
+    forceDeployDatasources: true
+    forceDeployDashboards: true
+    additionalDataSources:
+      - name: Loki
+        type: loki
+        url: http://loki.loki:3100
+
+  prometheus:
+    prometheusSpec:
+      ruleSelectorNilUsesHelmValues: false
+      serviceMonitorSelectorNilUsesHelmValues: false
+      podMonitorSelectorNilUsesHelmValues: false
+      probeSelectorNilUsesHelmValues: false
+      storageSpec:
+        volumeClaimTemplate:
+          spec:
+            volumeName: prometheus-storage-pv
+            accessModes:
+              - ReadWriteMany
+            storageClassName: nfs-storage
+            resources:
+              requests:
+                storage: 1Gi
+
+  alertmanager:
+    config:
+      route:
+        receiver: ntfy
+        group_by:
+          - namespace
+        group_wait: 30s
+        group_interval: 5m
+        repeat_interval: 12h
+        routes:
+          - receiver: ntfy
+            matchers:
+              - alertname = "Watchdog"
+      receivers:
+        - name: ntfy
+          webhook_configs:
+            - url: http://localhost:8081
+              send_resolved: true
