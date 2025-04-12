@@ -46,13 +46,6 @@ certmanager:
 
 # External Secrets configuration
 externalSecrets:
-  # Service account configuration
-  serviceAccount:
-    # Name of the service account to use for Vault authentication
-    name: "cert-manager"
-    # Create the service account
-    create: true
-    create: true
   vault:
     # Vault server URL
     server: "https://vault.home.lan:8200"
@@ -60,9 +53,10 @@ externalSecrets:
     pkiPath: "pki_homelab"
     # Authentication configuration
     auth:
-      kubernetes:
-        mountPath: "kubernetes"
-        role: "cert-manager"
+      tokenSecretRef:
+        name: "vault-token"
+        key: "token"
+        namespace: "argocd"
 
 # Monitoring configuration
 monitoring:
