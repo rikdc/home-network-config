@@ -14,7 +14,7 @@ storage:
       path: /volume1/docker/prometheus
   pvc:
     name: prometheus-storage-pvc
-    namespace: tools
+    namespace: monitoring
     accessModes: ReadWriteMany
     requests:
       storage: 1Gi
