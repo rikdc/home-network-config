@@ -288,6 +288,48 @@ helm upgrade --install cert-manager . \
   --create-namespace
 ```
 
+## Monitoring Configuration
+
+The chart includes comprehensive monitoring with Prometheus ServiceMonitor and alerts. Configure monitoring in your values.yaml:
+
+```yaml
+monitoring:
+  # Enable monitoring resources
+  enabled: true
+  # Metrics scrape interval
+  interval: "30s"
+  # ServiceMonitor configuration
+  serviceMonitor:
+    enabled: true
+    namespace: monitoring
+  # Alert configuration
+  alerts:
+    # Certificate expiration thresholds (in days)
+    criticalExpiry: 7    # Critical alert when certificate expires in 7 days
+    warningExpiry: 21    # Warning alert when certificate expires in 21 days
+    # Error rate threshold
+    errorRateThreshold: 0.1  # Alert when error rate exceeds 10%
+```
+
+Example of customizing monitoring thresholds:
+```yaml
+monitoring:
+  enabled: true
+  interval: "1m"
+  alerts:
+    criticalExpiry: 14    # More aggressive critical alert
+    warningExpiry: 30     # Earlier warning
+    errorRateThreshold: 0.05  # Lower error threshold
+```
+
+Available alerts:
+1. **CertificateExpirationCritical**: Certificate expiring in less than criticalExpiry days
+2. **CertificateExpirationWarning**: Certificate expiring in less than warningExpiry days
+3. **CertificateRenewalFailure**: Certificate renewal has failed
+4. **ExternalSecretSyncFailure**: External Secret failed to sync with Vault
+5. **CertManagerControllerDown**: cert-manager controller is not running
+6. **CertManagerHighErrorRate**: Error rate exceeds errorRateThreshold
+
 ## Network Requirements and Troubleshooting
 
 ### Network Prerequisites
