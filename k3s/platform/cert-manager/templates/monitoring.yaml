@@ -4,6 +4,9 @@ kind: ServiceMonitor
 metadata:
   name: cert-manager
   namespace: cert-manager
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "3"
   labels:
     app.kubernetes.io/name: cert-manager
     app.kubernetes.io/instance: {{ .Release.Name }}
@@ -25,6 +28,9 @@ kind: PrometheusRule
 metadata:
   name: cert-manager-alerts
   namespace: cert-manager
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "3"
   labels:
     app.kubernetes.io/name: cert-manager
     app.kubernetes.io/instance: {{ .Release.Name }}
