@@ -1,6 +1,8 @@
 kube-prometheus-stack:
   grafana:
-    enabled: false
+    enabled: true
+    hosts:
+      - grafana.home.lan
     forceDeployDatasources: true
     forceDeployDashboards: true
     additionalDataSources:
