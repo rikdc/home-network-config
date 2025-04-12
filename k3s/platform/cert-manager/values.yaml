@@ -52,6 +52,7 @@ externalSecrets:
     name: "cert-manager"
     # Create the service account
     create: true
+    create: true
   vault:
     # Vault server URL
     server: "https://vault.home.lan:8200"
