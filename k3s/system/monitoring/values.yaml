@@ -12,13 +12,6 @@ storage:
     nfs:
       server: 192.168.88.211
       path: /volume1/docker/prometheus
-  pvc:
-    name: prometheus-storage-pvc
-    namespace: monitoring
-    accessModes: ReadWriteMany
-    requests:
-      storage: 1Gi
-    storageClassName: nfs-storage
 
 kube-prometheus-stack:
   grafana:

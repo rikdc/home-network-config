@@ -16,17 +16,3 @@ spec:
   nfs:
     server: {{ .Values.storage.pv.nfs.server }}
     path: {{ .Values.storage.pv.nfs.path }}
-
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: {{ .Values.storage.pvc.name }}
-  namespace: {{ .Values.storage.pvc.namespace }}
-spec:
-  accessModes:
-    - {{ .Values.storage.pvc.accessModes }}
-  resources:
-    requests:
-      storage: {{ .Values.storage.pvc.requests.storage }}
-  storageClassName: {{ .Values.storage.pvc.storageClassName }}
