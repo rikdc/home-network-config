@@ -47,14 +47,15 @@ kube-prometheus-stack:
       podMonitorSelectorNilUsesHelmValues: false
       probeSelectorNilUsesHelmValues: false
       storageSpec:
-        volumeClaimTemplate: null
-        volumeMounts:
-          - name: prometheus-storage
-            mountPath: /prometheus
-        volumes:
-          - name: prometheus-storage
-            persistentVolumeClaim:
-              claimName: prometheus-storage-pvc
+        volumeClaimTemplate:
+          spec:
+            volumeName: prometheus-storage-pv
+            accessModes:
+              - ReadWriteMany
+            storageClassName: nfs-storage
+            resources:
+              requests:
+                storage: 1Gi
 
   alertmanager:
     config:
