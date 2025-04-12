@@ -5,9 +5,11 @@ kube-prometheus-stack:
       ingressClassName: traefik
       annotations:
         kubernetes.io/ingress.class: traefik
+        traefik.ingress.kubernetes.io/router.entrypoints: web
       hosts:
         - grafana.home.lan
       path: /
+      pathType: Prefix
     forceDeployDatasources: true
     forceDeployDashboards: true
     additionalDataSources:
