@@ -3,7 +3,7 @@ secretStore:
   name: vault-backend
 
 vault:
-  server: "https://192.168.88.43:8200"
+  server: "https://vault.home.lan:8200"
   path: "secrets"
   version: "v2"
   caProvider:
