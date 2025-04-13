@@ -22,4 +22,4 @@ spec:
   tls:
     - hosts:
         - home.lan
-      secretName: homepage-tls-certificate
+      secretName: homepage-tls
