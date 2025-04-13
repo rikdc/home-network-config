@@ -19,10 +19,12 @@ spec:
   data:
     - secretKey: tls.crt
       remoteRef:
-        key: cert/ca  # Changed from intermediate/cert to cert/ca
+        key: ca-key-pair
+        property: tls.crt
     - secretKey: tls.key
       remoteRef:
-        key: key/default  # Use the default key
+        key: ca-key-pair
+        property: tls.key
 {{- end }}
 ---
 {{- if and .Values.certmanager.enabled .Values.externalSecrets }}

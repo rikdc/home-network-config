@@ -51,7 +51,7 @@ externalSecrets:
     server: "https://vault.home.lan:8200"
 
     # Path in Vault where PKI is mounted
-    pkiPath: "pki_homelab"
+    pkiPath: "eso-kv"
 
     # CA Provider configuration
     caProvider:
