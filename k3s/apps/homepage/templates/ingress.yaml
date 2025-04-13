@@ -1,13 +1,11 @@
----
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: homepage
   namespace: homepage
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
     kubernetes.io/ingress.class: traefik
-    traefik.ingress.kubernetes.io/router.entrypoints: web
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
 spec:
   ingressClassName: traefik
   rules:
