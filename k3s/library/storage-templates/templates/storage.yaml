@@ -1,0 +1,75 @@
+{{- if .Values.storage.persistence.enabled }}
+{{- if not .Values.storage.persistence.skipCreation }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Values.storage.persistence.pvName | default (printf "%s-pv" .Release.Name) }}
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: storage
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+  annotations:
+    helm.sh/resource-policy: keep
+    kubernetes.io/pv-protection: "true"
+  finalizers:
+    - kubernetes.io/pv-protection
+  {{- with .Values.storage.persistence.annotations }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  capacity:
+    storage: {{ .Values.storage.persistence.size }}
+  accessModes:
+    - {{ .Values.storage.persistence.accessMode | default "ReadWriteMany" }}
+  persistentVolumeReclaimPolicy: {{ .Values.storage.persistence.reclaimPolicy | default "Retain" }}
+  storageClassName: {{ .Values.storage.persistence.storageClass }}
+  {{- if eq .Values.storage.persistence.type "nfs" }}
+  nfs:
+    {{- if .Values.storage.persistence.useExternalSecrets }}
+    # When using External Secrets, these values should be set from the secrets
+    # but are required here for the PersistentVolume definition
+    server: {{ .Values.storage.persistence.nfs.server }}
+    path: {{ .Values.storage.persistence.nfs.path }}
+    {{- else }}
+    server: {{ .Values.storage.persistence.nfs.server }}
+    path: {{ .Values.storage.persistence.nfs.path }}
+    {{- end }}
+  {{- end }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.storage.persistence.pvcName | default (printf "%s-pvc" .Release.Name) }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: storage
+    app.kubernetes.io/part-of: {{ .Release.Name }}
+  annotations:
+    helm.sh/resource-policy: keep
+    kubernetes.io/pvc-protection: "true"
+  finalizers:
+    - kubernetes.io/pvc-protection
+  {{- with .Values.storage.persistence.pvcAnnotations }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  accessModes:
+    - {{ .Values.storage.persistence.accessMode | default "ReadWriteMany" }}
+  resources:
+    requests:
+      storage: {{ .Values.storage.persistence.size }}
+  storageClassName: {{ .Values.storage.persistence.storageClass }}
+  {{- if .Values.storage.persistence.volumeName }}
+  volumeName: {{ .Values.storage.persistence.volumeName }}
+  {{- else }}
+  volumeName: {{ .Values.storage.persistence.pvName | default (printf "%s-pv" .Release.Name) }}
+  {{- end }}
+{{- end }}
+{{- end }}

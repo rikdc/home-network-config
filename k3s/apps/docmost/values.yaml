@@ -84,6 +84,7 @@ storage-templates:
       pvName: docmost-data-pv
       pvcName: docmost-data-pv-pvc
       useExternalSecrets: true
+      skipCreation: false
       nfs:
         server: 192.168.88.211
         path: /volume1/docker/docmost
