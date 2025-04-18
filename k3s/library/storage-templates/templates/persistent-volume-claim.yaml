@@ -1,12 +1,11 @@
-{{- define "storage.persistentVolumeClaim" -}}
 {{- if .Values.storage.persistence.enabled }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "storage.pvcName" . }}
+  name: {{ include "storage-templates.pvcName" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "storage.labels" . | nindent 4 }}
+    {{- include "storage-templates.labels" . | nindent 4 }}
   {{- with .Values.storage.persistence.pvcAnnotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -21,7 +20,6 @@ spec:
   {{- if .Values.storage.persistence.volumeName }}
   volumeName: {{ .Values.storage.persistence.volumeName }}
   {{- else }}
-  volumeName: {{ include "storage.pvName" . }}
+  volumeName: {{ include "storage-templates.pvName" . }}
   {{- end }}
 {{- end }}
-{{- end -}}

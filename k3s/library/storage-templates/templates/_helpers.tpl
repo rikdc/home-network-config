@@ -1,7 +1,7 @@
 {{/*
 Define common labels for storage resources
 */}}
-{{- define "storage.labels" -}}
+{{- define "storage-templates.labels" -}}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
 app.kubernetes.io/name: {{ .Release.Name }}
@@ -11,7 +11,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{/*
 Define the PV name
 */}}
-{{- define "storage.pvName" -}}
+{{- define "storage-templates.pvName" -}}
 {{- if .Values.storage.persistence.pvName -}}
 {{- .Values.storage.persistence.pvName -}}
 {{- else -}}
@@ -22,7 +22,7 @@ Define the PV name
 {{/*
 Define the PVC name
 */}}
-{{- define "storage.pvcName" -}}
+{{- define "storage-templates.pvcName" -}}
 {{- if .Values.storage.persistence.pvcName -}}
 {{- .Values.storage.persistence.pvcName -}}
 {{- else -}}

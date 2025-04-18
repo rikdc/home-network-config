@@ -23,7 +23,7 @@ In your application chart's `Chart.yaml`:
 dependencies:
   - name: storage-templates
     version: 0.1.0
-    repository: file://../../../library/storage-templates
+    repository: file://../../library/storage-templates
 ```
 
 ### 2. Update your application's values.yaml
@@ -62,27 +62,9 @@ storage:
       property: NFS_PATH
 ```
 
-### 3. Include the templates in your application's templates
+### 3. No need to include templates
 
-In your application's template files, include the library chart templates:
-
-#### PersistentVolume
-
-```yaml
-{{- include "storage-templates.storage.persistentVolume" . }}
-```
-
-#### PersistentVolumeClaim
-
-```yaml
-{{- include "storage-templates.storage.persistentVolumeClaim" . }}
-```
-
-#### ExternalSecret
-
-```yaml
-{{- include "storage-templates.storage.externalSecret" . }}
-```
+When using the library chart as a dependency, you don't need to include the templates in your application's template files. The library chart will automatically create the PersistentVolume, PersistentVolumeClaim, and ExternalSecret resources based on your values.yaml configuration.
 
 ### 4. Reference the PVC in your Deployment
 
