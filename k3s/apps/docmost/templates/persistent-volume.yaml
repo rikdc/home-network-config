@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: {{ include "docmost.fullname" . }}-data-pv
+  name: docmost-data-pv
   labels:
     {{- include "docmost.labels" . | nindent 4 }}
 spec:
