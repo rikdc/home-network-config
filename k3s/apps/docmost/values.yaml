@@ -41,9 +41,11 @@ resources:
 
 persistence:
   enabled: true
-  existingClaim: docmost-data-pv-pvc
   size: 10Gi
-  storageClass: nfs-client
+  storageClass: nfs-storage
+  nfs:
+    server: 192.168.88.211
+    path: /volume1/docker/docmost
 
 redis:
   enabled: true
