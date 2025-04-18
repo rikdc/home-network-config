@@ -1,4 +1,4 @@
-{{- if .Values.storage.persistence.enabled }}
+{{- if and .Values.storage.persistence.enabled (not .Values.storage.persistence.skipCreation) }}
 apiVersion: v1
 kind: PersistentVolume
 metadata:

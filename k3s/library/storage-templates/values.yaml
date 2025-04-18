@@ -5,6 +5,8 @@ storage:
   persistence:
     # -- Enable persistent storage
     enabled: false
+    # -- Skip creation of PV and PVC (useful for existing applications)
+    skipCreation: false
     # -- Type of storage (currently only 'nfs' is supported)
     type: nfs
     # -- Storage size (e.g., 10Gi)

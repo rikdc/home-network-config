@@ -51,6 +51,8 @@ storage:
     pvcName: docmost-data-pv-pvc
     # Use External Secrets for NFS configuration
     useExternalSecrets: true
+    # Skip creation of PV and PVC since they already exist
+    skipCreation: false
     # Note: These NFS values should match the values stored in External Secrets
     # The actual values are stored in Vault
     nfs:

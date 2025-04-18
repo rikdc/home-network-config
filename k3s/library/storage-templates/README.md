@@ -46,6 +46,8 @@ storage:
       path: /data/my-app     # Will be overridden by External Secrets if enabled
     # Enable External Secrets integration
     useExternalSecrets: true
+    # Skip creation of PV and PVC (useful for existing applications)
+    skipCreation: false
 
   # External Secrets configuration
   externalSecrets:
@@ -80,6 +82,37 @@ volumes:
 ## Configuration
 
 See the [values.yaml](./values.yaml) file for the full list of configurable parameters.
+
+## Using with Existing Applications
+
+If you have existing applications with PV and PVC resources already created, you can still use this library chart without recreating those resources. This is useful when you want to standardize your storage configuration without risking data loss.
+
+To use this chart with existing applications:
+
+1. Set `storage.persistence.skipCreation: true` in your values.yaml file:
+
+```yaml
+storage:
+  persistence:
+    enabled: true
+    type: nfs
+    size: 10Gi
+    storageClass: nfs-storage
+    pvName: existing-pv-name
+    pvcName: existing-pvc-name
+    # Skip creation of PV and PVC since they already exist
+    skipCreation: true
+    useExternalSecrets: true
+    nfs:
+      server: 192.168.1.100  # Placeholder
+      path: /data/my-app     # Placeholder
+```
+
+2. The library chart will skip creating the PV and PVC resources, but will still:
+   - Create the ExternalSecret for NFS configuration
+   - Provide the same values structure for referencing in your Deployment
+
+This approach allows you to gradually adopt the pattern across your cluster without disrupting existing applications.
 
 ## Examples
 
