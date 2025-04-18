@@ -5,6 +5,11 @@ metadata:
   name: {{ .Values.persistence.pvName }}
   labels:
     {{- include "docmost.labels" . | nindent 4 }}
+  annotations:
+    # Note: The NFS server and path values are now stored in External Secrets
+    # but still need to be specified here for the PersistentVolume
+    external-secrets.io/nfs-server: "true"
+    external-secrets.io/nfs-path: "true"
 spec:
   capacity:
     storage: {{ .Values.persistence.size }}

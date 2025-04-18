@@ -39,6 +39,16 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.externalSecrets.target.name }}
                   key: APP_SECRET
+            - name: NFS_SERVER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.externalSecrets.target.name }}
+                  key: NFS_SERVER
+            - name: NFS_PATH
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.externalSecrets.target.name }}
+                  key: NFS_PATH
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
