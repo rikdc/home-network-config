@@ -4,7 +4,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ include "docmost.fullname" . }}
-  namespace: tools
+  namespace: {{ .Values.namespace }}
   labels:
     {{- include "docmost.labels" . | nindent 4 }}
   {{- with .Values.ingress.annotations }}
