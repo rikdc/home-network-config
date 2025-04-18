@@ -6,8 +6,16 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "storage-templates.labels" . | nindent 4 }}
-  {{- with .Values.storage.persistence.pvcAnnotations }}
+    # Add additional labels to match existing resources
+    app.kubernetes.io/component: storage
+    app.kubernetes.io/part-of: {{ .Release.Name }}
   annotations:
+    # Add annotations to match existing resources
+    helm.sh/resource-policy: keep
+    kubernetes.io/pvc-protection: "true"
+  finalizers:
+    - kubernetes.io/pvc-protection
+    {{- with .Values.storage.persistence.pvcAnnotations }}
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
