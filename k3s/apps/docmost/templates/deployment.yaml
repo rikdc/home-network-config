@@ -84,7 +84,7 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: {{ .Values.persistence.existingClaim }}
+            claimName: docmost-data-pv-pvc
         {{- if .Values.redis.enabled }}
         - name: redis-data
           emptyDir: {}
