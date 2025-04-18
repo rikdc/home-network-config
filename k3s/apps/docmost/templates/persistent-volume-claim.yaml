@@ -1,17 +1,1 @@
-{{- if .Values.persistence.enabled }}
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: {{ .Values.persistence.pvcName }}
-  namespace: {{ .Values.namespace }}
-  labels:
-    {{- include "docmost.labels" . | nindent 4 }}
-spec:
-  accessModes:
-    - ReadWriteMany
-  resources:
-    requests:
-      storage: {{ .Values.persistence.size }}
-  storageClassName: {{ .Values.persistence.storageClass }}
-  volumeName: {{ .Values.persistence.pvName }}
-{{- end }}
+{{- include "storage-templates.storage.persistentVolumeClaim" . }}

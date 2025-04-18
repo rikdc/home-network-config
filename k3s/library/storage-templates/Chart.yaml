@@ -1,0 +1,6 @@
+apiVersion: v2
+name: storage-templates
+description: A Helm library chart for Kubernetes persistent storage with NFS and External Secrets support
+type: library
+version: 0.1.0
+appVersion: "1.0.0"

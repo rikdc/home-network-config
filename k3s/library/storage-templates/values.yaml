@@ -1,0 +1,68 @@
+# Default values for storage-templates library chart
+# This is a YAML-formatted file.
+
+storage:
+  persistence:
+    # -- Enable persistent storage
+    enabled: false
+    # -- Type of storage (currently only 'nfs' is supported)
+    type: nfs
+    # -- Storage size (e.g., 10Gi)
+    size: 1Gi
+    # -- Storage class name
+    storageClass: nfs-storage
+    # -- Custom PV name (defaults to release-name-pv)
+    pvName: ""
+    # -- Custom PVC name (defaults to release-name-pvc)
+    pvcName: ""
+    # -- Volume name to use in PVC (defaults to PV name)
+    volumeName: ""
+    # -- Access mode for the volume
+    accessMode: ReadWriteMany
+    # -- Reclaim policy for the PV
+    reclaimPolicy: Retain
+    # -- Additional annotations for the PV
+    annotations: {}
+    # -- Additional annotations for the PVC
+    pvcAnnotations: {}
+    # -- Use External Secrets for NFS configuration
+    useExternalSecrets: false
+    # -- NFS configuration (required even when using External Secrets)
+    nfs:
+      # -- NFS server address
+      server: ""
+      # -- NFS path
+      path: ""
+
+  # -- External Secrets configuration
+  externalSecrets:
+    # -- Refresh interval for External Secrets
+    refreshInterval: "15s"
+    # -- Secret store reference
+    secretStore:
+      # -- Secret store name
+      name: vault-backend
+      # -- Secret store kind
+      kind: ClusterSecretStore
+    # -- Target secret configuration
+    target:
+      # -- Target secret name (defaults to release-name-storage-secrets)
+      name: ""
+    # -- NFS server secret reference
+    nfsServer:
+      # -- Secret key path
+      key: "secrets/data/platform"
+      # -- Secret property name
+      property: "NFS_SERVER"
+    # -- NFS path secret reference
+    nfsPath:
+      # -- Secret key path
+      key: "secrets/data/app"
+      # -- Secret property name
+      property: "NFS_PATH"
+    # -- Additional data to include in the External Secret
+    additionalData: []
+    # - secretKey: EXAMPLE_KEY
+    #   remoteRef:
+    #     key: secrets/data/example
+    #     property: EXAMPLE_PROPERTY

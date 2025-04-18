@@ -1,0 +1,33 @@
+{{- define "storage.persistentVolume" -}}
+{{- if .Values.storage.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ include "storage.pvName" . }}
+  labels:
+    {{- include "storage.labels" . | nindent 4 }}
+  {{- with .Values.storage.persistence.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  capacity:
+    storage: {{ .Values.storage.persistence.size }}
+  accessModes:
+    - {{ .Values.storage.persistence.accessMode | default "ReadWriteMany" }}
+  persistentVolumeReclaimPolicy: {{ .Values.storage.persistence.reclaimPolicy | default "Retain" }}
+  storageClassName: {{ .Values.storage.persistence.storageClass }}
+  {{- if eq .Values.storage.persistence.type "nfs" }}
+  nfs:
+    {{- if .Values.storage.persistence.useExternalSecrets }}
+    # When using External Secrets, these values should be set from the secrets
+    # but are required here for the PersistentVolume definition
+    server: {{ .Values.storage.persistence.nfs.server }}
+    path: {{ .Values.storage.persistence.nfs.path }}
+    {{- else }}
+    server: {{ .Values.storage.persistence.nfs.server }}
+    path: {{ .Values.storage.persistence.nfs.path }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{- end -}}

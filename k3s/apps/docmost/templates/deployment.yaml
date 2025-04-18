@@ -94,7 +94,7 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: {{ .Values.persistence.pvcName }}
+            claimName: {{ .Values.storage.persistence.pvcName | default (printf "%s-pvc" .Release.Name) }}
         {{- if .Values.redis.enabled }}
         - name: redis-data
           emptyDir: {}

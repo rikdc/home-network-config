@@ -1,0 +1,27 @@
+{{- define "storage.persistentVolumeClaim" -}}
+{{- if .Values.storage.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "storage.pvcName" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "storage.labels" . | nindent 4 }}
+  {{- with .Values.storage.persistence.pvcAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  accessModes:
+    - {{ .Values.storage.persistence.accessMode | default "ReadWriteMany" }}
+  resources:
+    requests:
+      storage: {{ .Values.storage.persistence.size }}
+  storageClassName: {{ .Values.storage.persistence.storageClass }}
+  {{- if .Values.storage.persistence.volumeName }}
+  volumeName: {{ .Values.storage.persistence.volumeName }}
+  {{- else }}
+  volumeName: {{ include "storage.pvName" . }}
+  {{- end }}
+{{- end }}
+{{- end -}}

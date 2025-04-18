@@ -40,19 +40,36 @@ resources:
     cpu: 500m
     memory: 500Mi
 
-persistence:
-  enabled: true
-  size: 10Gi
-  storageClass: nfs-storage
-  pvName: docmost-data-pv
-  pvcName: docmost-data-pv-pvc
-  # Note: These NFS values should match the values stored in External Secrets
-  # The actual values are stored in Vault at:
-  # - NFS_SERVER: /v1/secrets/data/platform
-  # - NFS_PATH: /v1/secrets/data/docmost
-  nfs:
-    server: 192.168.88.211
-    path: /volume1/docker/docmost
+# Storage configuration using the storage-templates library chart
+storage:
+  persistence:
+    enabled: true
+    type: nfs
+    size: 10Gi
+    storageClass: nfs-storage
+    pvName: docmost-data-pv
+    pvcName: docmost-data-pv-pvc
+    # Use External Secrets for NFS configuration
+    useExternalSecrets: true
+    # Note: These NFS values should match the values stored in External Secrets
+    # The actual values are stored in Vault
+    nfs:
+      server: 192.168.88.211  # Placeholder, will be overridden by External Secrets
+      path: /volume1/docker/docmost  # Placeholder, will be overridden by External Secrets
+
+  # External Secrets configuration for NFS
+  externalSecrets:
+    secretStore:
+      name: vault-backend
+      kind: ClusterSecretStore
+    target:
+      name: app-secrets  # Reuse the same target as other app secrets
+    nfsServer:
+      key: secrets/data/platform
+      property: NFS_SERVER
+    nfsPath:
+      key: secrets/data/docmost
+      property: NFS_PATH
 
 redis:
   enabled: true
@@ -83,14 +100,6 @@ externalSecrets:
       remoteRef:
         key: secrets/data/docmost
         property: APP_SECRET
-    - secretKey: NFS_SERVER
-      remoteRef:
-        key: secrets/data/platform
-        property: NFS_SERVER
-    - secretKey: NFS_PATH
-      remoteRef:
-        key: secrets/data/docmost
-        property: NFS_PATH
 
 env:
   - name: NODE_ENV
