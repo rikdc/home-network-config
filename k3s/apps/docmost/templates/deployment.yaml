@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "docmost.fullname" . }}
-  namespace: tools
+  namespace: {{ .Values.namespace }}
   labels:
     {{- include "docmost.labels" . | nindent 4 }}
 spec:
@@ -84,7 +84,7 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: {{ .Values.persistence.existingClaim }}
+            claimName: {{ .Values.persistence.pvcName }}
         {{- if .Values.redis.enabled }}
         - name: redis-data
           emptyDir: {}
