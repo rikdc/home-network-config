@@ -11,4 +11,4 @@ appVersion: "latest"
 dependencies:
   - name: storage-templates
     version: 0.1.0
-    repository: file://../../../library/storage-templates
+    repository: "file://../../library/storage-templates"

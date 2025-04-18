@@ -1,1 +1,2 @@
-{{- include "storage-templates.storage.persistentVolumeClaim" . }}
+# This file is intentionally left empty.
+# The PersistentVolumeClaim is now provided by the storage-templates library chart.
