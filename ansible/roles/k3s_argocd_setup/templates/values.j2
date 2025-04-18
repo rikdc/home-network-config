@@ -100,7 +100,6 @@ argocd-apps:
             helm:
               valueFiles:
                 - values.yaml
-                - secrets.yaml
           syncPolicy:
             automated:
               prune: true
