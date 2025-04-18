@@ -34,37 +34,53 @@ dependencies:
 Add the storage configuration to your application's `values.yaml`:
 
 ```yaml
+# Values for your application's storage (for backward compatibility)
 storage:
   persistence:
     enabled: true
     type: nfs
     size: 10Gi
     storageClass: nfs-storage
-    # Optional: Custom names
     pvName: my-app-data-pv
     pvcName: my-app-data-pvc
-    # Use External Secrets for NFS configuration
     useExternalSecrets: true
-    # Note: These NFS values should match the values stored in External Secrets
-    # The actual values are stored in Vault
     nfs:
-      server: 192.168.88.211  # Placeholder, will be overridden by External Secrets
-      path: /volume1/docker/my-app  # Placeholder, will be overridden by External Secrets
+      server: 192.168.1.100
+      path: /data/my-app
 
-  # External Secrets configuration for NFS
-  externalSecrets:
-    secretStore:
-      name: vault-backend
-      kind: ClusterSecretStore
-    target:
-      name: app-secrets  # Reuse the same target as other app secrets
-    nfsServer:
-      key: secrets/data/platform
-      property: NFS_SERVER
-    nfsPath:
-      key: secrets/data/my-app
-      property: NFS_PATH
+# Values for the storage-templates library chart
+# IMPORTANT: This section is required for the library chart to work
+storage-templates:
+  storage:
+    persistence:
+      enabled: true
+      type: nfs
+      size: 10Gi
+      storageClass: nfs-storage
+      pvName: my-app-data-pv
+      pvcName: my-app-data-pvc
+      useExternalSecrets: true
+      # Skip creation of PV and PVC for existing applications
+      skipCreation: false
+      nfs:
+        server: 192.168.1.100  # Will be overridden by External Secrets if enabled
+        path: /data/my-app     # Will be overridden by External Secrets if enabled
+
+    externalSecrets:
+      secretStore:
+        name: vault-backend
+        kind: ClusterSecretStore
+      target:
+        name: my-app-storage-secrets
+      nfsServer:
+        key: secrets/data/platform
+        property: NFS_SERVER
+      nfsPath:
+        key: secrets/data/my-app
+        property: NFS_PATH
 ```
+
+> **Note**: When using a Helm library chart as a dependency, the values need to be specified under a key that matches the dependency name (`storage-templates` in this case). The original `storage` section is kept for backward compatibility.
 
 ### 3. Reference the PVC in your Deployment
 
@@ -124,6 +140,66 @@ This pattern provides several benefits:
 - **Security**: NFS credentials are managed securely through External Secrets
 - **Flexibility**: Each application can have its own storage size and path
 - **Maintainability**: Changes to the storage implementation only need to be made in one place
+
+## Using with Existing Applications
+
+If you have existing applications with PV and PVC resources already created, you can still use this pattern without recreating those resources. This is useful when you want to standardize your storage configuration without risking data loss.
+
+To use this pattern with existing applications:
+
+1. Set `storage.persistence.skipCreation: true` in your values.yaml file:
+
+```yaml
+# Values for your application's storage (for backward compatibility)
+storage:
+  persistence:
+    enabled: true
+    type: nfs
+    size: 10Gi
+    storageClass: nfs-storage
+    pvName: existing-pv-name
+    pvcName: existing-pvc-name
+    useExternalSecrets: true
+    nfs:
+      server: 192.168.1.100
+      path: /data/my-app
+
+# Values for the storage-templates library chart with skipCreation enabled
+storage-templates:
+  storage:
+    persistence:
+      enabled: true
+      type: nfs
+      size: 10Gi
+      storageClass: nfs-storage
+      pvName: existing-pv-name
+      pvcName: existing-pvc-name
+      # Skip creation of PV and PVC since they already exist
+      skipCreation: true
+      useExternalSecrets: true
+      nfs:
+        server: 192.168.1.100  # Placeholder
+        path: /data/my-app     # Placeholder
+
+    externalSecrets:
+      secretStore:
+        name: vault-backend
+        kind: ClusterSecretStore
+      target:
+        name: app-secrets
+      nfsServer:
+        key: secrets/data/platform
+        property: NFS_SERVER
+      nfsPath:
+        key: secrets/data/my-app
+        property: NFS_PATH
+```
+
+2. The library chart will skip creating the PV and PVC resources, but will still:
+   - Create the ExternalSecret for NFS configuration
+   - Provide the same values structure for referencing in your Deployment
+
+This approach allows you to gradually adopt the pattern across your cluster without disrupting existing applications.
 
 ## Example Applications
 

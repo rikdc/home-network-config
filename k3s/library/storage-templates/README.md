@@ -31,38 +31,53 @@ dependencies:
 Add the storage configuration to your application's `values.yaml`:
 
 ```yaml
+# Values for your application's storage (for backward compatibility)
 storage:
   persistence:
     enabled: true
     type: nfs
     size: 10Gi
     storageClass: nfs-storage
-    # Optional: Custom names
     pvName: my-app-data-pv
     pvcName: my-app-data-pvc
-    # NFS configuration (required even when using External Secrets)
-    nfs:
-      server: 192.168.1.100  # Will be overridden by External Secrets if enabled
-      path: /data/my-app     # Will be overridden by External Secrets if enabled
-    # Enable External Secrets integration
     useExternalSecrets: true
-    # Skip creation of PV and PVC (useful for existing applications)
-    skipCreation: false
+    nfs:
+      server: 192.168.1.100
+      path: /data/my-app
 
-  # External Secrets configuration
-  externalSecrets:
-    secretStore:
-      name: vault-backend
-      kind: ClusterSecretStore
-    target:
-      name: my-app-storage-secrets
-    nfsServer:
-      key: secrets/data/platform
-      property: NFS_SERVER
-    nfsPath:
-      key: secrets/data/my-app
-      property: NFS_PATH
+# Values for the storage-templates library chart
+# IMPORTANT: This section is required for the library chart to work
+storage-templates:
+  storage:
+    persistence:
+      enabled: true
+      type: nfs
+      size: 10Gi
+      storageClass: nfs-storage
+      pvName: my-app-data-pv
+      pvcName: my-app-data-pvc
+      useExternalSecrets: true
+      # Skip creation of PV and PVC (useful for existing applications)
+      skipCreation: false
+      nfs:
+        server: 192.168.1.100  # Will be overridden by External Secrets if enabled
+        path: /data/my-app     # Will be overridden by External Secrets if enabled
+
+    externalSecrets:
+      secretStore:
+        name: vault-backend
+        kind: ClusterSecretStore
+      target:
+        name: my-app-storage-secrets
+      nfsServer:
+        key: secrets/data/platform
+        property: NFS_SERVER
+      nfsPath:
+        key: secrets/data/my-app
+        property: NFS_PATH
 ```
+
+> **Note**: When using a Helm library chart as a dependency, the values need to be specified under a key that matches the dependency name (`storage-templates` in this case). The original `storage` section is kept for backward compatibility.
 
 ### 3. No need to include templates
 
@@ -92,6 +107,7 @@ To use this chart with existing applications:
 1. Set `storage.persistence.skipCreation: true` in your values.yaml file:
 
 ```yaml
+# Values for your application's storage (for backward compatibility)
 storage:
   persistence:
     enabled: true
@@ -100,12 +116,40 @@ storage:
     storageClass: nfs-storage
     pvName: existing-pv-name
     pvcName: existing-pvc-name
-    # Skip creation of PV and PVC since they already exist
-    skipCreation: true
     useExternalSecrets: true
     nfs:
-      server: 192.168.1.100  # Placeholder
-      path: /data/my-app     # Placeholder
+      server: 192.168.1.100
+      path: /data/my-app
+
+# Values for the storage-templates library chart with skipCreation enabled
+storage-templates:
+  storage:
+    persistence:
+      enabled: true
+      type: nfs
+      size: 10Gi
+      storageClass: nfs-storage
+      pvName: existing-pv-name
+      pvcName: existing-pvc-name
+      # Skip creation of PV and PVC since they already exist
+      skipCreation: true
+      useExternalSecrets: true
+      nfs:
+        server: 192.168.1.100  # Placeholder
+        path: /data/my-app     # Placeholder
+
+    externalSecrets:
+      secretStore:
+        name: vault-backend
+        kind: ClusterSecretStore
+      target:
+        name: app-secrets
+      nfsServer:
+        key: secrets/data/platform
+        property: NFS_SERVER
+      nfsPath:
+        key: secrets/data/my-app
+        property: NFS_PATH
 ```
 
 2. The library chart will skip creating the PV and PVC resources, but will still:
@@ -119,38 +163,40 @@ This approach allows you to gradually adopt the pattern across your cluster with
 ### Basic NFS Storage
 
 ```yaml
-storage:
-  persistence:
-    enabled: true
-    type: nfs
-    size: 5Gi
-    storageClass: nfs-storage
-    nfs:
-      server: 192.168.1.100
-      path: /data/my-app
+storage-templates:
+  storage:
+    persistence:
+      enabled: true
+      type: nfs
+      size: 5Gi
+      storageClass: nfs-storage
+      nfs:
+        server: 192.168.1.100
+        path: /data/my-app
 ```
 
 ### NFS with External Secrets
 
 ```yaml
-storage:
-  persistence:
-    enabled: true
-    type: nfs
-    size: 10Gi
-    storageClass: nfs-storage
-    useExternalSecrets: true
-    nfs:
-      server: 192.168.1.100  # Placeholder, will be overridden
-      path: /data/my-app     # Placeholder, will be overridden
+storage-templates:
+  storage:
+    persistence:
+      enabled: true
+      type: nfs
+      size: 10Gi
+      storageClass: nfs-storage
+      useExternalSecrets: true
+      nfs:
+        server: 192.168.1.100  # Placeholder, will be overridden
+        path: /data/my-app     # Placeholder, will be overridden
 
-  externalSecrets:
-    secretStore:
-      name: vault-backend
-      kind: ClusterSecretStore
-    nfsServer:
-      key: secrets/data/platform
-      property: NFS_SERVER
-    nfsPath:
-      key: secrets/data/my-app
-      property: NFS_PATH
+    externalSecrets:
+      secretStore:
+        name: vault-backend
+        kind: ClusterSecretStore
+      nfsServer:
+        key: secrets/data/platform
+        property: NFS_SERVER
+      nfsPath:
+        key: secrets/data/my-app
+        property: NFS_PATH
