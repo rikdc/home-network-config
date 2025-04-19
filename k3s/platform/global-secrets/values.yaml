@@ -14,4 +14,4 @@ vault:
     tokenSecretRef:
       name: "vault-token"
       key: "token"
-      namespace: "argocd"
+      namespace: "vault"

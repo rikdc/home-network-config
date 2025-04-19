@@ -2,54 +2,45 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: docmost
-  namespace: tools
+  name: {{ include "docmost.fullname" . }}
+  namespace: {{ .Values.namespace }}
   labels:
-    app: docmost
+    {{- include "docmost.labels" . | nindent 4 }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: docmost
+      {{- include "docmost.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: docmost
+        {{- include "docmost.selectorLabels" . | nindent 8 }}
     spec:
       containers:
-        - name: docmost
-          image: docmost/docmost:latest
-          imagePullPolicy: IfNotPresent
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: 3000
+              containerPort: {{ .Values.service.targetPort }}
               protocol: TCP
           env:
-            - name: NODE_ENV
-              value: "production"
-            - name: PORT
-              value: "3000"
-            - name: TZ
-              value: "America/New_York"
+            {{- range .Values.env }}
+            - name: {{ .name }}
+              value: {{ .value | quote }}
+            {{- end }}
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
-                  name: app-secrets
+                  name: {{ .Values.externalSecrets.target.name }}
                   key: DATABASE_URL
-            - name: REDIS_URL
-              value: "redis://localhost:6379"
             - name: APP_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: app-secrets
+                  name: {{ .Values.externalSecrets.target.name }}
                   key: APP_SECRET
           resources:
-            limits:
-              cpu: "1000m"
-              memory: "1Gi"
-            requests:
-              cpu: "500m"
-              memory: "500Mi"
+            {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
             - name: data
               mountPath: /app/data
@@ -67,19 +58,15 @@ spec:
             initialDelaySeconds: 5
             timeoutSeconds: 3
             periodSeconds: 5
+        {{- if .Values.redis.enabled }}
         - name: redis
-          image: redis:7-alpine
+          image: "{{ .Values.redis.image.repository }}:{{ .Values.redis.image.tag }}"
           ports:
             - name: redis
               containerPort: 6379
               protocol: TCP
           resources:
-            limits:
-              cpu: "500m"
-              memory: "512Mi"
-            requests:
-              cpu: "100m"
-              memory: "128Mi"
+            {{- toYaml .Values.redis.resources | nindent 12 }}
           volumeMounts:
             - name: redis-data
               mountPath: /data
@@ -93,9 +80,12 @@ spec:
               port: redis
             initialDelaySeconds: 5
             periodSeconds: 5
+        {{- end }}
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: docmost-data-pv-pvc
+            claimName: {{ .Values.persistence.pvcName }}
+        {{- if .Values.redis.enabled }}
         - name: redis-data
           emptyDir: {}
+        {{- end }}

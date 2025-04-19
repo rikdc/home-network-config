@@ -1,0 +1,91 @@
+---
+# Default values for docmost Helm chart
+
+replicaCount: 1
+
+image:
+  repository: docmost/docmost
+  tag: latest
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+namespace: tools
+
+service:
+  type: ClusterIP
+  port: 3000
+  targetPort: 3000
+
+ingress:
+  enabled: true
+  className: traefik
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web, websecure
+  hosts:
+    - host: wiki.home.lan
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: docmost-tls-secret
+      hosts:
+        - wiki.home.lan
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 500Mi
+
+persistence:
+  enabled: true
+  size: 10Gi
+  storageClass: nfs-storage
+  pvName: docmost-data-pv
+  pvcName: docmost-data-pv-pvc
+  nfs:
+    server: 192.168.88.211
+    path: /volume1/docker/docmost
+
+redis:
+  enabled: true
+  image:
+    repository: redis
+    tag: 7-alpine
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+externalSecrets:
+  enabled: true
+  secretStore:
+    name: vault-backend
+    kind: ClusterSecretStore
+  target:
+    name: app-secrets
+  data:
+    - secretKey: DATABASE_URL
+      remoteRef:
+        key: secrets/data/docmost
+        property: DATABASE_URL
+    - secretKey: APP_SECRET
+      remoteRef:
+        key: secrets/data/docmost
+        property: APP_SECRET
+
+env:
+  - name: NODE_ENV
+    value: "production"
+  - name: PORT
+    value: "3000"
+  - name: TZ
+    value: "America/New_York"
+  - name: REDIS_URL
+    value: "redis://localhost:6379"
