@@ -27,15 +27,11 @@ spec:
       reloader.stakater.com/reload: "true"
 {{- end }}
 ---
-{{- if .Values.certmanager.enabled }}
-apiVersion: traefik.containo.us/v1alpha1
+apiVersion: traefik.io/v1alpha1
 kind: TLSOption
 metadata:
   name: default
   namespace: cert-manager
-  annotations:
-    "helm.sh/hook": post-install,post-upgrade
-    "helm.sh/hook-weight": "3"
 spec:
   minVersion: VersionTLS12
   maxVersion: VersionTLS13
@@ -47,19 +43,13 @@ spec:
     - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
     - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
     - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
-{{- end }}
 ---
-{{- if .Values.certmanager.enabled }}
-apiVersion: traefik.containo.us/v1alpha1
+apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
   name: ssl-redirect
   namespace: cert-manager
-  annotations:
-    "helm.sh/hook": post-install,post-upgrade
-    "helm.sh/hook-weight": "3"
 spec:
   redirectScheme:
     scheme: https
     permanent: true
-{{- end }}
