@@ -8,3 +8,17 @@ external-secrets:
     create: true
   certController:
     create: true
+    serviceAccount:
+      create: true
+      name: external-secrets-cert-controller
+      annotations: {}
+      automountServiceAccountToken: true
+    rbac:
+      create: true
+      extraRules:
+        - apiGroups: ["admissionregistration.k8s.io"]
+          resources: ["validatingwebhookconfigurations", "mutatingwebhookconfigurations"]
+          verbs: ["get", "list", "watch", "update"]
+        - apiGroups: ["apiextensions.k8s.io"]
+          resources: ["customresourcedefinitions"]
+          verbs: ["get", "list", "watch"]
