@@ -6,6 +6,7 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: traefik
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: vault-selfsigned-issuer
 spec:
   ingressClassName: traefik
   rules:
@@ -18,7 +19,7 @@ spec:
               service:
                 name: homepage
                 port:
-                  name: http
+                  number: 80
   tls:
     - hosts:
         - home.lan
