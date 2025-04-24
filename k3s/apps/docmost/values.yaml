@@ -12,6 +12,10 @@ nameOverride: ""
 fullnameOverride: ""
 namespace: tools
 
+serviceAccount:
+  name: eso-vault-auth
+  namespace: tools
+
 service:
   type: ClusterIP
   port: 3000
