@@ -70,7 +70,7 @@ redis:
 externalSecrets:
   enabled: true
   secretStore:
-    name: vault-backend
+    name: vault-k8s-auth
     kind: ClusterSecretStore
   target:
     name: app-secrets
