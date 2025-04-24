@@ -22,7 +22,7 @@ gitea:
     name: vault-gitea-secrets
     namespace: tools
     secretStoreRef:
-      name: vault-backend
+      name: vault-k8s-auth
       kind: ClusterSecretStore
     targetName: gitea-secrets
 
@@ -87,6 +87,6 @@ gitea:
 
   persistence:
     enabled: true
-    existingClaim: gitea-data-pvc
+    claimName: gitea-data-pvc
 
   namespace: tools
