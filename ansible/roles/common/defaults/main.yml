@@ -1,4 +1,4 @@
 ---
 common_timezone_value: "America/New_York"
-
+common_user: debian
 common_sudo_group: wheel

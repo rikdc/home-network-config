@@ -1,6 +1,27 @@
 ---
+- name: Update apt packages
+  apt:
+    update_cache: true
+    cache_valid_time: 86400
+    upgrade: true
+
 - name: Install common packages
   become: true
   ansible.builtin.package:
     name: "{{ common_packages }}"
     state: present
+
+- name: Create user
+  user:
+    name: "{{ common_user }}"
+    shell: /bin/bash
+    groups: sudo
+    append: true
+    create_home: true
+    state: present
+
+- name: Limit journalctl size
+  lineinfile:
+    path: "/etc/systemd/journald.conf"
+    regexp: "^SystemMaxUse="
+    line: "SystemMaxUse=100M"
