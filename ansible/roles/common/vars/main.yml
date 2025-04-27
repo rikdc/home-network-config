@@ -1,3 +1,7 @@
 ---
+user: debian
 common_packages:
+  - sudo
   - ntp
+common_keyring_dir: "/etc/apt/keyrings"
+common_vault_version: "1.14.0-1"
