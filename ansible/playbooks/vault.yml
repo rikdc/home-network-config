@@ -1,0 +1,59 @@
+---
+- name: Create and configure containers on Proxmox
+  hosts: proxmox
+  vars_files:
+    - ../default.config.yml
+    - ../secrets.enc
+
+  vars:
+    ansible_become: true
+
+  tasks:
+    - name: Create Vault Container
+      community.general.proxmox:
+        vmid: 106
+        node: pve
+        api_user: ansible@pam
+        api_token_id: "{{ proxmox_api_token_id }}"
+        api_token_secret: "{{ proxmox_api_token }}"
+        api_host: localhost
+        password: "{{ proxmox_api_password }}"
+        storage: local-lvm
+        hostname: vault
+        ostemplate: local:vztmpl/debian-12-standard_12.7-1_amd64.tar.zst
+        netif: '{"net0":"name=eth0,gw=192.168.88.1,ip=192.168.88.6/24,bridge=vmbr0"}'
+        pubkey: "{{ rsa_key }}"
+        #unprivileged: false
+        cores: 1
+        memory: 1024
+        swap: 0
+        description: "HashiCorp Vault Server managed by Ansible"
+        features:
+          - nesting=1
+
+    - name: Start Vault Container
+      community.general.proxmox:
+        vmid: 106
+        api_user: ansible@pam
+        api_token_id: "{{ proxmox_api_token_id }}"
+        api_token_secret: "{{ proxmox_api_token }}"
+        api_host: localhost
+        state: started
+        timeout: 90  # Increased timeout for database container startup
+
+- name: Setup Vault Server
+  hosts: vault
+  vars:
+    ansible_become: true
+    vault_version: 1.19.2
+    vault_hardening_disable_swap: false
+
+  roles:
+    - role: robertdebock.bootstrap
+    - role: robertdebock.core_dependencies
+    - role: robertdebock.hashicorp
+    - role: robertdebock.vault
+      vars:
+        vault_version: 1.19.2
+        vault_hardening_disable_swap: false
+

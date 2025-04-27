@@ -8,6 +8,10 @@ roles:
   - src: geerlingguy.nodejs
   - name: ngine_io.blocky_dns
     version: v0.1.0
+  - name: robertdebock.bootstrap
+  - name: robertdebock.core_dependencies
+  - name: robertdebock.hashicorp
+  - name: robertdebock.vault
 
 collections:
   - name: geerlingguy.mac

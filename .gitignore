@@ -1,4 +1,5 @@
 ansible/roles/geerlingguy*
 ansible/roles/elliotweiser*
 ansible/roles/ngine_io*
+ansible/roles/robertdebock*
 ansible/.ansible/roles/*
