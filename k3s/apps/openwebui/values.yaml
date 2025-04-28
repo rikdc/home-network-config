@@ -25,7 +25,7 @@ externalSecret:
   namespace: tools
   refreshInterval: "15s"
   secretStoreRef:
-    name: vault-backend
+    name: vault-k8s-auth
     kind: ClusterSecretStore
   target:
     name: openwebui-secrets
