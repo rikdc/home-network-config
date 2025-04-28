@@ -1,0 +1,15 @@
+---
+skip_list:
+  - package-latest
+  - role-name
+
+exclude_paths:
+  - ansible/roles/elliotweiser.osx-command-line-tools
+  - ansible/roles/geerlingguy.mysql
+  - ansible/roles/ngine_io.blocky_dns
+  - ansible/inventory/host_vars/*
+  - ansible/inventory/group_vars/*
+
+mock_roles:
+  - geerlingguy.mysql
+  - geerlingguy.postgresql
