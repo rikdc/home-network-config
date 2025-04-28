@@ -3,6 +3,6 @@
   become: true
 
   roles:
-  - role: common
-    vars:
-      common_user: "{{ user }}"
+    - role: common
+      vars:
+        common_user: "{{ user }}"

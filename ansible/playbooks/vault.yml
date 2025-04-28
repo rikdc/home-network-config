@@ -23,7 +23,6 @@
         ostemplate: local:vztmpl/debian-12-standard_12.7-1_amd64.tar.zst
         netif: '{"net0":"name=eth0,gw=192.168.88.1,ip=192.168.88.6/24,bridge=vmbr0"}'
         pubkey: "{{ rsa_key }}"
-        #unprivileged: false
         cores: 1
         memory: 1024
         swap: 0
@@ -56,4 +55,3 @@
       vars:
         vault_version: 1.19.2
         vault_hardening_disable_swap: false
-
