@@ -20,17 +20,21 @@ data:
   services.yaml: |
     - Popular:
       - Matrix:
-          href: https://chat.home.lan
+          href: '{{`{{HOMEPAGE_VAR_MATRIX_URL}}`}}'
           description: Chat client
           icon: element.svg
       - Jellyfin:
-          href: https://jellyfin.home.lan
+          href: '{{`{{HOMEPAGE_VAR_JELLYFIN_URL}}`}}'
           description: Media system (movies, music, etc.)
           icon: jellyfin.svg
       - Paperless:
           href: https://paperless.home.lan
           description: Document management system
           icon: paperless.svg
+      - Tandoor:
+          href: https://tandoor.home.lan
+          description: Meal planning
+          icon: tandoor-recipes.svg
     - Development:
       - Gitea:
           href: https://git.home.lan
