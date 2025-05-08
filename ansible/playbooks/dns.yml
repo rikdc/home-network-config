@@ -11,7 +11,7 @@
   tasks:
     - name: Create Primary DNS Container
       community.general.proxmox:
-        vmid: 140
+        vmid: 108
         node: pve
         api_user: ansible@pam
         api_token_id: "{{ proxmox_api_token_id }}"
@@ -28,7 +28,7 @@
 
     - name: Start container
       community.general.proxmox:
-        vmid: 140
+        vmid: 108
         api_user: ansible@pam
         api_token_id: "{{ proxmox_api_token_id }}"
         api_token_secret: "{{ proxmox_api_token }}"
@@ -37,7 +37,7 @@
 
     - name: Create Secondary DNS Container
       community.general.proxmox:
-        vmid: 141
+        vmid: 111
         node: pve
         api_user: ansible@pam
         api_token_id: "{{ proxmox_api_token_id }}"
@@ -54,7 +54,7 @@
 
     - name: Start container
       community.general.proxmox:
-        vmid: 141
+        vmid: 111
         api_user: ansible@pam
         api_token_id: "{{ proxmox_api_token_id }}"
         api_token_secret: "{{ proxmox_api_token }}"
