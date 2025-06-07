@@ -15,3 +15,5 @@ roles:
 
 collections:
   - name: geerlingguy.mac
+  - name: kubernetes.core
+  - name: community.kubernetes
