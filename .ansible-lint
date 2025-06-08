@@ -4,8 +4,10 @@ skip_list:
   - role-name
 
 exclude_paths:
-  - roles/elliotweiser.osx-command-line-tools
-  - roles/geerlingguy*
-  - roles/ngine_io.blocky_dns
-  - inventory/host_vars/*
-  - inventory/group_vars/*
+  - ansible/.ansible
+  - ansible/roles/elliotweiser.osx-command-line-tools
+  - ansible/roles/geerlingguy*
+  - ansible/roles/robertdebock*
+  - ansible/roles/ngine_io.blocky_dns
+  - ansible/inventory/host_vars/*
+  - ansible/inventory/group_vars/*

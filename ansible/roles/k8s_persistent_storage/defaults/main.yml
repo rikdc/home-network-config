@@ -2,14 +2,14 @@
 # Default values for k8s_persistent_storage role
 
 # Default namespace for PersistentVolumeClaims
-default_namespace: default
+k8s_persistent_storage_default_namespace: default
 
 # Default kubeconfig path
-kubeconfig_path: /etc/rancher/k3s/k3s.yaml
+k8s_persistent_storage_kubeconfig_path: /etc/rancher/k3s/k3s.yaml
 
 # Default storage class name (will be overridden by host_vars if defined)
-storage_class_name: nfs-storage
+k8s_persistent_storage_storage_class_name: nfs-storage
 
 # Default NFS server settings (will be overridden by host_vars if defined)
-nfs_server: ""
-nfs_path: ""
+k8s_persistent_storage_nfs_server: ""
+k8s_persistent_storage_nfs_path: ""

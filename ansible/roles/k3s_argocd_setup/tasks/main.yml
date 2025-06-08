@@ -4,7 +4,7 @@
   kubernetes.core.k8s:
     api_version: v1
     kind: Namespace
-    name: "{{ argocd_namespace }}"
+    name: "{{ k3s_argocd_setup_namespace }}"
     state: present
 
 - name: Ensure /tmp/argocd directory exists
@@ -14,7 +14,7 @@
     mode: '0755'
 
 - name: Create values file from template
-  template:
+  ansible.builtin.template:
     src: "values.j2"
     dest: "/tmp/argocd-values.yaml"
     mode: '0644'
@@ -29,8 +29,8 @@
   kubernetes.core.helm_template:
     chart_ref: /tmp/argocd/
     include_crds: true
-    release_name: "{{ argocd_release_name }}"
-    release_namespace: "{{ argocd_namespace }}"
+    release_name: "{{ k3s_argocd_setup_release_name }}"
+    release_namespace: "{{ k3s_argocd_setup_namespace }}"
     dependency_update: true
     values_files:
       - "/tmp/argocd-values.yaml"
@@ -47,8 +47,8 @@
   kubernetes.core.k8s_info:
     api_version: apps/v1
     kind: Deployment
-    name: "{{ argocd_release_name }}-server"
-    namespace: "{{ argocd_namespace }}"
+    name: "{{ k3s_argocd_setup_release_name }}-server"
+    namespace: "{{ k3s_argocd_setup_namespace }}"
   register: server_deployment
   until: server_deployment.resources[0].status.readyReplicas is defined and
          server_deployment.resources[0].status.readyReplicas > 0
@@ -56,8 +56,8 @@
   delay: 10
 
 - name: Check if ingress is accessible
-  uri:
-    url: "https://{{ argocd_domain | default('argocd.home.lan') }}"
+  ansible.builtin.uri:
+    url: "https://{{ k3s_argocd_setup_domain | default('argocd.home.lan') }}"
     method: GET
     status_code: 200, 302, 303, 307, 308
     validate_certs: no
@@ -69,11 +69,11 @@
   ignore_errors: yes
 
 - name: Display accessibility status
-  debug:
+  ansible.builtin.debug:
     var: argocd_accessibility
   when: argocd_accessibility is defined
 
 - name: Clean up temporary values file
-  file:
+  ansible.builtin.file:
     path: "/tmp/argocd-values.yaml"
     state: absent

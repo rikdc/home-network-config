@@ -4,3 +4,4 @@ ansible/roles/ngine_io*
 ansible/roles/robertdebock*
 ansible/.ansible/*
 vault/
+.vault_pass

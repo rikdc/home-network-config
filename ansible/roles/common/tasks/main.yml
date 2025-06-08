@@ -1,6 +1,6 @@
 ---
 - name: Update apt packages
-  apt:
+  ansible.builtin.apt:
     update_cache: true
     cache_valid_time: 86400
     upgrade: true
@@ -12,7 +12,7 @@
     state: present
 
 - name: Create user
-  user:
+  ansible.builtin.user:
     name: "{{ common_user }}"
     shell: /bin/bash
     groups: sudo
@@ -21,7 +21,7 @@
     state: present
 
 - name: Limit journalctl size
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: "/etc/systemd/journald.conf"
     regexp: "^SystemMaxUse="
     line: "SystemMaxUse=100M"
