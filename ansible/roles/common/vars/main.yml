@@ -1,5 +1,5 @@
 ---
-user: debian
+common_user: debian
 common_packages:
   - sudo
   - ntp

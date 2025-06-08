@@ -2,19 +2,19 @@
 # Common tasks for all k3s nodes
 
 - name: Update apt cache
-  apt:
+  ansible.builtin.apt:
     update_cache: yes
-  when: k3s_packages_update | bool
+  when: k3s_setup_packages_update | bool
   tags: [k3s, packages]
 
 - name: Upgrade all packages
-  apt:
+  ansible.builtin.apt:
     upgrade: dist
-  when: k3s_packages_upgrade | bool
+  when: k3s_setup_packages_upgrade | bool
   tags: [k3s, packages]
 
 - name: Install NFS client
-  package:
+  ansible.builtin.package:
     name: nfs-common
     state: present
     force: yes

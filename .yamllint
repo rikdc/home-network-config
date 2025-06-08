@@ -55,3 +55,4 @@ ignore: |
   k3s/apps/*/templates/*
   # Ignore .git directory
   .git/
+  vault/

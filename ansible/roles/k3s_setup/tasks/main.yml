@@ -2,15 +2,15 @@
 # Main tasks file for k3s_setup role
 
 - name: Include common setup tasks
-  include_tasks: common.yml
+  ansible.builtin.include_tasks: common.yml
   tags: [k3s, common]
 
 - name: Include controller setup tasks
-  include_tasks: controller.yml
+  ansible.builtin.include_tasks: controller.yml
   when: inventory_hostname == 'k3s-controller'
   tags: [k3s, controller]
 
 - name: Include node setup tasks
-  include_tasks: node.yml
+  ansible.builtin.include_tasks: node.yml
   when: "'k3s-nodes' in group_names"
   tags: [k3s, node]

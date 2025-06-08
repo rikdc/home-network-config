@@ -2,4 +2,6 @@ ansible/roles/geerlingguy*
 ansible/roles/elliotweiser*
 ansible/roles/ngine_io*
 ansible/roles/robertdebock*
-ansible/.ansible/roles/*
+ansible/.ansible/*
+vault/
+.vault_pass
