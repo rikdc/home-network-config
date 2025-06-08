@@ -1,12 +1,11 @@
 # Kubernetes Persistent Storage Role
 
-This Ansible role creates Kubernetes PersistentVolumes (PVs) and PersistentVolumeClaims (PVCs) based on configuration defined in host_vars.
+This Ansible role installs the NFS CSI driver, creates the required StorageClass and then provisions Kubernetes PersistentVolumes (PVs) and PersistentVolumeClaims (PVCs) based on configuration defined in host_vars.
 
 ## Requirements
 
 - Kubernetes cluster (e.g., k3s) must be running
 - NFS server must be accessible
-- Storage class must be created before using this role
 - `kubernetes.core` collection must be installed
 
 ## Role Variables
@@ -20,6 +19,9 @@ Variables are defined in `defaults/main.yml` and can be overridden in host_vars:
 | storage_class_name | Default storage class name | nfs-storage |
 | nfs_server | Default NFS server IP/hostname | "" |
 | nfs_path | Default NFS path | "" |
+| helm_charts | Helm repositories to add for CSI driver | see defaults |
+| nfs_csi_namespace | Namespace for the NFS CSI driver | kube-system |
+| nfs_csi_kubelet_dir | Kubelet directory used by the CSI driver | /var/lib/kubelet |
 
 ## Host Variables Structure
 
