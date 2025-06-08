@@ -1,10 +1,4 @@
 ---
-- name: Set up k3s Kubernetes cluster
-  hosts: k3s
-  become: true
-  roles:
-    - role: k3s_setup
-
 - name: Set up persistent storage
   hosts: k3s-controller
   become: true

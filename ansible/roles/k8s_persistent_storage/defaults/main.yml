@@ -13,3 +13,12 @@ k8s_persistent_storage_storage_class_name: nfs-storage
 # Default NFS server settings (will be overridden by host_vars if defined)
 k8s_persistent_storage_nfs_server: ""
 k8s_persistent_storage_nfs_path: ""
+
+# Helm settings for installing the NFS CSI driver
+k8s_persistent_storage_helm_charts:
+  - name: csi-driver-nfs
+    repo: https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
+
+# NFS CSI driver configuration
+k8s_persistent_storage_nfs_csi_namespace: kube-system
+k8s_persistent_storage_nfs_csi_kubelet_dir: /var/lib/kubelet

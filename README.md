@@ -5,8 +5,7 @@ This repository contains the configuration for my homelab network infrastructure
 ## K3s Cluster
 
 The inventory file `ansible/inventory/hosts.yml` defines the nodes that form the
-K3s cluster. The older `k3s_setup` role has been replaced by tasks provided by
-the Kubernetes community Ansible collections. Install these collections with:
+K3s cluster. Cluster provisioning is handled by the [k3s-ansible](https://github.com/k3s-io/k3s-ansible) role while storage tasks from the former `k3s_setup` role have been merged into `k8s_persistent_storage`. Install the required Ansible collections with:
 
 ```bash
 ansible-galaxy collection install kubernetes.core community.kubernetes
@@ -18,8 +17,8 @@ Alternatively they can be installed from `ansible/requirements.yml` using:
 ansible-galaxy collection install -r ansible/requirements.yml
 ```
 
-Once the collections are installed, deploy the cluster and persistent storage
-with the provided playbook:
+Once the collections are installed and the cluster has been provisioned with
+`k3s-ansible`, run the following playbook to configure persistent storage:
 
 ```bash
 ansible-playbook ansible/playbooks/k3s-setup.yml -i ansible/inventory/hosts.yml
