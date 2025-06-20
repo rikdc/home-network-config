@@ -66,7 +66,7 @@
   retries: 5
   delay: 10
   until: wait_result.rc == 0
-  ignore_errors: yes
+  failed_when: wait_result.rc != 0
   changed_when: false
   tags: [storage, nfs-csi]
 
