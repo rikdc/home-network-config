@@ -1,7 +1,114 @@
 ---
 - name: Debug storage class configuration
   ansible.builtin.debug:
-    msg: "Using storage class: {{ hostvars['k3s-controller']['persistent_storage']['storage_class_name'] }}"
+    msg: "Using storage class: {{ persistent_storage.storage_class_name }}"
+
+- name: Install Helm
+  ansible.builtin.shell: |
+    curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+  args:
+    creates: /usr/local/bin/helm
+    executable: /bin/bash
+  tags: [storage, helm]
+
+- name: Check if Helm repository exists
+  ansible.builtin.shell: |
+    helm repo list | grep "{{ item.name }}" || echo "NOT_FOUND"
+  args:
+    executable: /bin/bash
+  register: helm_repo_status
+  loop: "{{ k8s_persistent_storage_helm_charts }}"
+  changed_when: false
+  tags: [storage, helm]
+
+- name: Add required Helm repositories
+  ansible.builtin.shell: |
+    helm repo add {{ item.item.name }} {{ item.item.repo }}
+  args:
+    executable: /bin/bash
+  loop: "{{ helm_repo_status.results }}"
+  when: "'NOT_FOUND' in item.stdout"
+  tags: [storage, helm]
+
+- name: Update Helm repositories
+  ansible.builtin.shell: |
+    helm repo update
+  args:
+    executable: /bin/bash
+  register: helm_update_result
+  changed_when: helm_update_result.rc == 0
+  when: helm_repo_status.results | selectattr('stdout', 'equalto', 'NOT_FOUND') | list | length > 0
+  tags: [storage, helm]
+
+- name: Check if NFS CSI driver is already installed
+  ansible.builtin.shell: |
+    helm list -n {{ k8s_persistent_storage_nfs_csi_namespace }} | grep csi-driver-nfs || echo "NOT_INSTALLED"
+  args:
+    executable: /bin/bash
+  register: nfs_csi_status
+  changed_when: false
+  tags: [storage, nfs-csi]
+
+- name: Install NFS CSI driver
+  ansible.builtin.shell: |
+    helm install csi-driver-nfs csi-driver-nfs/csi-driver-nfs \
+      --namespace {{ k8s_persistent_storage_nfs_csi_namespace }} \
+      --set kubeletDir={{ k8s_persistent_storage_nfs_csi_kubelet_dir }}
+  args:
+    executable: /bin/bash
+  when: nfs_csi_status.stdout == "NOT_INSTALLED"
+  ignore_errors: yes
+  tags: [storage, nfs-csi]
+
+- name: Wait for NFS CSI driver to be ready
+  ansible.builtin.shell: |
+    kubectl wait \
+      --for=condition=available \
+      --timeout=300s \
+      deployment/csi-nfs-controller \
+      -n {{ k8s_persistent_storage_nfs_csi_namespace }}
+  args:
+    executable: /bin/bash
+  register: wait_result
+  retries: 5
+  delay: 10
+  until: wait_result.rc == 0
+  failed_when: wait_result.rc != 0
+  changed_when: false
+  tags: [storage, nfs-csi]
+
+- name: Check if NFS Storage Class exists
+  ansible.builtin.shell: |
+    kubectl get \
+      storageclass "{{ persistent_storage.storage_class_name }}" \
+      -o name || echo "NOT_FOUND"
+  args:
+    executable: /bin/bash
+  register: sc_exists
+  changed_when: false
+  tags: [storage, storage-class]
+
+- name: Create NFS Storage Class
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: storage.k8s.io/v1
+      kind: StorageClass
+      metadata:
+        name: "{{ persistent_storage.storage_class_name }}"
+      provisioner: nfs.csi.k8s.io
+      parameters:
+        server: "{{ persistent_storage.nfs_server }}"
+        share: "{{ persistent_storage.nfs_path }}"
+      reclaimPolicy: Retain
+      volumeBindingMode: Immediate
+      mountOptions:
+        - hard
+        - nfsvers=4.1
+    kubeconfig: /etc/rancher/k3s/k3s.yaml
+  register: sc_result
+  ignore_errors: yes
+  tags: [storage, storage-class]
 
 - name: Create PersistentVolumes from host_vars
   kubernetes.core.k8s:
@@ -19,12 +126,12 @@
         persistentVolumeReclaimPolicy: "{{ item.persistentVolumeReclaimPolicy }}"
         storageClassName: "{{ item.storageClassName }}"
         nfs:
-          # Use the NFS server and path from the PV definition if provided, otherwise fall back to the global settings
-          server: "{{ item.nfs.server | default(hostvars['k3s-controller']['persistent_storage']['nfs_server']) }}"
-          path: "{{ item.nfs.path | default(hostvars['k3s-controller']['persistent_storage']['nfs_path']) }}"
+          server: "{{ item.nfs.server | default(persistent_storage.nfs_server) }}"
+          path: "{{ item.nfs.path | default(persistent_storage.nfs_path) }}"
     kubeconfig: /etc/rancher/k3s/k3s.yaml
-  loop: "{{ hostvars['k3s-controller']['persistent_volumes'] | default([]) }}"
+  loop: "{{ persistent_volumes | default([]) }}"
   register: pv_results
+  ignore_errors: yes
 
 - name: Debug PV results
   ansible.builtin.debug:
@@ -33,8 +140,10 @@
 - name: Verify PV exists and is Available
   ansible.builtin.shell: |
     kubectl get pv {{ item.name }} -o jsonpath='{.status.phase}'
+  args:
+    executable: /bin/bash
   register: pv_status
-  loop: "{{ hostvars['k3s-controller']['persistent_volumes'] | default([]) }}"
+  loop: "{{ persistent_volumes | default([]) }}"
   changed_when: false
 
 - name: Debug PV status
@@ -58,12 +167,12 @@
         resources:
           requests:
             storage: "{{ item.capacity.storage }}"
-        # Use the storage class name from the PV definition to ensure consistency
         storageClassName: "{{ item.storageClassName }}"
         volumeName: "{{ item.name }}"
     kubeconfig: /etc/rancher/k3s/k3s.yaml
-  loop: "{{ hostvars['k3s-controller']['persistent_volumes'] | default([]) }}"
+  loop: "{{ persistent_volumes | default([]) }}"
   register: pvc_results
+  ignore_errors: yes
 
 - name: Debug PVC results
   ansible.builtin.debug:
@@ -74,8 +183,10 @@
     kubectl get pvc {{ item.name }}-pvc \
       -n {{ item.namespace | default('default') }} \
       -o jsonpath='{.status.phase}' || echo "NotFound"
+  args:
+    executable: /bin/bash
   register: pvc_status
-  loop: "{{ hostvars['k3s-controller']['persistent_volumes'] | default([]) }}"
+  loop: "{{ persistent_volumes | default([]) }}"
   changed_when: false
 
 - name: Debug PVC status
