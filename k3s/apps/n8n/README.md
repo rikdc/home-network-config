@@ -19,12 +19,11 @@ This directory contains configuration for deploying [n8n](https://n8n.io), an op
 
 ## Deployment
 
-Add the n8n Helm repository and install using the provided values file:
+Install the chart directly from the OCI registry using the provided values file:
 
 ```bash
-helm repo add n8n https://8gears.github.io/n8n-helm-chart/
-helm repo update
-helm install n8n n8n/n8n \
+helm install n8n oci://8gears.container-registry.com/library/n8n \
+  --version 1.0.0 \
   -f values.yaml \
   -n tools
 ```
@@ -34,7 +33,8 @@ helm install n8n n8n/n8n \
 To upgrade the deployment:
 
 ```bash
-helm upgrade n8n n8n/n8n \
+helm upgrade n8n oci://8gears.container-registry.com/library/n8n \
+  --version 1.0.0 \
   -f values.yaml \
   -n tools
 ```
