@@ -1,0 +1,90 @@
+---
+storage:
+  pv:
+    name: n8n-data-pv
+    labels:
+      type: data
+      app: n8n
+    capacity: 1Gi
+    accessModes: ReadWriteMany
+    reclaimPolicy: Retain
+    storageClassName: nfs-storage
+    nfs:
+      server: 192.168.88.211
+      path: /volume1/docker/n8n
+  pvc:
+    name: n8n-data-pvc
+    namespace: tools
+    accessModes: ReadWriteMany
+    requests:
+      storage: 1Gi
+    storageClassName: nfs-storage
+
+externalSecret:
+  name: n8n-external-secret
+  namespace: tools
+  refreshInterval: "15s"
+  secretStoreRef:
+    name: vault-k8s-auth
+    kind: ClusterSecretStore
+  target:
+    name: n8n-secrets
+  data:
+    - secretKey: N8N_ENCRYPTION_KEY
+      remoteRef:
+        key: secrets/n8n
+        property: N8N_ENCRYPTION_KEY
+    - secretKey: DATABASE_URL
+      remoteRef:
+        key: secrets/n8n
+        property: DATABASE_URL
+    - secretKey: N8N_BASIC_AUTH_USER
+      remoteRef:
+        key: secrets/n8n
+        property: N8N_BASIC_AUTH_USER
+    - secretKey: N8N_BASIC_AUTH_PASSWORD
+      remoteRef:
+        key: secrets/n8n
+        property: N8N_BASIC_AUTH_PASSWORD
+
+n8n:
+  namespaceOverride: tools
+  persistence:
+    existingClaim: "n8n-data-pvc"
+    storageClass: "nfs-storage"
+  extraEnv:
+    - name: N8N_ENCRYPTION_KEY
+      valueFrom:
+        secretKeyRef:
+          name: n8n-secrets
+          key: N8N_ENCRYPTION_KEY
+    - name: DATABASE_URL
+      valueFrom:
+        secretKeyRef:
+          name: n8n-secrets
+          key: DATABASE_URL
+    - name: N8N_BASIC_AUTH_USER
+      valueFrom:
+        secretKeyRef:
+          name: n8n-secrets
+          key: N8N_BASIC_AUTH_USER
+    - name: N8N_BASIC_AUTH_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: n8n-secrets
+          key: N8N_BASIC_AUTH_PASSWORD
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+  ingress:
+    enabled: true
+    annotations: {}
+    host: n8n.home.lan
+  service:
+    type: NodePort
+    port: 5678
+  priorityClassName: low-priority
