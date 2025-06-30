@@ -1,0 +1,118 @@
+---
+storage:
+  pv:
+    name: n8n-config-pv
+    labels:
+      type: config
+      app: n8n
+    capacity: 1Gi
+    accessModes: ReadWriteMany
+    reclaimPolicy: Retain
+    storageClassName: nfs-storage
+    nfs:
+      server: nas.home.lan
+      path: /volume1/docker/n8n
+  pvc:
+    name: n8n-config-pvc
+    namespace: tools
+    accessModes: ReadWriteMany
+    requests:
+      storage: 1Gi
+    storageClassName: nfs-storage
+
+externalSecret:
+  namespace: tools
+  refreshInterval: "15s"
+  secretStoreRef:
+    name: vault-k8s-auth
+    kind: ClusterSecretStore
+  target:
+    name: n8n-secrets
+  data:
+    - secretKey: N8N_ENCRYPTION_KEY
+      remoteRef:
+        key: secrets/n8n
+        property: N8N_ENCRYPTION_KEY
+    - secretKey: N8N_BASIC_AUTH_USER
+      remoteRef:
+        key: secrets/n8n
+        property: N8N_BASIC_AUTH_USER
+    - secretKey: N8N_BASIC_AUTH_PASSWORD
+      remoteRef:
+        key: secrets/n8n
+        property: N8N_BASIC_AUTH_PASSWORD
+    - secretKey: DATABASE_URL
+      remoteRef:
+        key: secrets/n8n
+        property: DATABASE_URL
+
+app-template:
+  namespaceOverride: tools
+
+  controllers:
+    n8n:
+      type: deployment
+      pod:
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
+          fsGroup: 1000
+
+      containers:
+        app:
+          image:
+            repository: n8nio/n8n
+            tag: 1.101.0
+          env:
+            N8N_ENCRYPTION_KEY:
+              valueFrom:
+                secretKeyRef:
+                  name: n8n-secrets
+                  key: N8N_ENCRYPTION_KEY
+            N8N_BASIC_AUTH_USER:
+              valueFrom:
+                secretKeyRef:
+                  name: n8n-secrets
+                  key: N8N_BASIC_AUTH_USER
+            N8N_BASIC_AUTH_PASSWORD:
+              valueFrom:
+                secretKeyRef:
+                  name: n8n-secrets
+                  key: N8N_BASIC_AUTH_PASSWORD
+            DATABASE_URL:
+              valueFrom:
+                secretKeyRef:
+                  name: n8n-secrets
+                  key: DATABASE_URL
+          resources:
+            limits:
+              memory: 512Mi
+            requests:
+              cpu: 500m
+              memory: 512Mi
+
+  persistence:
+    data:
+      existingClaim: n8n-config-pvc
+
+  service:
+    n8n:
+      controller: n8n
+      ports:
+        http:
+          port: 5678
+  ingress:
+    n8n:
+      enabled: true
+      annotations:
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      hosts:
+        - host: n8n.home.lan
+          paths:
+            - path: /
+              pathType: Prefix
+      tls:
+        - hosts:
+            - n8n.home.lan
+          secretName: homepage-tls-certificate
