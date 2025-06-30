@@ -1,50 +1,47 @@
 # n8n Helm Deployment
 
-This directory contains configuration for deploying [n8n](https://n8n.io), an open-source workflow automation tool, using Helm.
-
-## Prerequisites
-
-1. Deploy the NFS storage classes:
-   ```bash
-   kubectl apply -f ../../nfs-storage-class.yaml
-   ```
-2. Ensure required namespaces exist:
-   ```bash
-   kubectl apply -f ../../namespaces.yaml
-   ```
-3. Create the persistent volumes and claims:
-   ```bash
-   kubectl apply -f ../../persistent-volumes/tools/n8n.yaml
-   ```
+This directory contains configuration for deploying [n8n](https://n8n.io) using the community `app-template` chart from bjw-s labs.
 
 ## Deployment
 
-Install the community-maintained chart from the 8gears OCI registry using the provided values file:
+Add the bjw-s labs Helm repository:
 
 ```bash
-helm install n8n oci://8gears.container-registry.com/library/n8n \
-  --version 1.0.0 \
+helm repo add bjw-s https://bjw-s-labs.github.io/helm-charts/
+helm repo update
+```
+
+Deploy n8n using the provided values file:
+
+```bash
+helm install n8n bjw-s/app-template \
+  --version 2.4.0 \
   -f values.yaml \
   -n tools
 ```
 
-## Upgrading
-
-To upgrade the deployment:
+### Upgrading
 
 ```bash
-helm upgrade n8n oci://8gears.container-registry.com/library/n8n \
-  --version 1.0.0 \
+helm upgrade n8n bjw-s/app-template \
+  --version 2.4.0 \
   -f values.yaml \
   -n tools
 ```
 
 ## Configuration
 
-The `values.yaml` file contains configuration for storage, secrets and the n8n chart. Key settings include:
+`values.yaml` configures persistence, secrets and ingress. Persistence uses an NFS mount:
 
-- **Storage**: Creates a persistent volume and claim backed by NFS for n8n data
-- **External Secrets**: Retrieves credentials such as `DATABASE_URL` and authentication details from Vault
-- **Ingress**: Exposes n8n at `n8n.home.lan`
+```yaml
+app-template:
+  persistence:
+    config:
+      enabled: true
+      type: nfs
+      server: nas.home.lan
+      path: /volume1/docker/n8n
+      mountPath: /home/node/.n8n
+```
 
-Adjust the values as needed for your environment.
+Secrets are retrieved through an `ExternalSecret` named `n8n-external-secret`.

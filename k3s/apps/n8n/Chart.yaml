@@ -1,8 +1,8 @@
 ---
 apiVersion: v2
 name: n8n
-version: 1.0.0
+version: 0.1.0
 dependencies:
-  - name: n8n
-    version: 1.0.0
-    repository: oci://8gears.container-registry.com/library
+  - name: app-template
+    version: 2.4.0
+    repository: https://bjw-s-labs.github.io/helm-charts/

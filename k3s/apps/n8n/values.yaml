@@ -1,26 +1,4 @@
 ---
-namespaceOverride: tools
-storage:
-  pv:
-    name: n8n-data-pv
-    labels:
-      type: data
-      app: n8n
-    capacity: 1Gi
-    accessModes: ReadWriteMany
-    reclaimPolicy: Retain
-    storageClassName: nfs-storage
-    nfs:
-      server: 192.168.88.211
-      path: /volume1/docker/n8n
-  pvc:
-    name: n8n-data-pvc
-    namespace: tools
-    accessModes: ReadWriteMany
-    requests:
-      storage: 1Gi
-    storageClassName: nfs-storage
-
 externalSecret:
   name: n8n-external-secret
   namespace: tools
@@ -47,49 +25,30 @@ externalSecret:
       remoteRef:
         key: secrets/n8n
         property: N8N_BASIC_AUTH_PASSWORD
-
-main:
+app-template:
+  image:
+    repository: n8nio/n8n
+    tag: latest
   persistence:
-    enabled: true
-    type: existing
-    existingClaim: "n8n-data-pvc"
-    storageClass: "nfs-storage"
-  extraEnv:
-    - name: N8N_ENCRYPTION_KEY
-      valueFrom:
-        secretKeyRef:
-          name: n8n-secrets
-          key: N8N_ENCRYPTION_KEY
-    - name: DATABASE_URL
-      valueFrom:
-        secretKeyRef:
-          name: n8n-secrets
-          key: DATABASE_URL
-    - name: N8N_BASIC_AUTH_USER
-      valueFrom:
-        secretKeyRef:
-          name: n8n-secrets
-          key: N8N_BASIC_AUTH_USER
-    - name: N8N_BASIC_AUTH_PASSWORD
-      valueFrom:
-        secretKeyRef:
-          name: n8n-secrets
-          key: N8N_BASIC_AUTH_PASSWORD
-  resources:
-    requests:
-      cpu: "250m"
-      memory: "256Mi"
-    limits:
-      cpu: "500m"
-      memory: "512Mi"
+    config:
+      enabled: true
+      type: nfs
+      server: nas.home.lan
+      path: /volume1/docker/n8n
+      mountPath: /home/node/.n8n
+  envFrom:
+    - secretRef:
+        name: n8n-secrets
   service:
-    type: NodePort
-    port: 5678
-
-ingress:
-  enabled: true
-  annotations: {}
-  hosts:
-    - host: n8n.home.lan
-      paths:
-        - /
+    main:
+      ports:
+        http:
+          port: 5678
+  ingress:
+    main:
+      enabled: true
+      hosts:
+        - host: n8n.home.lan
+          paths:
+            - path: /
+              pathType: Prefix
