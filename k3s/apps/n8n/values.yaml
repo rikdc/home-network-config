@@ -1,5 +1,25 @@
 ---
-namespaceOverride: tools
+storage:
+  pv:
+    name: n8n-config-pv
+    labels:
+      type: config
+      app: n8n
+    capacity: 1Gi
+    accessModes: ReadWriteMany
+    reclaimPolicy: Retain
+    storageClassName: nfs-storage
+    nfs:
+      server: nas.home.lan
+      path: /volume1/docker/n8n
+  pvc:
+    name: n8n-config-pvc
+    namespace: tools
+    accessModes: ReadWriteMany
+    requests:
+      storage: 1Gi
+    storageClassName: nfs-storage
+
 externalSecret:
   name: n8n-external-secret
   namespace: tools
@@ -27,40 +47,43 @@ externalSecret:
         key: secrets/n8n
         property: N8N_BASIC_AUTH_PASSWORD
 
-controllers:
-  main:
-    containers:
-      main:
-        image:
-          repository: n8nio/n8n
-          tag: latest
-        envFrom:
-          - secretRef:
-              name: n8n-secrets
-
-persistence:
-  config:
-    type: nfs
-    server: nas.home.lan
-    path: /volume1/docker/n8n
-    globalMounts:
-      - path: /home/node/.n8n
-
-service:
-  main:
-    controller: main
-    ports:
-      http:
-        port: 5678
-
-ingress:
-  main:
+n8n:
+  ingress:
     enabled: true
+    className: ""
     hosts:
       - host: n8n.home.lan
         paths:
           - path: /
             pathType: Prefix
-            service:
-              identifier: main
-              port: http
+    tls: []
+  main:
+    persistence:
+      enabled: true
+      type: existing
+      existingClaim: n8n-config-pvc
+    service:
+      type: ClusterIP
+      port: 5678
+    extraEnv:
+      N8N_ENCRYPTION_KEY:
+        valueFrom:
+          secretKeyRef:
+            name: n8n-secrets
+            key: N8N_ENCRYPTION_KEY
+      DATABASE_URL:
+        valueFrom:
+          secretKeyRef:
+            name: n8n-secrets
+            key: DATABASE_URL
+      N8N_BASIC_AUTH_USER:
+        valueFrom:
+          secretKeyRef:
+            name: n8n-secrets
+            key: N8N_BASIC_AUTH_USER
+      N8N_BASIC_AUTH_PASSWORD:
+        valueFrom:
+          secretKeyRef:
+            name: n8n-secrets
+            key: N8N_BASIC_AUTH_PASSWORD
+    priorityClassName: low-priority
