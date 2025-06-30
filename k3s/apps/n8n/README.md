@@ -15,7 +15,7 @@ Deploy n8n using the provided values file:
 
 ```bash
 helm install n8n bjw-s/app-template \
-  --version 2.4.0 \
+  --version 4.1.2 \
   -f values.yaml \
   -n tools
 ```
@@ -24,7 +24,7 @@ helm install n8n bjw-s/app-template \
 
 ```bash
 helm upgrade n8n bjw-s/app-template \
-  --version 2.4.0 \
+  --version 4.1.2 \
   -f values.yaml \
   -n tools
 ```
@@ -34,14 +34,39 @@ helm upgrade n8n bjw-s/app-template \
 `values.yaml` configures persistence, secrets and ingress. Persistence uses an NFS mount:
 
 ```yaml
-app-template:
-  persistence:
-    config:
-      enabled: true
-      type: nfs
-      server: nas.home.lan
-      path: /volume1/docker/n8n
-      mountPath: /home/node/.n8n
+controllers:
+  main:
+    containers:
+      main:
+        image:
+          repository: n8nio/n8n
+          tag: latest
+        envFrom:
+          - secretRef:
+              name: n8n-secrets
+persistence:
+  config:
+    type: nfs
+    server: nas.home.lan
+    path: /volume1/docker/n8n
+    globalMounts:
+      - path: /home/node/.n8n
+service:
+  main:
+    ports:
+      http:
+        port: 5678
+ingress:
+  main:
+    hosts:
+      - host: n8n.home.lan
+        paths:
+          - path: /
+            pathType: Prefix
+            service:
+              identifier: main
+              port: http
 ```
 
 Secrets are retrieved through an `ExternalSecret` named `n8n-external-secret`.
+

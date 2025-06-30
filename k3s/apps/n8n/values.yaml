@@ -25,30 +25,41 @@ externalSecret:
       remoteRef:
         key: secrets/n8n
         property: N8N_BASIC_AUTH_PASSWORD
-app-template:
-  image:
-    repository: n8nio/n8n
-    tag: latest
-  persistence:
-    config:
-      enabled: true
-      type: nfs
-      server: nas.home.lan
-      path: /volume1/docker/n8n
-      mountPath: /home/node/.n8n
-  envFrom:
-    - secretRef:
-        name: n8n-secrets
-  service:
-    main:
-      ports:
-        http:
-          port: 5678
-  ingress:
-    main:
-      enabled: true
-      hosts:
-        - host: n8n.home.lan
-          paths:
-            - path: /
-              pathType: Prefix
+
+controllers:
+  main:
+    containers:
+      main:
+        image:
+          repository: n8nio/n8n
+          tag: latest
+        envFrom:
+          - secretRef:
+              name: n8n-secrets
+
+persistence:
+  config:
+    type: nfs
+    server: nas.home.lan
+    path: /volume1/docker/n8n
+    globalMounts:
+      - path: /home/node/.n8n
+
+service:
+  main:
+    controller: main
+    ports:
+      http:
+        port: 5678
+
+ingress:
+  main:
+    enabled: true
+    hosts:
+      - host: n8n.home.lan
+        paths:
+          - path: /
+            pathType: Prefix
+            service:
+              identifier: main
+              port: http
