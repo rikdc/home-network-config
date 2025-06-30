@@ -34,10 +34,6 @@ externalSecret:
       remoteRef:
         key: secrets/n8n
         property: N8N_ENCRYPTION_KEY
-    - secretKey: DATABASE_URL
-      remoteRef:
-        key: secrets/n8n
-        property: DATABASE_URL
     - secretKey: N8N_BASIC_AUTH_USER
       remoteRef:
         key: secrets/n8n
@@ -46,44 +42,67 @@ externalSecret:
       remoteRef:
         key: secrets/n8n
         property: N8N_BASIC_AUTH_PASSWORD
+    - secretKey: DATABASE_URL
+      remoteRef:
+        key: secrets/n8n
+        property: DATABASE_URL
 
-n8n:
-  ingress:
+controllers:
+  main:
+    containers:
+      main:
+        image:
+          repository: docker.io/n8nio/n8n
+          tag: 1.44.0
+          pullPolicy: IfNotPresent
+        env:
+          N8N_ENCRYPTION_KEY:
+            valueFrom:
+              secretKeyRef:
+                name: n8n-secrets
+                key: N8N_ENCRYPTION_KEY
+          N8N_BASIC_AUTH_USER:
+            valueFrom:
+              secretKeyRef:
+                name: n8n-secrets
+                key: N8N_BASIC_AUTH_USER
+          N8N_BASIC_AUTH_PASSWORD:
+            valueFrom:
+              secretKeyRef:
+                name: n8n-secrets
+                key: N8N_BASIC_AUTH_PASSWORD
+          DATABASE_URL:
+            valueFrom:
+              secretKeyRef:
+                name: n8n-secrets
+                key: DATABASE_URL
+
+service:
+  main:
+    controller: main
+    ports:
+      http:
+        port: 5678
+
+ingress:
+  main:
     enabled: true
-    className: ""
     hosts:
       - host: n8n.home.lan
         paths:
           - path: /
             pathType: Prefix
-    tls: []
-  main:
-    persistence:
-      enabled: true
-      type: existing
-      existingClaim: n8n-config-pvc
-    service:
-      type: ClusterIP
-      port: 5678
-    extraEnv:
-      N8N_ENCRYPTION_KEY:
-        valueFrom:
-          secretKeyRef:
-            name: n8n-secrets
-            key: N8N_ENCRYPTION_KEY
-      DATABASE_URL:
-        valueFrom:
-          secretKeyRef:
-            name: n8n-secrets
-            key: DATABASE_URL
-      N8N_BASIC_AUTH_USER:
-        valueFrom:
-          secretKeyRef:
-            name: n8n-secrets
-            key: N8N_BASIC_AUTH_USER
-      N8N_BASIC_AUTH_PASSWORD:
-        valueFrom:
-          secretKeyRef:
-            name: n8n-secrets
-            key: N8N_BASIC_AUTH_PASSWORD
-    priorityClassName: low-priority
+            service:
+              identifier: main
+              port: http
+
+persistence:
+  config:
+    existingClaim: n8n-config-pvc
+    advancedMounts:
+      main:
+        main:
+          - path: /home/node/.n8n
+
+defaultPodOptions:
+  priorityClassName: low-priority

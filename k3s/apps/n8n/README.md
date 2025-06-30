@@ -1,31 +1,31 @@
 # n8n Helm Deployment
 
-This directory contains configuration for deploying [n8n](https://n8n.io) using
-the community Helm chart maintained by 8gears.
+This directory contains configuration for deploying [n8n](https://n8n.io) using the [bjw-s app-template](https://github.com/bjw-s-labs/helm-charts) chart.
 
 ## Prerequisites
 
-1. The NFS storage classes must be deployed:
+1. Deploy the NFS storage classes:
    ```bash
    kubectl apply -f ../../nfs-storage-class.yaml
    ```
-2. The namespaces must exist:
+2. Ensure the required namespaces exist:
    ```bash
    kubectl apply -f ../../namespaces.yaml
    ```
-3. The persistent volumes and claims must be created:
+3. Create the persistent volume and claim:
    ```bash
    kubectl apply -f ../../persistent-volumes/tools/n8n.yaml
    ```
 
 ## Deployment
 
-Login to the 8gears OCI registry and deploy n8n:
+Add the bjw-s Helm repository and install the chart:
 
 ```bash
-helm registry login 8gears.container-registry.com
-helm install n8n oci://8gears.container-registry.com/library/n8n \
-  --version 1.0.0 \
+helm repo add bjw-s https://bjw-s-labs.github.io/helm-charts/
+helm repo update
+helm install n8n bjw-s/app-template \
+  --version 4.1.2 \
   -f values.yaml \
   -n tools
 ```
@@ -33,24 +33,31 @@ helm install n8n oci://8gears.container-registry.com/library/n8n \
 ### Upgrading
 
 ```bash
-helm upgrade n8n oci://8gears.container-registry.com/library/n8n \
-  --version 1.0.0 \
+helm upgrade n8n bjw-s/app-template \
+  --version 4.1.2 \
   -f values.yaml \
   -n tools
 ```
 
 ## Configuration
 
-The `values.yaml` file configures storage, secrets and ingress. Important sections:
+The `values.yaml` file configures storage, secrets and app-template settings. Key sections:
 
 ```yaml
-n8n:
+controllers:
   main:
-    persistence:
-      existingClaim: n8n-config-pvc
-    service:
-      port: 5678
-  ingress:
+    containers:
+      main:
+        image:
+          repository: docker.io/n8nio/n8n
+          tag: 1.44.0
+service:
+  main:
+    ports:
+      http:
+        port: 5678
+ingress:
+  main:
     hosts:
       - host: n8n.home.lan
         paths:
@@ -58,5 +65,4 @@ n8n:
             pathType: Prefix
 ```
 
-Secrets are provided by an `ExternalSecret` named `n8n-external-secret` which
-populates the `n8n-secrets` secret used by the chart.
+Secrets are provided by an `ExternalSecret` named `n8n-external-secret` which populates the `n8n-secrets` secret used by the chart.
