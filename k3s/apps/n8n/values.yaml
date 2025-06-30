@@ -47,62 +47,47 @@ externalSecret:
         key: secrets/n8n
         property: DATABASE_URL
 
-controllers:
+n8n:
+  namespaceOverride: tools
   main:
-    containers:
-      main:
-        image:
-          repository: docker.io/n8nio/n8n
-          tag: 1.44.0
-          pullPolicy: IfNotPresent
-        env:
-          N8N_ENCRYPTION_KEY:
-            valueFrom:
-              secretKeyRef:
-                name: n8n-secrets
-                key: N8N_ENCRYPTION_KEY
-          N8N_BASIC_AUTH_USER:
-            valueFrom:
-              secretKeyRef:
-                name: n8n-secrets
-                key: N8N_BASIC_AUTH_USER
-          N8N_BASIC_AUTH_PASSWORD:
-            valueFrom:
-              secretKeyRef:
-                name: n8n-secrets
-                key: N8N_BASIC_AUTH_PASSWORD
-          DATABASE_URL:
-            valueFrom:
-              secretKeyRef:
-                name: n8n-secrets
-                key: DATABASE_URL
-
-service:
-  main:
-    controller: main
-    ports:
-      http:
-        port: 5678
-
-ingress:
-  main:
-    enabled: true
-    hosts:
-      - host: n8n.home.lan
-        paths:
-          - path: /
-            pathType: Prefix
-            service:
-              identifier: main
-              port: http
-
-persistence:
-  config:
-    existingClaim: n8n-config-pvc
-    advancedMounts:
-      main:
-        main:
-          - path: /home/node/.n8n
-
-defaultPodOptions:
-  priorityClassName: low-priority
+    extraEnv:
+      N8N_ENCRYPTION_KEY:
+        valueFrom:
+          secretKeyRef:
+            name: n8n-secrets
+            key: N8N_ENCRYPTION_KEY
+      N8N_BASIC_AUTH_USER:
+        valueFrom:
+          secretKeyRef:
+            name: n8n-secrets
+            key: N8N_BASIC_AUTH_USER
+      N8N_BASIC_AUTH_PASSWORD:
+        valueFrom:
+          secretKeyRef:
+            name: n8n-secrets
+            key: N8N_BASIC_AUTH_PASSWORD
+      DATABASE_URL:
+        valueFrom:
+          secretKeyRef:
+            name: n8n-secrets
+            key: DATABASE_URL
+    service:
+      port: 5678
+    ingress:
+      enabled: true
+      hosts:
+        - host: n8n.home.lan
+          paths:
+            - /
+    persistence:
+      enabled: true
+      type: existing
+      existingClaim: n8n-config-pvc
+    resources:
+      limits:
+        memory: 512Mi
+      requests:
+        cpu: 500m
+        memory: 512Mi
+  defaultPodOptions:
+    priorityClassName: low-priority
