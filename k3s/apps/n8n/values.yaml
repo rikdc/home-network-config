@@ -109,8 +109,3 @@ app-template:
         - hosts:
             - n8n.home.lan
           secretName: homepage-tls-certificate
-
-  persistence:
-    home/node/.n8n:
-      enabled: true
-      existingClaim: n8n-config-pvc
