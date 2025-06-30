@@ -14,8 +14,9 @@ permissions:
   statuses: write
 
 jobs:
-  super-lint:
-    name: Lint Code Base
+  super-lint-pr:
+    name: Lint Changed Files
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout Code
@@ -25,15 +26,31 @@ jobs:
           fetch-depth: 0
           
       - name: Fetch base branch
-        if: github.event_name == 'pull_request'
         run: git fetch origin ${{ github.base_ref }}:${{ github.base_ref }}
 
-      - name: Run Super-Linter
+      - name: Run Super-Linter (Changed Files Only)
         uses: super-linter/super-linter@v7.4.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEFAULT_BRANCH: main
-          VALIDATE_ALL_CODEBASE: ${{ github.event_name != 'pull_request' }}
+          VALIDATE_ALL_CODEBASE: false
           FILTER_REGEX_EXCLUDE: ansible/inventory/(host_vars|group_vars)/.*
-          ENABLE_GITHUB_ACTIONS_STEP_SUMMARY: true
-          ENABLE_GITHUB_ACTIONS_GROUP_TITLE: true
+
+  super-lint-push:
+    name: Lint Full Codebase
+    if: github.event_name == 'push'
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.2.2
+        with:
+          show-progress: false
+          fetch-depth: 0
+
+      - name: Run Super-Linter (Full Codebase)
+        uses: super-linter/super-linter@v7.4.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BRANCH: main
+          VALIDATE_ALL_CODEBASE: true
+          FILTER_REGEX_EXCLUDE: ansible/inventory/(host_vars|group_vars)/.*
