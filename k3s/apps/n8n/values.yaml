@@ -52,11 +52,18 @@ app-template:
 
   controllers:
     n8n:
+      type: deployment
+      pod:
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
+          fsGroup: 1000
+
       containers:
         app:
           image:
             repository: ghcr.io/n8n-io/n8n
-            tag: 1.100.1
+            tag: 1.101.1
           env:
             N8N_ENCRYPTION_KEY:
               valueFrom:
@@ -84,11 +91,6 @@ app-template:
             requests:
               cpu: 500m
               memory: 512Mi
-      pod:
-        securityContext:
-          runAsUser: 1000
-          runAsGroup: 1000
-          fsGroup: 1000
   service:
     n8n:
       controller: n8n
@@ -103,6 +105,11 @@ app-template:
           paths:
             - path: /
               pathType: Prefix
+      tls:
+        - hosts:
+            - n8n.home.lan
+          secretName: homepage-tls-certificate
+
   persistence:
     data:
       enabled: true
