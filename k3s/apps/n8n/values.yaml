@@ -27,8 +27,8 @@ externalSecret:
   secretStoreRef:
     name: vault-k8s-auth
     kind: ClusterSecretStore
-  target:
-    name: n8n-secrets
+  # target:
+  #   name: n8n-secrets
   data:
     - secretKey: N8N_ENCRYPTION_KEY
       remoteRef:
