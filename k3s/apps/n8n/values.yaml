@@ -47,47 +47,66 @@ externalSecret:
         key: secrets/n8n
         property: DATABASE_URL
 
-n8n:
+app-template:
   namespaceOverride: tools
-  main:
-    extraEnv:
-      N8N_ENCRYPTION_KEY:
-        valueFrom:
-          secretKeyRef:
-            name: n8n-secrets
-            key: N8N_ENCRYPTION_KEY
-      N8N_BASIC_AUTH_USER:
-        valueFrom:
-          secretKeyRef:
-            name: n8n-secrets
-            key: N8N_BASIC_AUTH_USER
-      N8N_BASIC_AUTH_PASSWORD:
-        valueFrom:
-          secretKeyRef:
-            name: n8n-secrets
-            key: N8N_BASIC_AUTH_PASSWORD
-      DATABASE_URL:
-        valueFrom:
-          secretKeyRef:
-            name: n8n-secrets
-            key: DATABASE_URL
-    service:
-      port: 5678
-    ingress:
+
+  controllers:
+    n8n:
+      containers:
+        app:
+          image:
+            repository: ghcr.io/n8n-io/n8n
+            tag: 1.100.1
+          env:
+            N8N_ENCRYPTION_KEY:
+              valueFrom:
+                secretKeyRef:
+                  name: n8n-secrets
+                  key: N8N_ENCRYPTION_KEY
+            N8N_BASIC_AUTH_USER:
+              valueFrom:
+                secretKeyRef:
+                  name: n8n-secrets
+                  key: N8N_BASIC_AUTH_USER
+            N8N_BASIC_AUTH_PASSWORD:
+              valueFrom:
+                secretKeyRef:
+                  name: n8n-secrets
+                  key: N8N_BASIC_AUTH_PASSWORD
+            DATABASE_URL:
+              valueFrom:
+                secretKeyRef:
+                  name: n8n-secrets
+                  key: DATABASE_URL
+          resources:
+            limits:
+              memory: 512Mi
+            requests:
+              cpu: 500m
+              memory: 512Mi
+      pod:
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
+          fsGroup: 1000
+  service:
+    n8n:
+      controller: n8n
+      ports:
+        http:
+          port: 5678
+  ingress:
+    n8n:
       enabled: true
       hosts:
         - host: n8n.home.lan
           paths:
-            - /
-    persistence:
+            - path: /
+              pathType: Prefix
+  persistence:
+    data:
       enabled: true
-      type: existing
       existingClaim: n8n-config-pvc
-    resources:
-      limits:
-        memory: 512Mi
-      requests:
-        cpu: 500m
-        memory: 512Mi
+      mountPath: /home/node/.n8n
   defaultPodOptions:
     priorityClassName: low-priority

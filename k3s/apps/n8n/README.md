@@ -1,6 +1,6 @@
 # n8n Helm Deployment
 
-This directory contains configuration for deploying [n8n](https://n8n.io) using the community-maintained chart from [bjw-s-labs](https://github.com/bjw-s-labs/helm-charts).
+This directory contains configuration for deploying [n8n](https://n8n.io) using the [bjw-s-labs `app-template` Helm chart](https://github.com/bjw-s-labs/helm-charts).
 
 ## Prerequisites
 
@@ -29,8 +29,8 @@ helm repo update
 Deploy n8n using the values file:
 
 ```bash
-helm install n8n bjw-s/n8n \
-  --version 0.30.1 \
+helm install n8n bjw-s/app-template \
+  --version 4.1.2 \
   -f values.yaml \
   -n tools
 ```
@@ -38,8 +38,8 @@ helm install n8n bjw-s/n8n \
 ### Upgrading
 
 ```bash
-helm upgrade n8n bjw-s/n8n \
-  --version 0.30.1 \
+helm upgrade n8n bjw-s/app-template \
+  --version 4.1.2 \
   -f values.yaml \
   -n tools
 ```
@@ -49,16 +49,30 @@ helm upgrade n8n bjw-s/n8n \
 The `values.yaml` file configures storage, secrets and n8n chart settings. Key sections:
 
 ```yaml
-n8n:
-  main:
-    service:
-      port: 5678
-    ingress:
+app-template:
+  controllers:
+    n8n:
+      containers:
+        app:
+          image:
+            repository: ghcr.io/n8n-io/n8n
+            tag: 1.100.1
+      pod:
+        securityContext:
+          runAsUser: 1000
+  service:
+    n8n:
+      ports:
+        http:
+          port: 5678
+  ingress:
+    n8n:
       enabled: true
       hosts:
         - host: n8n.home.lan
           paths:
-            - /
+            - path: /
+              pathType: Prefix
 ```
 
 Secrets are provided by an `ExternalSecret` named `n8n-external-secret` which populates the `n8n-secrets` secret used by the chart.
