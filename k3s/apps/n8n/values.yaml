@@ -104,6 +104,9 @@ app-template:
   ingress:
     n8n:
       enabled: true
+      annotations:
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
       hosts:
         - host: n8n.home.lan
           paths:
