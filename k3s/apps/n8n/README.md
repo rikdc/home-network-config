@@ -1,6 +1,6 @@
 # n8n Helm Deployment
 
-This directory contains configuration for deploying [n8n](https://n8n.io) using the community maintained chart from [8gears/n8n-helm-chart](https://github.com/8gears/n8n-helm-chart).
+This directory contains configuration for deploying [n8n](https://n8n.io) using the community-maintained chart from [bjw-s-labs](https://github.com/bjw-s-labs/helm-charts).
 
 ## Prerequisites
 
@@ -19,11 +19,18 @@ This directory contains configuration for deploying [n8n](https://n8n.io) using 
 
 ## Deployment
 
-Install the chart from the 8gears OCI registry:
+Add the bjw-s Helm repository:
 
 ```bash
-helm install n8n oci://8gears.container-registry.com/library/n8n \
-  --version 1.0.10 \
+helm repo add bjw-s https://bjw-s-labs.github.io/helm-charts/
+helm repo update
+```
+
+Deploy n8n using the values file:
+
+```bash
+helm install n8n bjw-s/n8n \
+  --version 0.30.1 \
   -f values.yaml \
   -n tools
 ```
@@ -31,8 +38,8 @@ helm install n8n oci://8gears.container-registry.com/library/n8n \
 ### Upgrading
 
 ```bash
-helm upgrade n8n oci://8gears.container-registry.com/library/n8n \
-  --version 1.0.10 \
+helm upgrade n8n bjw-s/n8n \
+  --version 0.30.1 \
   -f values.yaml \
   -n tools
 ```
