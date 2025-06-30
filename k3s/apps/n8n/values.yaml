@@ -90,6 +90,11 @@ app-template:
             requests:
               cpu: 500m
               memory: 512Mi
+
+  persistence:
+    home/node/.n8n:
+      existingClaim: n8n-config-pvc
+
   service:
     n8n:
       controller: n8n
