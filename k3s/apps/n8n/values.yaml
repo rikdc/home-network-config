@@ -1,4 +1,5 @@
 ---
+namespaceOverride: tools
 storage:
   pv:
     name: n8n-data-pv
