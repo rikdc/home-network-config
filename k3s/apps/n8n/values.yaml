@@ -92,7 +92,7 @@ app-template:
               memory: 512Mi
 
   persistence:
-    home/node/.n8n:
+    data:
       existingClaim: n8n-config-pvc
 
   service:
