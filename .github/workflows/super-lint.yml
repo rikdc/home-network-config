@@ -23,6 +23,10 @@ jobs:
         with:
           show-progress: false
           fetch-depth: 0
+          
+      - name: Fetch base branch
+        if: github.event_name == 'pull_request'
+        run: git fetch origin ${{ github.base_ref }}:${{ github.base_ref }}
 
       - name: Run Super-Linter
         uses: super-linter/super-linter@v7.4.0
