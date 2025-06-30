@@ -19,7 +19,7 @@ This directory contains configuration for deploying [n8n](https://n8n.io), an op
 
 ## Deployment
 
-Install the chart directly from the OCI registry using the provided values file:
+Install the community-maintained chart from the 8gears OCI registry using the provided values file:
 
 ```bash
 helm install n8n oci://8gears.container-registry.com/library/n8n \

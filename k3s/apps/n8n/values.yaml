@@ -47,9 +47,10 @@ externalSecret:
         key: secrets/n8n
         property: N8N_BASIC_AUTH_PASSWORD
 
-n8n:
-  namespaceOverride: tools
+main:
   persistence:
+    enabled: true
+    type: existing
     existingClaim: "n8n-data-pvc"
     storageClass: "nfs-storage"
   extraEnv:
@@ -80,11 +81,14 @@ n8n:
     limits:
       cpu: "500m"
       memory: "512Mi"
-  ingress:
-    enabled: true
-    annotations: {}
-    host: n8n.home.lan
   service:
     type: NodePort
     port: 5678
-  priorityClassName: low-priority
+
+ingress:
+  enabled: true
+  annotations: {}
+  hosts:
+    - host: n8n.home.lan
+      paths:
+        - /
