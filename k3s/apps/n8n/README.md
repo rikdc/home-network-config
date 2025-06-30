@@ -7,7 +7,7 @@ This directory contains configuration for deploying [n8n](https://n8n.io) using 
 Add the bjw-s labs Helm repository:
 
 ```bash
-helm repo add bjw-s https://bjw-s-labs.github.io/helm-charts/
+helm repo add bjw-s https://bjw-s-labs.github.io/helm-charts
 helm repo update
 ```
 

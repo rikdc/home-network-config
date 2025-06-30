@@ -1,4 +1,5 @@
 ---
+namespaceOverride: tools
 externalSecret:
   name: n8n-external-secret
   namespace: tools
