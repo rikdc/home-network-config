@@ -21,10 +21,12 @@ jobs:
         with:
           show-progress: false
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Run Super-Linter
         uses: super-linter/super-linter@v7.4.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VALIDATE_ALL_CODEBASE: $GITHUB_EVENT_NAME != 'pull_request'
           FILTER_REGEX_EXCLUDE: ansible/inventory/(host_vars|group_vars)/.*
           ENABLE_GITHUB_ACTIONS_STEP_SUMMARY: true
