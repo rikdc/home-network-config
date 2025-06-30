@@ -21,14 +21,13 @@ storage:
     storageClassName: nfs-storage
 
 externalSecret:
-  name: n8n-external-secret
   namespace: tools
   refreshInterval: "15s"
   secretStoreRef:
     name: vault-k8s-auth
     kind: ClusterSecretStore
-  # target:
-  #   name: n8n-secrets
+  target:
+    name: n8n-secrets
   data:
     - secretKey: N8N_ENCRYPTION_KEY
       remoteRef:
