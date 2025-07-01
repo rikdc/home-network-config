@@ -174,9 +174,6 @@ qdrant:
   ingress:
     enabled: true
     ingressClassName: traefik
-    annotations:
-      nginx.ingress.kubernetes.io/ssl-redirect: "true"
-      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     hosts:
       - host: qdrant.home.lan
         paths:
