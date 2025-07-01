@@ -162,8 +162,8 @@ qdrant:
         protocol: TCP
         checksEnabled: false
   persistence:
-    enabled: true
-    size: 10Gi
-    storageClass: nfs-storage
     accessModes:
       - ReadWriteMany
+    size: 10Gi
+    storageClassName: nfs-storage
+    annotations: {}
