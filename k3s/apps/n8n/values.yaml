@@ -41,10 +41,18 @@ externalSecret:
       remoteRef:
         key: secrets/n8n
         property: N8N_BASIC_AUTH_PASSWORD
-    - secretKey: DATABASE_URL
+    - secretKey: DB_POSTGRESDB_HOST
       remoteRef:
         key: secrets/n8n
-        property: DATABASE_URL
+        property: DB_POSTGRESDB_HOST
+    - secretKey: DB_POSTGRESDB_USER
+      remoteRef:
+        key: secrets/n8n
+        property: DB_POSTGRESDB_USER
+    - secretKey: DB_POSTGRESDB_PASSWORD
+      remoteRef:
+        key: secrets/n8n
+        property: DB_POSTGRESDB_PASSWORD
 
 app-template:
   namespaceOverride: tools
@@ -64,6 +72,22 @@ app-template:
             repository: n8nio/n8n
             tag: 1.101.0
           env:
+            DB_TYPE: postgresdb
+            DB_POSTGRESDB_HOST:
+              valueFrom:
+                secretKeyRef:
+                  name: n8n-secrets
+                  key: DB_POSTGRESDB_HOST
+            DB_POSTGRESDB_USER:
+              valueFrom:
+                secretKeyRef:
+                  name: n8n-secrets
+                  key: DB_POSTGRESDB_USER
+            DB_POSTGRESDB_PASSWORD:
+              valueFrom:
+                secretKeyRef:
+                  name: n8n-secrets
+                  key: DB_POSTGRESDB_PASSWORD
             N8N_ENCRYPTION_KEY:
               valueFrom:
                 secretKeyRef:
@@ -79,11 +103,7 @@ app-template:
                 secretKeyRef:
                   name: n8n-secrets
                   key: N8N_BASIC_AUTH_PASSWORD
-            DATABASE_URL:
-              valueFrom:
-                secretKeyRef:
-                  name: n8n-secrets
-                  key: DATABASE_URL
+
           resources:
             limits:
               memory: 512Mi
@@ -116,3 +136,51 @@ app-template:
         - hosts:
             - n8n.home.lan
           secretName: homepage-tls-certificate
+
+qdrant:
+  replicaCount: 1
+
+  image:
+    repository: docker.io/qdrant/qdrant
+    tag: v1.14.1
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    ports:
+      - name: http
+        port: 6333
+        targetPort: 6333
+        protocol: TCP
+        checksEnabled: true
+      - name: grpc
+        port: 6334
+        targetPort: 6334
+        protocol: TCP
+        checksEnabled: false
+      - name: p2p
+        port: 6335
+        targetPort: 6335
+        protocol: TCP
+        checksEnabled: false
+
+  persistence:
+    accessModes:
+      - ReadWriteMany
+    size: 10Gi
+    storageClassName: nfs-storage
+    annotations: {}
+
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hosts:
+      - host: qdrant.home.lan
+        paths:
+          - path: /
+            pathType: Prefix
+            servicePort: 6333
+    tls:
+      - hosts:
+          - qdrant.home.lan
+        secretName: homepage-tls-secret

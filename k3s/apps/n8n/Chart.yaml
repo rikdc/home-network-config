@@ -6,3 +6,6 @@ dependencies:
   - name: app-template
     version: 4.1.2
     repository: https://bjw-s-labs.github.io/helm-charts/
+  - name: qdrant
+    version: 1.14.1
+    repository: https://qdrant.github.io/qdrant-helm
