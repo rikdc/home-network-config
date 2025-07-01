@@ -41,10 +41,18 @@ externalSecret:
       remoteRef:
         key: secrets/n8n
         property: N8N_BASIC_AUTH_PASSWORD
-    - secretKey: DATABASE_URL
+    - secretKey: DB_POSTGRESDB_HOST
       remoteRef:
         key: secrets/n8n
-        property: DATABASE_URL
+        property: DB_POSTGRESDB_HOST
+    - secretKey: DB_POSTGRESDB_USER
+      remoteRef:
+        key: secrets/n8n
+        property: DB_POSTGRESDB_USER
+    - secretKey: DB_POSTGRESDB_PASSWORD
+      remoteRef:
+        key: secrets/n8n
+        property: DB_POSTGRESDB_PASSWORD
 
 app-template:
   namespaceOverride: tools
