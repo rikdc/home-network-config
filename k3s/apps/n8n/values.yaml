@@ -165,5 +165,5 @@ qdrant:
     accessModes:
       - ReadWriteMany
     size: 10Gi
-    storageClassName: nfs-client
+    storageClassName: nfs-storage
     annotations: {}
