@@ -139,10 +139,12 @@ app-template:
 
 qdrant:
   replicaCount: 1
+
   image:
     repository: docker.io/qdrant/qdrant
     tag: v1.14.1
     pullPolicy: IfNotPresent
+
   service:
     type: ClusterIP
     ports:
@@ -161,9 +163,27 @@ qdrant:
         targetPort: 6335
         protocol: TCP
         checksEnabled: false
+
   persistence:
     accessModes:
       - ReadWriteMany
     size: 10Gi
     storageClassName: nfs-storage
     annotations: {}
+
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    hosts:
+      - host: qdrant.home.lan
+        paths:
+          - path: /
+            pathType: Prefix
+            servicePort: 6333
+    tls:
+      - hosts:
+          - qdrant.home.lan
+        secretName: homepage-tls-secret
