@@ -64,6 +64,22 @@ app-template:
             repository: n8nio/n8n
             tag: 1.101.0
           env:
+            DB_TYPE: postgresdb
+            DB_POSTGRESDB_HOST:
+              valueFrom:
+                secretKeyRef:
+                  name: n8n-secrets
+                  key: DB_POSTGRESDB_HOST
+            DB_POSTGRESDB_USER:
+              valueFrom:
+                secretKeyRef:
+                  name: n8n-secrets
+                  key: DB_POSTGRESDB_USER
+            DB_POSTGRESDB_PASSWORD:
+              valueFrom:
+                secretKeyRef:
+                  name: n8n-secrets
+                  key: DB_POSTGRESDB_PASSWORD
             N8N_ENCRYPTION_KEY:
               valueFrom:
                 secretKeyRef:
@@ -79,11 +95,7 @@ app-template:
                 secretKeyRef:
                   name: n8n-secrets
                   key: N8N_BASIC_AUTH_PASSWORD
-            DATABASE_URL:
-              valueFrom:
-                secretKeyRef:
-                  name: n8n-secrets
-                  key: DATABASE_URL
+
           resources:
             limits:
               memory: 512Mi
