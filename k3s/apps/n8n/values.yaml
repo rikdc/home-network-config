@@ -136,3 +136,34 @@ app-template:
         - hosts:
             - n8n.home.lan
           secretName: homepage-tls-certificate
+
+qdrant:
+  replicaCount: 1
+  image:
+    repository: docker.io/qdrant/qdrant
+    tag: v1.14.1
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    ports:
+      - name: http
+        port: 6333
+        targetPort: 6333
+        protocol: TCP
+        checksEnabled: true
+      - name: grpc
+        port: 6334
+        targetPort: 6334
+        protocol: TCP
+        checksEnabled: false
+      - name: p2p
+        port: 6335
+        targetPort: 6335
+        protocol: TCP
+        checksEnabled: false
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: nfs-storage
+    accessModes:
+      - ReadWriteMany
