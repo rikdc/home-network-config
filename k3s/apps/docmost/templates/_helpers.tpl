@@ -49,3 +49,14 @@ Selector labels
 app.kubernetes.io/name: {{ include "docmost.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
+
+{{/*
+Return the name of the service account to use
+*/}}
+{{- define "docmost.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create -}}
+{{- default (include "docmost.fullname" .) .Values.serviceAccount.name -}}
+{{- else -}}
+{{- default "default" .Values.serviceAccount.name -}}
+{{- end -}}
+{{- end }}

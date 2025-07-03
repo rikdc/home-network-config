@@ -5,16 +5,18 @@ replicaCount: 1
 
 image:
   repository: docmost/docmost
-  tag: latest
+  tag: "0.21.0"
   pullPolicy: IfNotPresent
+
+# optionally specify image pull secrets
+imagePullSecrets: []
 
 nameOverride: ""
 fullnameOverride: ""
-namespace: tools
 
 serviceAccount:
-  name: eso-vault-auth
-  namespace: tools
+  create: true
+  name: ""
 
 service:
   type: ClusterIP
@@ -46,6 +48,7 @@ resources:
 
 persistence:
   enabled: true
+  createPV: false
   size: 10Gi
   storageClass: nfs-storage
   pvName: docmost-data-pv
@@ -56,6 +59,9 @@ persistence:
 
 redis:
   enabled: true
+  sidecar: true
+  externalHost: ""
+  externalPort: 6379
   image:
     repository: redis
     tag: 7-alpine
@@ -93,3 +99,15 @@ env:
     value: "America/New_York"
   - name: REDIS_URL
     value: "redis://localhost:6379"
+
+# Pod scheduling options
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Container security context
+securityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  runAsNonRoot: true
