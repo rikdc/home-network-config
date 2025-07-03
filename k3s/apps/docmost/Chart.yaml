@@ -6,4 +6,9 @@ description: A Helm chart for deploying Docmost, an open-source collaborative wi
 type: application
 maintainers:
   - name: Home Network Admin
-appVersion: "latest"
+    email: git@claydon.co
+home: https://github.com/docmost/docmost
+sources:
+  - https://github.com/docmost/docmost
+icon: https://raw.githubusercontent.com/docmost/docmost/main/apps/client/public/vite.svg
+appVersion: "0.21.0"

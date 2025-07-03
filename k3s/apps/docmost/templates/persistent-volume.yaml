@@ -1,4 +1,4 @@
-{{- if .Values.persistence.enabled }}
+{{- if and .Values.persistence.enabled .Values.persistence.createPV }}
 apiVersion: v1
 kind: PersistentVolume
 metadata:
