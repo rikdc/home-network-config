@@ -70,18 +70,18 @@ redis:
 externalSecrets:
   enabled: true
   secretStore:
-    name: vault-k8s-auth
+    name: vault-kv
     kind: ClusterSecretStore
   target:
     name: app-secrets
   data:
     - secretKey: DATABASE_URL
       remoteRef:
-        key: secrets/data/docmost
+        key: docmost
         property: DATABASE_URL
     - secretKey: APP_SECRET
       remoteRef:
-        key: secrets/data/docmost
+        key: docmost
         property: APP_SECRET
 
 env:

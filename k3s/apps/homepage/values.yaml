@@ -11,31 +11,31 @@ serviceAccount:
 externalSecrets:
   enabled: true
   secretStore:
-    name: vault-k8s-auth
+    name: vault-kv
     kind: ClusterSecretStore
   data:
     # MikroTik widget secrets (already implemented)
     - secretKey: HOMEPAGE_VAR_MIKROTIK_URL
       remoteRef:
-        key: secrets/homepage
+        key: homepage
         property: WIDGET_MIKROTIK_URL
     - secretKey: HOMEPAGE_VAR_MIKROTIK_USERNAME
       remoteRef:
-        key: secrets/homepage
+        key: homepage
         property: WIDGET_MIKROTIK_USERNAME
     - secretKey: HOMEPAGE_VAR_MIKROTIK_PASSWORD
       remoteRef:
-        key: secrets/homepage
+        key: homepage
         property: WIDGET_MIKROTIK_PASSWORD
 
     # Example for Matrix link
     - secretKey: HOMEPAGE_VAR_MATRIX_URL
       remoteRef:
-        key: secrets/homepage/links/matrix
+        key: homepage/links/matrix
         property: url
 
     # Example for Jellyfin link
     - secretKey: HOMEPAGE_VAR_JELLYFIN_URL
       remoteRef:
-        key: secrets/homepage/links/jellyfin
+        key: homepage/links/jellyfin
         property: url
