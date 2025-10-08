@@ -1,0 +1,46 @@
+---
+# Vault PKI Configuration Variables
+# These variables can be overridden at runtime or in host-specific files
+
+# Vault server configuration
+vault_server_url: "https://vault.home.lan:8200"
+
+# Kubernetes cluster configuration
+k8s_api_server: "https://192.168.88.59:6443"
+
+# SSL certificate domain configuration
+ssl_domain: "claydon.co"
+ssl_subdomain: "home.claydon.co"
+
+# Certificate validity periods
+certificate_ttl: "8760h"    # 1 year for leaf certificates
+ca_certificate_ttl: "87600h"   # 10 years for root CA
+
+# PKI role name (derived from subdomain)
+pki_role_name: "home-claydon-co"
+
+# External Secrets configuration
+external_secrets_namespace: "external-secrets"
+external_secrets_service_account: "external-secrets"
+
+# DNS entries that will be created for SSL endpoints
+ssl_endpoints:
+  - "chat.{{ ssl_subdomain }}"     # OpenWebUI
+  - "docs.{{ ssl_subdomain }}"     # Docmost
+  - "n8n.{{ ssl_subdomain }}"      # n8n
+  - "ca.{{ ssl_subdomain }}"       # CA download site
+  - "vault.{{ ssl_subdomain }}"    # Vault UI (if exposed)
+
+# Usage examples:
+#
+# Run playbook with default values:
+#   ansible-playbook playbooks/vault-pki-setup.yml
+#
+# Override domain at runtime:
+#   ansible-playbook playbooks/vault-pki-setup.yml -e ssl_domain=example.com -e ssl_subdomain=home.example.com
+#
+# Override Vault server URL:
+#   ansible-playbook playbooks/vault-pki-setup.yml -e vault_server_url=https://vault.example.com:8200
+#
+# Override Kubernetes API server:
+#   ansible-playbook playbooks/vault-pki-setup.yml -e k8s_api_server=https://10.0.0.100:6443
