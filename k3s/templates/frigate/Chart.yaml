@@ -1,0 +1,18 @@
+---
+apiVersion: v2
+name: frigate-template
+version: 0.1.0
+description: A Helm chart template for Frigate NVR
+type: application
+keywords:
+  - frigate
+  - nvr
+  - camera
+  - surveillance
+home: https://github.com/blakeblackshear/frigate
+sources:
+  - https://github.com/blakeblackshear/frigate
+maintainers:
+  - name: Your Name
+    email: your.email@example.com
+icon: https://raw.githubusercontent.com/blakeblackshear/frigate/dev/docs/docs/assets/frigate.png

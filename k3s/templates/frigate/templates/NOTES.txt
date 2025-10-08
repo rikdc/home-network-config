@@ -1,0 +1,20 @@
+Thank you for installing the Frigate template!
+
+1. External Secret Required:
+   Create a Kubernetes secret with the following keys:
+   - mqtt-user
+   - mqtt-password
+   - rtsp-password
+
+2. Configuration:
+   - Replace camera stream URLs in the configMap
+   - Adjust resource limits based on your hardware
+   - Update MQTT and camera settings in values.yaml
+
+3. Access the UI:
+   Open http://{{ .Values.ingress.host }} in your browser
+
+4. Verify the installation:
+   kubectl get pods -n {{ .Values.namespace }}
+
+For more information, visit: https://docs.frigate.video/
