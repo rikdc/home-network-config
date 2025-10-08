@@ -22,7 +22,7 @@ gitea:
     name: vault-gitea-secrets
     namespace: tools
     secretStoreRef:
-      name: vault-backend
+      name: vault-kv
       kind: ClusterSecretStore
     targetName: gitea-secrets
 
