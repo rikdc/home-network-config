@@ -25,18 +25,18 @@ externalSecret:
   namespace: tools
   refreshInterval: "15s"
   secretStoreRef:
-    name: vault-k8s-auth
+    name: vault-kv
     kind: ClusterSecretStore
   target:
     name: openwebui-secrets
   data:
     - secretKey: DATABASE_URL
       remoteRef:
-        key: secrets/openwebui
+        key: openwebui
         property: DATABASE_URL
     - secretKey: ollamaUrls
       remoteRef:
-        key: secrets/openwebui
+        key: openwebui
         property: OLLAMA_URL
 
 open-webui:
