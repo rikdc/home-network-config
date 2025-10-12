@@ -5,3 +5,8 @@ ansible/roles/robertdebock*
 ansible/.ansible/*
 vault/
 .vault_pass
+
+# SSL Certificate files (sensitive)
+vault-ca.pem
+vault-ca-b64.txt
+k3s/platform/ssl-certificates/vault-ca.pem
