@@ -1,0 +1,53 @@
+# Default Frigate configuration.
+# Replace placeholder values with environment-specific details before deploying.
+
+mqtt:
+  enabled: true
+  host: mqtt.home.lan
+  port: 1883
+  topic_prefix: frigate
+  client_id: frigate
+  user: "{FRIGATE_MQTT_USER}"
+  password: "{FRIGATE_MQTT_PASSWORD}"
+
+ffmpeg:
+  input_args: -avoid_negative_ts make_zero -fflags +genpts+discardcorrupt -flags low_delay -strict experimental -analyzeduration 1000M -probesize 1000M
+  output_args:
+    record: -f segment -segment_time 10 -segment_format mp4 -reset_timestamps 1 -strftime 1 -c copy
+
+detectors:
+  coral:
+    type: edgetpu
+    device: pci:0
+
+objects:
+  track:
+    - person
+
+birdseye:
+  enabled: true
+  mode: motion
+
+go2rtc:
+  streams:
+    camera1:
+      - rtsp://admin:{FRIGATE_RTSP_PASSWORD}@camera1/home/main
+    camera1_sub:
+      - rtsp://admin:{FRIGATE_RTSP_PASSWORD}@camera1/home/sub
+
+cameras:
+  camera1:
+    ffmpeg:
+      inputs:
+        - path: rtsp://127.0.0.1:8554/camera1
+          input_args: preset-rtsp-restream
+          roles:
+            - detect
+            - record
+        - path: rtsp://127.0.0.1:8554/camera1_sub
+          input_args: preset-rtsp-restream
+          roles:
+            - detect
+    detect:
+      width: 1280
+      height: 720
