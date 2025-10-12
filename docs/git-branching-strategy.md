@@ -6,12 +6,12 @@
 Accepted
 
 ### Context
-We need to maintain a private home network configuration repository while selectively sharing sanitized templates publicly. The challenge is to prevent accidental exposure of sensitive data while maintaining a simple workflow.
+We need to maintain a private home network configuration repository while selectively sharing sanitized application charts publicly. The challenge is to prevent accidental exposure of sensitive data while maintaining a simple workflow.
 
 ### Decision
 Adopt a single repository with branch-based privacy control using:
 1. `main` branch for full private configuration
-2. `public` branch for sanitized templates in `k3s/templates/`
+2. `public` branch that only keeps the apps you are comfortable sharing in `k3s/apps/`
 3. Git hooks and validation scripts to prevent accidental exposure
 4. Makefile for workflow automation
 
@@ -20,7 +20,7 @@ Adopt a single repository with branch-based privacy control using:
 - Strong safeguards against data leakage
 - Clear separation of concerns
 - Requires discipline in manual sanitization
-- Templates available in standardized format
+- Public branch is a curated subset of `k3s/apps/`
 
 ---
 
@@ -34,16 +34,7 @@ git checkout -b public
 git push origin public
 ```
 
-2. **Set up template directory structure:**
-```bash
-mkdir -p k3s/templates
-echo "# Application Templates" > k3s/templates/README.md
-git add k3s/templates/
-git commit -m "Initialize templates directory"
-git push origin public
-```
-
-3. **Use Makefile for management:**
+2. **Use Makefile for management:**
 ```bash
 # Install git hooks
 make setup-hooks
@@ -69,13 +60,13 @@ git checkout public
 make sync-public
 
 # Method 2: Manually copy and sanitize files
-cp -r ../main/k3s/apps/myapp/* k3s/templates/myapp/
+mkdir -p k3s/apps/myapp
+cp -r ../main/k3s/apps/myapp/* k3s/apps/myapp/
 # IMPORTANT: Manually sanitize copied files!
-# - Remove secrets
+# - Remove secrets and sensitive overlays
 # - Replace IPs/hostnames with placeholders
-# - Remove vault references
-# - Use externalSecret placeholders
-# - Convert to Helm template format
+# - Keep ExternalSecret references, but remove Vault-specific paths if needed
+# - Ensure configs reference placeholder values only
 
 # Validate before committing
 make validate-public
@@ -106,13 +97,13 @@ The validation script checks for:
 
 ## Consumer Workflow
 
-Users who want to use your templates:
+Users who want to use your public charts:
 ```bash
 # Clone the public branch only
 git clone --branch public https://github.com/yourname/home-network-config.git
 
-# Or download specific templates
-curl -O https://raw.githubusercontent.com/yourname/home-network-config/public/k3s/templates/frigate/values.yaml
+# Or download a specific chart file
+curl -O https://raw.githubusercontent.com/yourname/home-network-config/public/k3s/apps/frigate/values.yaml
 ```
 
 ## Best Practices
@@ -120,9 +111,9 @@ curl -O https://raw.githubusercontent.com/yourname/home-network-config/public/k3
 1. **Never merge public → main** - This could contaminate your private config
 2. **Always sanitize manually** when copying from main → public
 3. **Regular audits** of the public branch for accidental exposure
-4. **Use placeholders** instead of real values in templates
+4. **Use placeholders** instead of real values in the public charts
 5. **Document the sanitization process** for complex configurations
-6. **Test templates** in isolation before sharing
+6. **Test the sanitized charts** in isolation before sharing
 7. **Follow Helm chart best practices** for template structure
 8. **Use Makefile commands** for consistent workflow
 
