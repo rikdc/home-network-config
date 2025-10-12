@@ -1,0 +1,182 @@
+---
+# External secret configuration for Frigate
+externalSecret:
+  name: frigate-external-secret
+  namespace: video
+  refreshInterval: "1h"
+  secretStoreRef:
+    name: vault-kv
+    kind: ClusterSecretStore
+  target:
+    name: frigate-secrets
+  data:
+    - secretKey: FRIGATE_MQTT_USER
+      remoteRef:
+        key: frigate
+        property: mqtt_username
+    - secretKey: FRIGATE_MQTT_PASSWORD
+      remoteRef:
+        key: frigate
+        property: mqtt_password
+    - secretKey: FRIGATE_RTSP_PASSWORD
+      remoteRef:
+        key: frigate
+        property: rtsp_password
+
+# App template configuration for Frigate
+app-template:
+  namespaceOverride: video
+  defaultPodOptions:
+    securityContext:
+      runAsNonRoot: false
+      runAsUser: 0
+      runAsGroup: 0
+      fsGroup: 0
+      fsGroupChangePolicy: "OnRootMismatch"
+    nodeSelector:
+      kubernetes.io/arch: amd64
+      accelerator: coral
+    tolerations:
+      - key: "node-role.kubernetes.io/control-plane"
+        operator: "Exists"
+        effect: "NoSchedule"
+      - key: "node-role.kubernetes.io/master"
+        operator: "Exists"
+        effect: "NoSchedule"
+
+  controllers:
+    main:
+      strategy: Recreate
+      containers:
+        main:
+          image:
+            repository: ghcr.io/blakeblackshear/frigate
+            tag: "0.16.1"
+            pullPolicy: IfNotPresent
+          env:
+            LIBCEC_ENABLED: "false"
+            FRIGATE_MQTT_USER:
+              valueFrom:
+                secretKeyRef:
+                  name: frigate-secrets
+                  key: FRIGATE_MQTT_USER
+            FRIGATE_MQTT_PASSWORD:
+              valueFrom:
+                secretKeyRef:
+                  name: frigate-secrets
+                  key: FRIGATE_MQTT_PASSWORD
+            FRIGATE_RTSP_PASSWORD:
+              valueFrom:
+                secretKeyRef:
+                  name: frigate-secrets
+                  key: FRIGATE_RTSP_PASSWORD
+          ports:
+            - name: http
+              containerPort: 5000
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 2Gi
+          securityContext:
+            privileged: true
+          probes:
+            liveness:
+              enabled: true
+              type: HTTP
+              path: /
+              port: 5000
+            readiness:
+              enabled: true
+              type: HTTP
+              path: /
+              port: 5000
+            startup:
+              enabled: true
+              type: HTTP
+              path: /
+              port: 5000
+
+  # Frigate configuration is rendered from files/config.yml via templates/configmap.yaml
+
+  service:
+    main:
+      enabled: true
+      type: ClusterIP
+      ports:
+        http:
+          port: 5000
+          protocol: TCP
+
+  ingress:
+    main:
+      enabled: true
+      className: traefik
+      hosts:
+        - host: frigate.home.lan
+          paths:
+            - path: /
+              service:
+                identifier: main
+                port: 5000
+      tls: []
+
+  persistence:
+    # Read-only config from ConfigMap mounted as a file at /config/config.yml
+    config-tpl:
+      enabled: true
+      type: configMap
+      identifier: frigate-config
+      defaultMode: 292
+      globalMounts:
+        - path: /config/config.yml
+          subPath: config.yml
+          readOnly: true
+
+    data:
+      enabled: true
+      type: persistentVolumeClaim
+      accessMode: ReadWriteOnce
+      size: 20Gi
+      storageClass: local-path
+      annotations:
+        helm.sh/resource-policy: keep
+      globalMounts:
+        - path: /data
+
+    media:
+      enabled: true
+      type: persistentVolumeClaim
+      accessMode: ReadWriteOnce
+      size: 500Gi
+      storageClass: local-path
+      annotations:
+        helm.sh/resource-policy: keep
+      globalMounts:
+        - path: /media
+
+    dshm:
+      enabled: true
+      type: emptyDir
+      medium: Memory
+      sizeLimit: 1Gi
+      globalMounts:
+        - path: /dev/shm
+
+    tmp:
+      enabled: true
+      type: emptyDir
+      medium: Memory
+      sizeLimit: 1Gi
+      globalMounts:
+        - path: /tmp
+
+    apex0:
+      enabled: true
+      type: hostPath
+      hostPath: /dev/apex_0
+      hostPathType: CharDevice
+      globalMounts:
+        - path: /dev/apex_0
+          readOnly: false
