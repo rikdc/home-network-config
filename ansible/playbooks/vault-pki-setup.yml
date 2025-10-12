@@ -12,7 +12,7 @@
     pki_subdomain: "{{ ssl_subdomain | default('home.claydon.co') }}"
     cert_ttl: "{{ certificate_ttl | default('8760h') }}"  # 1 year
     ca_ttl: "{{ ca_certificate_ttl | default('87600h') }}"   # 10 years
-    
+
   tasks:
     - name: Wait for Vault to be ready
       uri:
@@ -143,6 +143,7 @@
         body:
           kubernetes_host: "{{ kubernetes_api_server }}"
           kubernetes_ca_cert: "{{ lookup('file', '../k8s-ca.crt') }}"
+        status_code: [200, 204]
 
     - name: Create policy for External Secrets Operator
       uri:
@@ -160,6 +161,7 @@
             path "pki_homelab/cert/ca" {
               capabilities = ["read"]
             }
+        status_code: [200, 204]
 
     - name: Create Kubernetes auth role for External Secrets
       uri:
@@ -174,8 +176,10 @@
           bound_service_account_namespaces: ["{{ external_secrets_namespace | default('external-secrets') }}"]
           policies: ["eso-pki-policy"]
           ttl: "24h"
+        status_code: [200, 204]
 
     - name: Get root CA certificate for distribution
+      delegate_to: localhost
       uri:
         url: "{{ vault_addr }}/v1/pki_homelab/cert/ca"
         method: GET
@@ -185,25 +189,29 @@
       register: vault_ca_cert
 
     - name: Save root CA certificate locally
+      delegate_to: localhost
       copy:
         content: "{{ vault_ca_cert.json.data.certificate }}"
-        dest: "../vault-ca.pem"
+        dest: "{{ playbook_dir }}/../vault-ca.pem"
         mode: '0644'
 
     - name: Create base64 encoded CA certificate for Kubernetes
-      shell: base64 -b 0 ../vault-ca.pem > ../vault-ca-b64.txt
+      delegate_to: localhost
+      shell: cat "{{ playbook_dir }}/../vault-ca.pem" | base64 | tr -d '\n' > "{{ playbook_dir }}/../vault-ca-b64.txt"
       args:
-        creates: ../vault-ca-b64.txt
+        creates: "{{ playbook_dir }}/../vault-ca-b64.txt"
 
     - name: Read base64 CA certificate
+      delegate_to: localhost
       slurp:
-        src: "../vault-ca-b64.txt"
+        src: "{{ playbook_dir }}/../vault-ca-b64.txt"
       register: vault_ca_b64_content
 
     - name: Generate ClusterSecretStore from template
+      delegate_to: localhost
       template:
-        src: "../../k3s/platform/ssl-certificates/templates/cluster-secret-store.yaml.j2"
-        dest: "../../k3s/platform/ssl-certificates/01-cluster-secret-store.yaml"
+        src: "{{ playbook_dir }}/../../k3s/platform/ssl-certificates/templates/cluster-secret-store.yaml.j2"
+        dest: "{{ playbook_dir }}/../../k3s/platform/ssl-certificates/01-cluster-secret-store.yaml"
         mode: '0644'
       vars:
         vault_ca_bundle_b64: "{{ vault_ca_b64_content.content | b64decode | trim }}"
@@ -221,7 +229,7 @@
           - Kubernetes auth method configured
           - External Secrets Operator policy and role created
           - Root CA certificate saved to vault-ca.pem
-          
+
           Next steps:
           1. Deploy External Secrets configuration
           2. Configure DNS for {{ pki_subdomain }}

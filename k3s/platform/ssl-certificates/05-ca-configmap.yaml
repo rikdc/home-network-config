@@ -1,0 +1,63 @@
+---
+# ConfigMap with root CA certificate for applications that need to trust internal certificates
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: vault-ca-certificate
+  namespace: ssl-certificates
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  refreshInterval: "168h"  # 1 week
+  secretStoreRef:
+    name: vault-k8s-auth
+    kind: ClusterSecretStore
+  target:
+    name: vault-ca-certificate
+    type: Opaque
+    template:
+      engineVersion: v2
+      data:
+        ca.crt: "{{ .ca_chain | first }}"
+  data:
+    - secretKey: ca_chain
+      remoteRef:
+        key: "pki_homelab/cert/ca"
+        property: "certificate"
+---
+# Distribute CA certificate as ConfigMap to multiple namespaces
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vault-ca
+  namespace: kube-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+data:
+  ca.crt: |
+    # This will be populated by the External Secret above
+    # CA certificate content will be synced from Vault
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vault-ca
+  namespace: tools
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+data:
+  ca.crt: |
+    # This will be populated by the External Secret above
+    # CA certificate content will be synced from Vault
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vault-ca
+  namespace: networking
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+data:
+  ca.crt: |
+    # This will be populated by the External Secret above
+    # CA certificate content will be synced from Vault

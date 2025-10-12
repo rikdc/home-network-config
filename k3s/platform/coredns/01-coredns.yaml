@@ -1,0 +1,95 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata: { name: networking }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homelan-coredns
+  namespace: networking
+data:
+  Corefile: |
+    home.claydon.co:53 {
+      log
+      errors
+      file /zones/home.claydon.co.db
+    }
+  home.claydon.co.db: |
+    $ORIGIN home.claydon.co.
+    @   3600 IN SOA ns.home.claydon.co. hostmaster.home.claydon.co. (1 7200 3600 1209600 3600)
+    @   3600 IN NS  ns.home.claydon.co.
+
+    ; Ingress on both nodes (round-robin)
+    *   60   IN A   192.168.88.59
+    *   60   IN A   192.168.88.9
+
+    ; Convenience record for Vault
+    vault 3600 IN A  192.168.88.6
+
+    ; Name server A record
+    ns  3600 IN A   192.168.88.59
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: homelan-coredns
+  namespace: networking
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: homelan-coredns
+  template:
+    metadata:
+      labels:
+        app: homelan-coredns
+    spec:
+      containers:
+        - name: coredns
+          image: coredns/coredns:1.11.1
+          args: ["-conf", "/etc/coredns/Corefile"]
+          ports:
+            - containerPort: 53
+              name: dns-udp
+              protocol: UDP
+            - containerPort: 53
+              name: dns-tcp
+              protocol: TCP
+          volumeMounts:
+            - name: cfg
+              mountPath: /etc/coredns
+            - name: zones
+              mountPath: /zones
+      volumes:
+        - name: cfg
+          configMap:
+            name: homelan-coredns
+            items:
+              - key: Corefile
+                path: Corefile
+        - name: zones
+          configMap:
+            name: homelan-coredns
+            items:
+              - key: home.claydon.co.db
+                path: home.claydon.co.db
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: homelan-coredns
+  namespace: networking
+spec:
+  type: NodePort
+  selector:
+    app: homelan-coredns
+  ports:
+    - name: dns-udp
+      port: 53
+      protocol: UDP
+      nodePort: 30053
+    - name: dns-tcp
+      port: 53
+      protocol: TCP
+      nodePort: 30053
