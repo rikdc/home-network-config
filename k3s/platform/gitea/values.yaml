@@ -89,5 +89,4 @@ gitea:
 
   persistence:
     enabled: true
-    type: existingClaim
     existingClaim: gitea-data-pvc
