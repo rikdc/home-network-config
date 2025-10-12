@@ -87,6 +87,7 @@ gitea:
 
   namespace: tools
 
-persistence:
-  enabled: true
-  existingClaim: gitea-data-pvc
+  persistence:
+    enabled: true
+    type: existingClaim
+    existingClaim: gitea-data-pvc
