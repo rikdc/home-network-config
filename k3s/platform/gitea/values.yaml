@@ -85,8 +85,9 @@ gitea:
   redis:
     enabled: true
 
+  namespace: tools
+
   persistence:
     enabled: true
-    existingClaim: gitea-data-pvc
-
-  namespace: tools
+    create: false
+    claimName: gitea-data-pvc
