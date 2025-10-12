@@ -1,6 +1,6 @@
 # Makefile for managing the private/public branching workflow
 
-.PHONY: help sync-public validate-public clean-public setup-hooks
+.PHONY: help lint lint-yaml lint-ansible sync-public validate-public clean-public setup-hooks
 
 help:
 	@echo "Makefile for managing private/public branching workflow"
@@ -10,7 +10,20 @@ help:
 	@echo "  make validate-public Validate public branch for sensitive content"
 	@echo "  make clean-public    Clean public branch (remove all files)"
 	@echo "  make setup-hooks     Install git hooks"
+	@echo "  make lint           Run full linting suite"
+	@echo "  make lint-yaml      Run YAML linting across repo"
+	@echo "  make lint-ansible   Run ansible-lint"
 	@echo "  make help            Show this help message"
+
+lint:
+	yamllint k3s ansible docs
+	ansible-lint ansible || true
+
+lint-yaml:
+	yamllint k3s ansible docs
+
+lint-ansible:
+	ansible-lint ansible
 
 sync-public:
 	@echo "Syncing main branch changes to public branch..."
