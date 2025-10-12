@@ -89,4 +89,5 @@ gitea:
 
   persistence:
     enabled: true
-    existingClaim: gitea-data-pvc
+    create: false
+    claimName: gitea-data-pvc
