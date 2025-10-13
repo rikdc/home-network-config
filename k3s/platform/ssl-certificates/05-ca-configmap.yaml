@@ -1,5 +1,5 @@
 ---
-# Sync the Vault server's certificate from KV into the ssl-certificates namespace for reuse
+# Pull the Home Lab Root CA from Vault KV into the ssl-certificates namespace
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
@@ -21,10 +21,10 @@ spec:
   data:
     - secretKey: ca.crt
       remoteRef:
-        key: platform/vault-server-ca
+        key: platform/vault-root-ca
         property: ca_crt
 ---
-# Provide the Vault server certificate to the External Secrets namespace as a Secret
+# Provide the root CA to the External Secrets namespace for the operator pod
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
@@ -46,10 +46,10 @@ spec:
   data:
     - secretKey: ca.crt
       remoteRef:
-        key: platform/vault-server-ca
+        key: platform/vault-root-ca
         property: ca_crt
 ---
-# Distribute the certificate to kube-system for Traefik and other core components
+# Distribute the root CA to kube-system for Traefik and other core services
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
@@ -71,10 +71,10 @@ spec:
   data:
     - secretKey: ca.crt
       remoteRef:
-        key: platform/vault-server-ca
+        key: platform/vault-root-ca
         property: ca_crt
 ---
-# Distribute the certificate to the tools namespace for application pods
+# Distribute the root CA to the tools namespace for workloads
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
@@ -96,10 +96,10 @@ spec:
   data:
     - secretKey: ca.crt
       remoteRef:
-        key: platform/vault-server-ca
+        key: platform/vault-root-ca
         property: ca_crt
 ---
-# Distribute the certificate to the networking namespace for the internal CA site
+# Distribute the root CA to the networking namespace for the internal CA site
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
@@ -121,5 +121,5 @@ spec:
   data:
     - secretKey: ca.crt
       remoteRef:
-        key: platform/vault-server-ca
+        key: platform/vault-root-ca
         property: ca_crt
