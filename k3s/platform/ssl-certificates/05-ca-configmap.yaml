@@ -1,5 +1,5 @@
 ---
-# ConfigMap with root CA certificate for applications that need to trust internal certificates
+# Sync the Vault server's certificate from KV into the ssl-certificates namespace for reuse
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
@@ -8,56 +8,118 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "0"
 spec:
-  refreshInterval: "168h"  # 1 week
+  refreshInterval: "168h"
   secretStoreRef:
-    name: vault-k8s-auth
+    name: vault-kv
     kind: ClusterSecretStore
   target:
     name: vault-ca-certificate
-    type: Opaque
+    creationPolicy: Owner
     template:
       engineVersion: v2
-      data:
-        ca.crt: "{{ .ca_chain | first }}"
+      type: Opaque
   data:
-    - secretKey: ca_chain
+    - secretKey: ca.crt
       remoteRef:
-        key: "pki_homelab/cert/ca"
-        property: "certificate"
+        key: platform/vault-server-ca
+        property: ca_crt
 ---
-# Distribute CA certificate as ConfigMap to multiple namespaces
-apiVersion: v1
-kind: ConfigMap
+# Provide the Vault server certificate to the External Secrets namespace as a Secret
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: vault-ca
+  namespace: external-secrets
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  refreshInterval: "168h"
+  secretStoreRef:
+    name: vault-kv
+    kind: ClusterSecretStore
+  target:
+    name: vault-ca
+    creationPolicy: Owner
+    template:
+      engineVersion: v2
+      type: Opaque
+  data:
+    - secretKey: ca.crt
+      remoteRef:
+        key: platform/vault-server-ca
+        property: ca_crt
+---
+# Distribute the certificate to kube-system for Traefik and other core components
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
 metadata:
   name: vault-ca
   namespace: kube-system
   annotations:
     argocd.argoproj.io/sync-wave: "1"
-data:
-  ca.crt: |
-    # This will be populated by the External Secret above
-    # CA certificate content will be synced from Vault
+spec:
+  refreshInterval: "168h"
+  secretStoreRef:
+    name: vault-kv
+    kind: ClusterSecretStore
+  target:
+    name: vault-ca
+    creationPolicy: Owner
+    template:
+      engineVersion: v2
+      type: Opaque
+  data:
+    - secretKey: ca.crt
+      remoteRef:
+        key: platform/vault-server-ca
+        property: ca_crt
 ---
-apiVersion: v1
-kind: ConfigMap
+# Distribute the certificate to the tools namespace for application pods
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
 metadata:
   name: vault-ca
   namespace: tools
   annotations:
     argocd.argoproj.io/sync-wave: "1"
-data:
-  ca.crt: |
-    # This will be populated by the External Secret above
-    # CA certificate content will be synced from Vault
+spec:
+  refreshInterval: "168h"
+  secretStoreRef:
+    name: vault-kv
+    kind: ClusterSecretStore
+  target:
+    name: vault-ca
+    creationPolicy: Owner
+    template:
+      engineVersion: v2
+      type: Opaque
+  data:
+    - secretKey: ca.crt
+      remoteRef:
+        key: platform/vault-server-ca
+        property: ca_crt
 ---
-apiVersion: v1
-kind: ConfigMap
+# Distribute the certificate to the networking namespace for the internal CA site
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
 metadata:
   name: vault-ca
   namespace: networking
   annotations:
     argocd.argoproj.io/sync-wave: "1"
-data:
-  ca.crt: |
-    # This will be populated by the External Secret above
-    # CA certificate content will be synced from Vault
+spec:
+  refreshInterval: "168h"
+  secretStoreRef:
+    name: vault-kv
+    kind: ClusterSecretStore
+  target:
+    name: vault-ca
+    creationPolicy: Owner
+    template:
+      engineVersion: v2
+      type: Opaque
+  data:
+    - secretKey: ca.crt
+      remoteRef:
+        key: platform/vault-server-ca
+        property: ca_crt
