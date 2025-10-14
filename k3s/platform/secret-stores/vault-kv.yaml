@@ -10,7 +10,7 @@ spec:
       path: secrets
       version: v2
       caProvider:
-        type: ConfigMap
+        type: Secret
         name: vault-ca
         key: ca.crt
         namespace: external-secrets

@@ -9,7 +9,7 @@ spec:
       server: https://vault.home.lan:8200
       path: pki_homelab
       caProvider:
-        type: ConfigMap
+        type: Secret
         name: vault-ca
         key: ca.crt
         namespace: external-secrets
