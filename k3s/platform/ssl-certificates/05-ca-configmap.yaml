@@ -1,0 +1,125 @@
+---
+# Pull the Home Lab Root CA from Vault KV into the ssl-certificates namespace
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: vault-ca-certificate
+  namespace: ssl-certificates
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  refreshInterval: "168h"
+  secretStoreRef:
+    name: vault-kv
+    kind: ClusterSecretStore
+  target:
+    name: vault-ca-certificate
+    creationPolicy: Owner
+    template:
+      engineVersion: v2
+      type: Opaque
+  data:
+    - secretKey: ca.crt
+      remoteRef:
+        key: platform/vault-root-ca
+        property: ca_crt
+---
+# Provide the root CA to the External Secrets namespace for the operator pod
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: vault-ca
+  namespace: external-secrets
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  refreshInterval: "168h"
+  secretStoreRef:
+    name: vault-kv
+    kind: ClusterSecretStore
+  target:
+    name: vault-ca
+    creationPolicy: Owner
+    template:
+      engineVersion: v2
+      type: Opaque
+  data:
+    - secretKey: ca.crt
+      remoteRef:
+        key: platform/vault-root-ca
+        property: ca_crt
+---
+# Distribute the root CA to kube-system for Traefik and other core services
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: vault-ca
+  namespace: kube-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  refreshInterval: "168h"
+  secretStoreRef:
+    name: vault-kv
+    kind: ClusterSecretStore
+  target:
+    name: vault-ca
+    creationPolicy: Owner
+    template:
+      engineVersion: v2
+      type: Opaque
+  data:
+    - secretKey: ca.crt
+      remoteRef:
+        key: platform/vault-root-ca
+        property: ca_crt
+---
+# Distribute the root CA to the tools namespace for workloads
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: vault-ca
+  namespace: tools
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  refreshInterval: "168h"
+  secretStoreRef:
+    name: vault-kv
+    kind: ClusterSecretStore
+  target:
+    name: vault-ca
+    creationPolicy: Owner
+    template:
+      engineVersion: v2
+      type: Opaque
+  data:
+    - secretKey: ca.crt
+      remoteRef:
+        key: platform/vault-root-ca
+        property: ca_crt
+---
+# Distribute the root CA to the networking namespace for the internal CA site
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: vault-ca
+  namespace: networking
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  refreshInterval: "168h"
+  secretStoreRef:
+    name: vault-kv
+    kind: ClusterSecretStore
+  target:
+    name: vault-ca
+    creationPolicy: Owner
+    template:
+      engineVersion: v2
+      type: Opaque
+  data:
+    - secretKey: ca.crt
+      remoteRef:
+        key: platform/vault-root-ca
+        property: ca_crt

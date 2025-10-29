@@ -1,0 +1,175 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cert-check-script
+  namespace: ssl-certificates
+data:
+  check-certs.sh: |
+    #!/bin/bash
+    set -euo pipefail
+
+    echo "=== SSL Certificate Expiry Check ==="
+    echo "Timestamp: $(date)"
+    echo ""
+
+    # List of SSL endpoints to check
+    ENDPOINTS=(
+        "chat.home.claydon.co:443"
+        "docs.home.claydon.co:443"
+        "n8n.home.claydon.co:443"
+        "ca.home.claydon.co:443"
+        "argocd.home.claydon.co:443"
+    )
+
+    WARN_DAYS=30  # Warn if certificate expires within 30 days
+    ERROR_DAYS=7  # Error if certificate expires within 7 days
+
+    EXIT_CODE=0
+
+    for endpoint in "${ENDPOINTS[@]}"; do
+        echo "Checking $endpoint..."
+
+        # Get certificate expiry date
+        if cert_info=$(echo | timeout 10 openssl s_client -connect "$endpoint" -servername "${endpoint%:*}" 2>/dev/null | openssl x509 -noout -dates 2>/dev/null); then
+            not_after=$(echo "$cert_info" | grep "notAfter" | cut -d= -f2)
+
+            # Convert to timestamp
+            if [[ "$OSTYPE" == "darwin"* ]]; then
+                # macOS
+                exp_timestamp=$(date -j -f "%b %d %T %Y %Z" "$not_after" "+%s" 2>/dev/null || echo "0")
+            else
+                # Linux
+                exp_timestamp=$(date -d "$not_after" "+%s" 2>/dev/null || echo "0")
+            fi
+
+            current_timestamp=$(date "+%s")
+            days_until_expiry=$(( (exp_timestamp - current_timestamp) / 86400 ))
+
+            if [ $days_until_expiry -le $ERROR_DAYS ]; then
+                echo "  ❌ CRITICAL: Certificate expires in $days_until_expiry days ($not_after)"
+                EXIT_CODE=2
+            elif [ $days_until_expiry -le $WARN_DAYS ]; then
+                echo "  ⚠️  WARNING: Certificate expires in $days_until_expiry days ($not_after)"
+                EXIT_CODE=1
+            else
+                echo "  ✅ OK: Certificate expires in $days_until_expiry days ($not_after)"
+            fi
+        else
+            echo "  ❌ ERROR: Could not retrieve certificate for $endpoint"
+            EXIT_CODE=2
+        fi
+        echo ""
+    done
+
+    echo "=== Kubernetes TLS Secrets Check ==="
+
+    # Check TLS secrets in various namespaces
+    NAMESPACES=("kube-system" "tools" "argocd" "networking" "ssl-certificates")
+
+    for ns in "${NAMESPACES[@]}"; do
+        echo "Checking namespace: $ns"
+        if kubectl get secret wildcard-home-claydon-co-tls -n "$ns" &>/dev/null; then
+            cert_data=$(kubectl get secret wildcard-home-claydon-co-tls -n "$ns" -o jsonpath='{.data.tls\.crt}' | base64 -d)
+            not_after=$(echo "$cert_data" | openssl x509 -noout -dates | grep "notAfter" | cut -d= -f2)
+
+            # Convert to timestamp
+            if [[ "$OSTYPE" == "darwin"* ]]; then
+                exp_timestamp=$(date -j -f "%b %d %T %Y %Z" "$not_after" "+%s" 2>/dev/null || echo "0")
+            else
+                exp_timestamp=$(date -d "$not_after" "+%s" 2>/dev/null || echo "0")
+            fi
+
+            current_timestamp=$(date "+%s")
+            days_until_expiry=$(( (exp_timestamp - current_timestamp) / 86400 ))
+
+            if [ $days_until_expiry -le $ERROR_DAYS ]; then
+                echo "  ❌ CRITICAL: Secret expires in $days_until_expiry days"
+                EXIT_CODE=2
+            elif [ $days_until_expiry -le $WARN_DAYS ]; then
+                echo "  ⚠️  WARNING: Secret expires in $days_until_expiry days"
+                EXIT_CODE=1
+            else
+                echo "  ✅ OK: Secret expires in $days_until_expiry days"
+            fi
+        else
+            echo "  ❌ ERROR: TLS secret not found in namespace $ns"
+            EXIT_CODE=2
+        fi
+        echo ""
+    done
+
+    case $EXIT_CODE in
+        0) echo "🎉 All certificates are healthy!" ;;
+        1) echo "⚠️  Some certificates are expiring soon" ;;
+        2) echo "❌ Critical certificate issues found" ;;
+    esac
+
+    exit $EXIT_CODE
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cert-expiry-check
+  namespace: ssl-certificates
+spec:
+  schedule: "0 9 * * *"  # Daily at 9 AM
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: cert-monitor
+          containers:
+            - name: cert-checker
+              image: bitnami/kubectl:1.28.2
+              command: ["/bin/sh"]
+              args: ["/scripts/check-certs.sh"]
+              volumeMounts:
+                - name: cert-check-script
+                  mountPath: /scripts
+                  readOnly: true
+              env:
+                - name: TZ
+                  value: "America/New_York"
+          volumes:
+            - name: cert-check-script
+              configMap:
+                name: cert-check-script
+                defaultMode: '0755'
+          restartPolicy: OnFailure
+      backoffLimit: 3
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cert-monitor
+  namespace: ssl-certificates
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cert-monitor
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["get", "list"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cert-monitor
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cert-monitor
+subjects:
+  - kind: ServiceAccount
+    name: cert-monitor
+    namespace: ssl-certificates

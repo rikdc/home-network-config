@@ -56,3 +56,4 @@ ignore: |
   # Ignore .git directory
   .git/
   vault/
+  .conductor/
