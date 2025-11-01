@@ -1,0 +1,46 @@
+---
+name: Super-Linter
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: read
+  pull-requests: write
+  checks: write
+  statuses: write
+
+jobs:
+  super-lint:
+    name: Lint Code Base
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+      statuses: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Debug git state
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "Event: ${{ github.event_name }}"
+          echo "Base ref: ${{ github.base_ref }}"
+          echo "Head ref: ${{ github.head_ref }}"
+          git branch -a
+          git log --oneline -5
+
+      - name: Run Super-Linter
+        uses: super-linter/super-linter@v7.4.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BRANCH: main
+          VALIDATE_ALL_CODEBASE: ${{ github.event_name == 'push' }}
+          FILTER_REGEX_EXCLUDE: ansible/inventory/(host_vars|group_vars)/.*
+          LOG_LEVEL: DEBUG
