@@ -1,0 +1,23 @@
+[Unit]
+Description=Prometheus Monitoring
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=prometheus
+Group=prometheus
+ExecStart=/usr/local/bin/prometheus \
+  --config.file=/etc/prometheus/prometheus.yml \
+  --storage.tsdb.path={{ monitoring_prometheus_storage_path }} \
+  --storage.tsdb.retention.time={{ monitoring_prometheus_storage_retention }} \
+  --web.listen-address={{ monitoring_prometheus_listen_address }} \
+{% for flag in monitoring_prometheus_extra_flags %}
+  {{ flag }} \
+{% endfor %}
+  --web.enable-lifecycle
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
