@@ -1,0 +1,11 @@
+server:
+  http_listen_address: 0.0.0.0
+  http_listen_port: 9080
+positions:
+  filename: {{ logging_agent_positions_path }}
+clients:
+{% for url in logging_agent_client_urls %}
+  - url: {{ url }}
+{% endfor %}
+scrape_configs:
+{{ logging_agent_scrape_configs | to_nice_yaml(indent=2) | indent(2, True) }}

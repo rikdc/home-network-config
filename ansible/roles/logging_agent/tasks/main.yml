@@ -1,0 +1,94 @@
+---
+- name: Fail if unsupported agent variant specified
+  ansible.builtin.assert:
+    that:
+      - logging_agent_variant == 'promtail'
+    msg: "Only promtail variant is currently supported."
+
+- name: Define promtail paths
+  ansible.builtin.set_fact:
+    logging_agent_archive_tmp: "/tmp/{{ logging_agent_archive_filename }}"
+    logging_agent_extract_dir: "/opt/promtail-{{ logging_agent_version }}"
+
+- name: Create agent user
+  become: true
+  ansible.builtin.user:
+    name: "{{ logging_agent_user }}"
+    shell: /usr/sbin/nologin
+    system: true
+    create_home: false
+    state: present
+
+- name: Create promtail directories
+  become: true
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ logging_agent_user }}"
+    group: "{{ logging_agent_user }}"
+    mode: "0755"
+  loop:
+    - /etc/promtail
+    - "{{ logging_agent_positions_path | dirname }}"
+
+- name: Download promtail archive
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ logging_agent_download_url }}"
+    dest: "{{ logging_agent_archive_tmp }}"
+    mode: "0644"
+
+- name: Ensure promtail extract directory exists
+  become: true
+  ansible.builtin.file:
+    path: "{{ logging_agent_extract_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Extract promtail archive
+  become: true
+  ansible.builtin.unarchive:
+    src: "{{ logging_agent_archive_tmp }}"
+    dest: "{{ logging_agent_extract_dir }}"
+    remote_src: true
+    creates: "{{ logging_agent_extract_dir }}/{{ logging_agent_extracted_binary }}"
+
+- name: Install promtail binary
+  become: true
+  ansible.builtin.copy:
+    src: "{{ logging_agent_extract_dir }}/{{ logging_agent_extracted_binary }}"
+    dest: /usr/local/bin/promtail
+    remote_src: true
+    mode: "0755"
+
+- name: Template promtail configuration
+  become: true
+  ansible.builtin.template:
+    src: promtail-config.yml.j2
+    dest: /etc/promtail/promtail-config.yml
+    owner: "{{ logging_agent_user }}"
+    group: "{{ logging_agent_user }}"
+    mode: "0640"
+  notify: Restart promtail
+
+- name: Template promtail systemd unit
+  become: true
+  ansible.builtin.template:
+    src: promtail.service.j2
+    dest: /etc/systemd/system/promtail.service
+    mode: "0644"
+  notify: Restart promtail
+
+- name: Reload systemd
+  become: true
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Ensure promtail is running
+  become: true
+  ansible.builtin.service:
+    name: promtail
+    enabled: true
+    state: started

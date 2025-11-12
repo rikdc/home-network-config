@@ -1,0 +1,14 @@
+[Unit]
+Description=Promtail log shipper
+After=network-online.target
+
+[Service]
+User={{ logging_agent_user }}
+Group={{ logging_agent_user }}
+ExecStart=/usr/local/bin/promtail --config.file=/etc/promtail/promtail-config.yml
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
