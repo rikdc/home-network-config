@@ -1,0 +1,25 @@
+[paths]
+data = /var/lib/grafana
+logs = /var/log/grafana
+plugins = /var/lib/grafana/plugins
+provisioning = /etc/grafana/provisioning
+
+[server]
+protocol = {{ monitoring_grafana_protocol }}
+http_addr =
+http_port = {{ monitoring_grafana_http_port }}
+domain = {{ monitoring_grafana_domain }}
+{% if monitoring_grafana_protocol == 'https' %}
+cert_file = {{ monitoring_grafana_tls_cert_file }}
+cert_key = {{ monitoring_grafana_tls_key_file }}
+{% endif %}
+
+[security]
+admin_user = admin
+admin_password = {{ monitoring_grafana_admin_password }}
+
+[users]
+allow_sign_up = false
+
+[auth.anonymous]
+enabled = false

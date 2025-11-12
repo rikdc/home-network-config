@@ -1,0 +1,163 @@
+---
+- name: Add Grafana APT key
+  become: true
+  ansible.builtin.apt_key:
+    url: https://apt.grafana.com/gpg.key
+    state: present
+
+- name: Add Grafana repository
+  become: true
+  ansible.builtin.apt_repository:
+    repo: "deb https://apt.grafana.com stable main"
+    state: present
+
+- name: Install Grafana
+  become: true
+  ansible.builtin.apt:
+    name: grafana
+    state: present
+    update_cache: true
+
+- name: Ensure Grafana TLS directory exists
+  become: true
+  ansible.builtin.file:
+    path: "{{ monitoring_grafana_tls_cert_file | dirname }}"
+    state: directory
+    owner: root
+    group: grafana
+    mode: "0750"
+  when: monitoring_grafana_protocol == "https"
+
+- name: Generate self-signed certificate for Grafana (if requested)
+  become: true
+  ansible.builtin.command: >
+    openssl req -x509 -nodes
+    -days {{ monitoring_grafana_tls_self_signed_valid_days }}
+    -subj "{{ monitoring_grafana_tls_subject }}"
+    -newkey rsa:4096
+    -keyout {{ monitoring_grafana_tls_key_file }}
+    -out {{ monitoring_grafana_tls_cert_file }}
+  args:
+    creates: "{{ monitoring_grafana_tls_cert_file }}"
+  when:
+    - monitoring_grafana_protocol == "https"
+    - monitoring_grafana_tls_self_signed | bool
+  notify: Restart Grafana
+
+- name: Set permissions on managed TLS materials
+  become: true
+  ansible.builtin.file:
+    path: "{{ item }}"
+    owner: root
+    group: grafana
+    mode: "0640"
+  loop:
+    - "{{ monitoring_grafana_tls_cert_file }}"
+    - "{{ monitoring_grafana_tls_key_file }}"
+  when:
+    - monitoring_grafana_protocol == "https"
+    - monitoring_grafana_tls_self_signed | bool
+
+- name: Install LXC-friendly Grafana unit
+  become: true
+  ansible.builtin.template:
+    src: grafana-lxc.service.j2
+    dest: /etc/systemd/system/grafana-server.service
+    mode: "0644"
+  when: ansible_virtualization_type == "lxc"
+  notify: Restart Grafana
+
+- name: Remove custom Grafana unit when not in LXC
+  become: true
+  ansible.builtin.file:
+    path: /etc/systemd/system/grafana-server.service
+    state: absent
+  when: ansible_virtualization_type != "lxc"
+  notify: Restart Grafana
+
+- name: Reload systemd after unit changes
+  become: true
+  ansible.builtin.systemd:
+    daemon_reload: true
+  when: ansible_virtualization_type == "lxc"
+
+- name: Install Grafana plugins
+  become: true
+  ansible.builtin.command: "/usr/share/grafana/bin/grafana-cli plugins install {{ item }}"
+  args:
+    creates: "/var/lib/grafana/plugins/{{ item }}"
+  loop: "{{ monitoring_grafana_additional_plugins }}"
+  when: monitoring_grafana_additional_plugins | length > 0
+  notify: Restart Grafana
+
+- name: Template grafana.ini
+  become: true
+  ansible.builtin.template:
+    src: grafana.ini.j2
+    dest: /etc/grafana/grafana.ini
+    mode: "0640"
+    owner: root
+    group: grafana
+  notify: Restart Grafana
+
+- name: Ensure provisioning directories exist
+  become: true
+  ansible.builtin.file:
+    path: "/etc/grafana/provisioning/{{ item }}"
+    state: directory
+    owner: root
+    group: grafana
+    mode: "0750"
+  loop:
+    - datasources
+    - dashboards
+
+- name: Template data sources
+  become: true
+  ansible.builtin.template:
+    src: datasources.yml.j2
+    dest: /etc/grafana/provisioning/datasources/datasources.yml
+    mode: "0640"
+    owner: root
+    group: grafana
+  notify: Restart Grafana
+
+- name: Template dashboards provisioning file
+  become: true
+  ansible.builtin.template:
+    src: dashboards.yml.j2
+    dest: /etc/grafana/provisioning/dashboards/dashboards.yml
+    mode: "0640"
+    owner: root
+    group: grafana
+  notify: Restart Grafana
+
+- name: Ensure dashboard directories exist
+  become: true
+  ansible.builtin.file:
+    path: "/var/lib/grafana/dashboards/{{ item.folder | default('general') }}"
+    state: directory
+    owner: grafana
+    group: grafana
+    mode: "0750"
+  loop: "{{ monitoring_grafana_dashboards }}"
+  when: monitoring_grafana_dashboards | length > 0
+
+- name: Install dashboard JSON files
+  become: true
+  ansible.builtin.copy:
+    dest: "/var/lib/grafana/dashboards/{{ item.folder | default('general') }}/{{ item.name | replace(' ', '_') }}.json"
+    content: "{{ item.json }}"
+    owner: grafana
+    group: grafana
+    mode: "0640"
+  loop: "{{ monitoring_grafana_dashboards }}"
+  when: monitoring_grafana_dashboards | length > 0
+  notify: Restart Grafana
+
+- name: Ensure Grafana service is enabled and running
+  become: true
+  ansible.builtin.service:
+    name: grafana-server
+    enabled: true
+    state: started

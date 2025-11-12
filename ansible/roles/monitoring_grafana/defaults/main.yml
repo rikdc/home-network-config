@@ -1,0 +1,28 @@
+---
+monitoring_grafana_admin_password: changeme
+monitoring_grafana_domain: grafana.local
+monitoring_grafana_protocol: http
+monitoring_grafana_http_port: 3000
+monitoring_grafana_tls_cert_file: /etc/grafana/ssl/grafana.crt
+monitoring_grafana_tls_key_file: /etc/grafana/ssl/grafana.key
+monitoring_grafana_tls_self_signed: true
+monitoring_grafana_tls_self_signed_valid_days: 365
+monitoring_grafana_tls_subject: "/CN={{ monitoring_grafana_domain }}"
+monitoring_grafana_datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prom.home.lan:9090
+    isDefault: true
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki.home.lan:3100
+monitoring_grafana_dashboards: []
+# Example entry:
+# - name: Cluster Overview
+#   folder: k3s
+#   json: "{{ lookup('file', 'files/dashboards/cluster-overview.json') }}"
+
+monitoring_grafana_additional_plugins: []
+monitoring_grafana_env: {}
