@@ -1,0 +1,93 @@
+---
+- name: Provision monitoring containers on Proxmox
+  hosts: proxmox
+  gather_facts: false
+  vars_files:
+    - ../default.config.yml
+    - ../secrets.enc
+
+  vars:
+    ansible_become: true
+    monitoring_node: "{{ proxmox_node | default('pve') }}"
+    monitoring_api_user: "{{ proxmox_api_user | default('ansible@pam') }}"
+    monitoring_ostemplate: local:vztmpl/debian-12-standard_12.0-1_amd64.tar.zst
+    monitoring_storage: local-lvm
+
+  tasks:
+    - name: Ensure monitoring containers exist
+      community.general.proxmox:
+        vmid: "{{ item.vmid }}"
+        node: "{{ monitoring_node }}"
+        api_user: "{{ monitoring_api_user }}"
+        api_token_id: "{{ proxmox_api_token_id }}"
+        api_token_secret: "{{ proxmox_api_token }}"
+        api_host: localhost
+        password: "{{ proxmox_api_password }}"
+        storage: "{{ monitoring_storage }}"
+        hostname: "{{ item.hostname }}"
+        ostemplate: "{{ monitoring_ostemplate }}"
+        netif: "{{ item.netif | default(monitoring_netif) }}"
+        cores: "{{ item.cores }}"
+        memory: "{{ item.memory }}"
+        onboot: true
+        pubkey: "{{ rsa_key }}"
+        unprivileged: false
+        state: present
+      loop: "{{ monitoring_containers }}"
+      loop_control:
+        label: "{{ item.hostname }}"
+
+    - name: Check container rootfs size
+      ansible.builtin.command: "pct config {{ item.vmid }}"
+      register: monitoring_rootfs
+      changed_when: false
+      when: item.rootfs_size is defined
+      loop: "{{ monitoring_containers }}"
+      loop_control:
+        label: "{{ item.hostname }}"
+
+    - name: Build rootfs resize plan
+      ansible.builtin.set_fact:
+        monitoring_resize_plan: "{{ monitoring_resize_plan | default([]) + [ {
+          'vmid': item.item.vmid,
+          'hostname': item.item.hostname,
+          'desired': item.item.rootfs_size | int,
+          'current': (
+            (
+              (item.stdout | regex_search('rootfs:.*size=\\d+G')) | default('size=0G')
+            )
+            | regex_replace('.*size=', '')
+            | regex_replace('G', '')
+            | int
+          )
+        } ] }}"
+      when:
+        - item.skipped is not defined
+        - item.item.rootfs_size is defined
+      loop: "{{ monitoring_rootfs.results | default([]) }}"
+      loop_control:
+        label: "{{ item.item.hostname }}"
+
+    - name: Resize container rootfs when needed
+      ansible.builtin.command: "pct resize {{ item.vmid }} rootfs {{ item.desired }}G"
+      when:
+        - item.desired is defined
+        - item.current | default(0) < item.desired
+      loop: "{{ monitoring_resize_plan | default([]) }}"
+      loop_control:
+        label: "{{ item.hostname }}"
+
+    - name: Ensure monitoring containers are started
+      community.general.proxmox:
+        vmid: "{{ item.vmid }}"
+        node: "{{ monitoring_node }}"
+        api_user: "{{ monitoring_api_user }}"
+        api_token_id: "{{ proxmox_api_token_id }}"
+        api_token_secret: "{{ proxmox_api_token }}"
+        api_host: localhost
+        state: started
+      loop: "{{ monitoring_containers }}"
+      loop_control:
+        label: "{{ item.hostname }}"
+
+- import_playbook: monitoring-out-of-band.yml
