@@ -1,0 +1,14 @@
+[Unit]
+Description=Grafana Loki Log Store
+After=network-online.target
+
+[Service]
+User={{ monitoring_loki_user }}
+Group={{ monitoring_loki_user }}
+ExecStart=/usr/local/bin/loki -config.file=/etc/loki/loki-config.yml
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
