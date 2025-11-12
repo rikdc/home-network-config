@@ -1,0 +1,45 @@
+---
+- name: Ensure apt cache is up to date
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 86400
+    upgrade: dist
+
+- name: Install baseline packages (skipping qemu-guest-agent inside LXC)
+  become: true
+  ansible.builtin.package:
+    name: "{{ monitoring_common_packages | reject('equalto', 'qemu-guest-agent') | list }}"
+    state: present
+
+- name: Configure timezone
+  become: true
+  community.general.timezone:
+    name: "{{ monitoring_common_timezone }}"
+
+- name: Ensure qemu-guest-agent state is correct on VMs
+  become: true
+  ansible.builtin.service:
+    name: qemu-guest-agent
+    enabled: true
+    state: started
+  when: ansible_virtualization_type != "lxc"
+
+- name: Ensure requested users exist
+  become: true
+  ansible.builtin.user:
+    name: "{{ item.name }}"
+    groups: "{{ item.groups | default([]) }}"
+    append: true
+    shell: /bin/bash
+    state: present
+  loop: "{{ monitoring_common_users }}"
+
+- name: Install authorized keys for requested users
+  become: true
+  ansible.builtin.authorized_key:
+    user: "{{ item.0.name }}"
+    key: "{{ item.1 }}"
+    state: present
+  loop: "{{ monitoring_common_users | subelements('ssh_authorized_keys', skip_missing=True) }}"
+  when: item.1 is defined

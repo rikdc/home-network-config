@@ -1,0 +1,19 @@
+---
+monitoring_common_packages:
+  - qemu-guest-agent
+  - ufw
+  - vim
+  - curl
+  - wget
+  - git
+  - python3-pip
+  - unzip
+  - openssl
+monitoring_common_timezone: Etc/UTC
+monitoring_common_users: []
+# Example:
+# monitoring_common_users:
+#   - name: monitor
+#     groups: ["sudo"]
+#     ssh_authorized_keys:
+#       - "ssh-ed25519 AAA... user@example"
