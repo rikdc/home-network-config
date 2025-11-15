@@ -3,7 +3,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "docmost.fullname" . }}
-  namespace: {{ .Values.namespace }}
   labels:
     {{- include "docmost.labels" . | nindent 4 }}
 spec:
@@ -16,10 +15,17 @@ spec:
       labels:
         {{- include "docmost.selectorLabels" . | nindent 8 }}
     spec:
+      serviceAccountName: {{ include "docmost.serviceAccountName" . }}
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
           ports:
             - name: http
               containerPort: {{ .Values.service.targetPort }}
@@ -58,7 +64,7 @@ spec:
             initialDelaySeconds: 5
             timeoutSeconds: 3
             periodSeconds: 5
-        {{- if .Values.redis.enabled }}
+        {{- if and .Values.redis.enabled .Values.redis.sidecar }}
         - name: redis
           image: "{{ .Values.redis.image.repository }}:{{ .Values.redis.image.tag }}"
           ports:
@@ -67,6 +73,8 @@ spec:
               protocol: TCP
           resources:
             {{- toYaml .Values.redis.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
           volumeMounts:
             - name: redis-data
               mountPath: /data
@@ -85,7 +93,13 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: {{ .Values.persistence.pvcName }}
-        {{- if .Values.redis.enabled }}
+        {{- if and .Values.redis.enabled .Values.redis.sidecar }}
         - name: redis-data
           emptyDir: {}
         {{- end }}
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
+      tolerations:
+        {{- toYaml .Values.tolerations | nindent 8 }}
+      affinity:
+        {{- toYaml .Values.affinity | nindent 8 }}

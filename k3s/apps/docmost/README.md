@@ -33,14 +33,17 @@ The following table lists the configurable parameters of the Docmost chart and t
 | `replicaCount` | Number of Docmost replicas | `1` |
 | `nameOverride` | Override the name of the chart | `""` |
 | `fullnameOverride` | Override the full name of the chart | `""` |
+| `serviceAccount.create` | Create service account | `true` |
+| `serviceAccount.name` | Service account name | `""` |
 
 ### Image Configuration
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `image.repository` | Docmost image repository | `docmost/docmost` |
-| `image.tag` | Docmost image tag | `latest` |
+| `image.tag` | Docmost image tag | `0.21.0` |
 | `image.pullPolicy` | Image pull policy | `IfNotPresent` |
+| `imagePullSecrets` | Image pull secrets | `[]` |
 
 ### Service Configuration
 
@@ -69,20 +72,32 @@ The following table lists the configurable parameters of the Docmost chart and t
 | `resources.requests.cpu` | CPU request | `500m` |
 | `resources.requests.memory` | Memory request | `500Mi` |
 
+### Scheduling and Security
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `nodeSelector` | Node selection constraints | `{}` |
+| `tolerations` | Tolerations for taints | `[]` |
+| `affinity` | Pod affinity rules | `{}` |
+| `securityContext` | Container security context | See values.yaml |
+
 ### Persistence Configuration
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `persistence.enabled` | Enable persistence | `true` |
-| `persistence.existingClaim` | Use existing PVC | `docmost-data-pv-pvc` |
+| `persistence.createPV` | Create a persistent volume | `false` |
 | `persistence.size` | Storage size | `10Gi` |
-| `persistence.storageClass` | Storage class | `nfs-client` |
+| `persistence.storageClass` | Storage class | `nfs-storage` |
 
 ### Redis Configuration
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `redis.enabled` | Enable Redis sidecar | `true` |
+| `redis.enabled` | Enable Redis | `true` |
+| `redis.sidecar` | Deploy Redis as sidecar | `true` |
+| `redis.externalHost` | External Redis host | `""` |
+| `redis.externalPort` | External Redis port | `6379` |
 | `redis.image.repository` | Redis image repository | `redis` |
 | `redis.image.tag` | Redis image tag | `7-alpine` |
 | `redis.resources` | Redis resource requirements | See values.yaml |
