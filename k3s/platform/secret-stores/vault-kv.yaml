@@ -1,0 +1,23 @@
+---
+apiVersion: external-secrets.io/v1
+kind: ClusterSecretStore
+metadata:
+  name: vault-kv
+spec:
+  provider:
+    vault:
+      server: https://vault.home.lan:8200
+      path: secrets
+      version: v2
+      caProvider:
+        type: Secret
+        name: vault-ca
+        key: ca.crt
+        namespace: external-secrets
+      auth:
+        kubernetes:
+          mountPath: kubernetes
+          role: eso-kv
+          serviceAccountRef:
+            name: external-secrets
+            namespace: external-secrets

@@ -1,0 +1,263 @@
+---
+- name: Configure Vault PKI for SSL Certificate Management
+  hosts: vault
+  vars_files:
+    - ../default.config.yml
+    - ../secrets.enc
+  vars:
+    # Configurable variables - override in inventory or command line
+    vault_addr: "{{ vault_server_url | default('https://vault.home.lan:8200') }}"
+    kubernetes_api_server: "{{ k8s_api_server | default('https://192.168.88.59:6443') }}"
+    pki_domain: "{{ ssl_domain | default('claydon.co') }}"
+    pki_subdomain: "{{ ssl_subdomain | default('home.claydon.co') }}"
+    cert_ttl: "{{ certificate_ttl | default('8760h') }}"  # 1 year
+    ca_ttl: "{{ ca_certificate_ttl | default('87600h') }}"   # 10 years
+
+  tasks:
+    - name: Wait for Vault to be ready
+      uri:
+        url: "{{ vault_addr }}/v1/sys/health"
+        method: GET
+        validate_certs: false
+        status_code: [200, 429, 472, 473, 503]
+      register: vault_health
+      until: vault_health.status in [200, 429]
+      retries: 30
+      delay: 5
+
+    - name: Check if Vault is initialized
+      uri:
+        url: "{{ vault_addr }}/v1/sys/init"
+        method: GET
+        validate_certs: false
+      register: vault_init_status
+
+    - name: Fail if Vault is not initialized
+      fail:
+        msg: "Vault is not initialized. Please initialize Vault first."
+      when: not vault_init_status.json.initialized
+
+    - name: Check if PKI secrets engine exists
+      uri:
+        url: "{{ vault_addr }}/v1/sys/mounts/pki_homelab"
+        method: GET
+        validate_certs: false
+        headers:
+          X-Vault-Token: "{{ vault_root_token }}"
+        status_code: [200, 404]
+      register: pki_mount_check
+
+    - name: Enable PKI secrets engine
+      uri:
+        url: "{{ vault_addr }}/v1/sys/mounts/pki_homelab"
+        method: POST
+        validate_certs: false
+        headers:
+          X-Vault-Token: "{{ vault_root_token }}"
+        body_format: json
+        body:
+          type: "pki"
+          description: "HomeL PKI for {{ pki_domain }}"
+          config:
+            max_lease_ttl: "{{ ca_ttl }}"
+      when: pki_mount_check.status == 404
+
+    - name: Configure PKI URLs
+      uri:
+        url: "{{ vault_addr }}/v1/pki_homelab/config/urls"
+        method: POST
+        validate_certs: false
+        headers:
+          X-Vault-Token: "{{ vault_root_token }}"
+        body_format: json
+        body:
+          issuing_certificates: ["{{ vault_addr }}/v1/pki_homelab/ca"]
+          crl_distribution_points: ["{{ vault_addr }}/v1/pki_homelab/crl"]
+
+    - name: Check if root CA exists
+      uri:
+        url: "{{ vault_addr }}/v1/pki_homelab/cert/ca"
+        method: GET
+        validate_certs: false
+        headers:
+          X-Vault-Token: "{{ vault_root_token }}"
+        status_code: [200, 404]
+      register: root_ca_check
+
+    - name: Upload existing root CA (if provided)
+      uri:
+        url: "{{ vault_addr }}/v1/pki_homelab/config/ca"
+        method: POST
+        validate_certs: false
+        headers:
+          X-Vault-Token: "{{ vault_root_token }}"
+        body_format: json
+        body:
+          pem_bundle: "{{ vault_tls.root_ca_pem }}"
+      when:
+        - vault_tls is defined
+        - vault_tls.root_ca_pem is defined
+
+    - name: Generate root CA certificate
+      uri:
+        url: "{{ vault_addr }}/v1/pki_homelab/root/generate/internal"
+        method: POST
+        validate_certs: false
+        headers:
+          X-Vault-Token: "{{ vault_root_token }}"
+        body_format: json
+        body:
+          common_name: "Home Lab Root CA"
+          ttl: "{{ ca_ttl }}"
+          key_type: "rsa"
+          key_bits: 4096
+          country: "US"
+          organization: "Home Lab"
+          ou: "Home Lab Root CA"
+      register: root_ca_result
+      when:
+        - root_ca_check.status == 404
+        - not (vault_tls is defined and vault_tls.root_ca_pem is defined)
+
+    - name: Fetch root CA certificate (post configuration)
+      uri:
+        url: "{{ vault_addr }}/v1/pki_homelab/cert/ca"
+        method: GET
+        validate_certs: false
+        headers:
+          X-Vault-Token: "{{ vault_root_token }}"
+      register: vault_root_ca
+
+    - name: Publish root CA to Vault KV
+      uri:
+        url: "{{ vault_addr }}/v1/secrets/data/platform/vault-root-ca"
+        method: POST
+        validate_certs: false
+        headers:
+          X-Vault-Token: "{{ vault_root_token }}"
+        body_format: json
+        body:
+          data:
+            ca_crt: "{{ vault_root_ca.json.data.certificate }}"
+
+    - name: Publish server certificate bundle to Vault KV (optional)
+      uri:
+        url: "{{ vault_addr }}/v1/secrets/data/platform/vault-server-ca"
+        method: POST
+        validate_certs: false
+        headers:
+          X-Vault-Token: "{{ vault_root_token }}"
+        body_format: json
+        body:
+          data:
+            ca_crt: "{{ vault_tls.server_fullchain_pem }}"
+      when:
+        - vault_tls is defined
+        - vault_tls.server_fullchain_pem is defined
+
+    - name: Define PKI role inputs
+      set_fact:
+        vault_allowed_domains: "{{ vault_pki.role_allowed_domains | default([pki_subdomain]) }}"
+        vault_allow_subdomains: "{{ vault_pki.allow_subdomains | default(true) }}"
+        vault_allow_bare_domains: "{{ vault_pki.allow_bare_domains | default(false) }}"
+        vault_allow_wildcards: "{{ vault_pki.allow_wildcard_certificates | default(true) }}"
+
+    - name: Create PKI role for {{ pki_subdomain }}
+      uri:
+        url: "{{ vault_addr }}/v1/pki_homelab/roles/{{ pki_subdomain | replace('.', '-') }}"
+        method: POST
+        validate_certs: false
+        headers:
+          X-Vault-Token: "{{ vault_root_token }}"
+        body_format: json
+        body:
+          allowed_domains: "{{ vault_allowed_domains | tojson }}"
+          allow_subdomains: "{{ vault_allow_subdomains | bool | tojson }}"
+          allow_glob_domains: true
+          allow_bare_domains: "{{ vault_allow_bare_domains | bool | tojson }}"
+          allow_wildcard_certificates: "{{ vault_allow_wildcards | bool | tojson }}"
+          max_ttl: "{{ cert_ttl }}"
+          key_type: "ec"
+          key_bits: 256
+
+    - name: Enable Kubernetes auth method
+      uri:
+        url: "{{ vault_addr }}/v1/sys/auth/kubernetes"
+        method: POST
+        validate_certs: false
+        headers:
+          X-Vault-Token: "{{ vault_root_token }}"
+        body_format: json
+        body:
+          type: "kubernetes"
+        status_code: [200, 400]  # 400 if already exists
+
+    - name: Configure Kubernetes auth method
+      uri:
+        url: "{{ vault_addr }}/v1/auth/kubernetes/config"
+        method: POST
+        validate_certs: false
+        headers:
+          X-Vault-Token: "{{ vault_root_token }}"
+        body_format: json
+        body:
+          kubernetes_host: "{{ kubernetes_api_server }}"
+          kubernetes_ca_cert: "{{ lookup('file', '../k8s-ca.crt') }}"
+        status_code: [200, 204]
+
+    - name: Create policy for External Secrets Operator
+      uri:
+        url: "{{ vault_addr }}/v1/sys/policies/acl/eso-pki-policy"
+        method: PUT
+        validate_certs: false
+        headers:
+          X-Vault-Token: "{{ vault_root_token }}"
+        body_format: json
+        body:
+          policy: |
+            path "pki_homelab/issue/{{ pki_subdomain | replace('.', '-') }}" {
+              capabilities = ["create", "update"]
+            }
+            path "pki_homelab/cert/ca" {
+              capabilities = ["read"]
+            }
+        status_code: [200, 204]
+
+    - name: Determine namespaces for ESO role
+      set_fact:
+        vault_eso_namespaces: "{{ vault_pki.k8s_service_account_namespaces | default(['external-secrets']) }}"
+
+    - name: Create Kubernetes auth role for External Secrets
+      uri:
+        url: "{{ vault_addr }}/v1/auth/kubernetes/role/eso"
+        method: POST
+        validate_certs: false
+        headers:
+          X-Vault-Token: "{{ vault_root_token }}"
+        body_format: json
+        body:
+          bound_service_account_names: ["external-secrets"]
+          bound_service_account_namespaces: "{{ vault_eso_namespaces | tojson }}"
+          policies: ["eso-pki-policy"]
+          ttl: "24h"
+        status_code: [200, 204]
+
+    - name: Display setup completion message
+      debug:
+        msg: |
+          Vault PKI setup completed successfully!
+          - Vault Server: {{ vault_addr }}
+          - Kubernetes API: {{ kubernetes_api_server }}
+          - Domain: {{ pki_domain }}
+          - Subdomain: {{ pki_subdomain }}
+          - Root CA created with {{ ca_ttl }} validity
+          - PKI role '{{ pki_subdomain | replace('.', '-') }}' configured for *.{{ pki_subdomain }}
+          - Kubernetes auth method configured
+          - External Secrets Operator policy and role created
+          - Root CA published to secrets/data/platform/vault-root-ca
+          - Server bundle stored to secrets/data/platform/vault-server-ca (if provided)
+
+          Next steps:
+          1. Deploy External Secrets configuration
+          2. Configure DNS for {{ pki_subdomain }}
+          3. Update application ingresses for SSL

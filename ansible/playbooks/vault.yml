@@ -42,6 +42,9 @@
 
 - name: Setup Vault Server
   hosts: vault
+  vars_files:
+    - ../default.config.yml
+    - ../secrets.enc
   vars:
     ansible_become: true
     vault_version: 1.19.2
@@ -55,3 +58,47 @@
       vars:
         vault_version: 1.19.2
         vault_hardening_disable_swap: false
+
+  tasks:
+    - name: Ensure Vault TLS directory exists
+      file:
+        path: /etc/vault.d/tls
+        state: directory
+        owner: vault
+        group: vault
+        mode: '0750'
+
+    - name: Install Vault TLS private key
+      copy:
+        content: "{{ vault_tls.server_key_pem }}"
+        dest: /etc/vault.d/tls/vault.key
+        owner: vault
+        group: vault
+        mode: '0600'
+      when: vault_tls is defined and vault_tls.server_key_pem is defined
+      notify: restart vault
+
+    - name: Install Vault TLS fullchain
+      copy:
+        content: "{{ vault_tls.server_fullchain_pem }}"
+        dest: /etc/vault.d/tls/vault.crt
+        owner: vault
+        group: vault
+        mode: '0644'
+      when: vault_tls is defined and vault_tls.server_fullchain_pem is defined
+      notify: restart vault
+
+    - name: Install Vault root CA copy (optional)
+      copy:
+        content: "{{ vault_tls.root_ca_pem }}"
+        dest: /etc/vault.d/tls/root-ca.pem
+        owner: vault
+        group: vault
+        mode: '0644'
+      when: vault_tls is defined and vault_tls.root_ca_pem is defined
+
+  handlers:
+    - name: restart vault
+      service:
+        name: vault
+        state: restarted

@@ -22,3 +22,15 @@ external-secrets:
         - apiGroups: ["apiextensions.k8s.io"]
           resources: ["customresourcedefinitions"]
           verbs: ["get", "list", "watch"]
+
+  extraEnv:
+    - name: VAULT_CACERT
+      value: /etc/vault/tls/ca.crt
+  extraVolumes:
+    - name: vault-ca
+      secret:
+        secretName: vault-ca
+  extraVolumeMounts:
+    - name: vault-ca
+      mountPath: /etc/vault/tls
+      readOnly: true
