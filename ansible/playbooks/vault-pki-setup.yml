@@ -157,10 +157,10 @@
 
     - name: Define PKI role inputs
       set_fact:
-        vault_allowed_domains: {{ vault_pki.role_allowed_domains | default([pki_subdomain]) }}
-        vault_allow_subdomains: {{ vault_pki.allow_subdomains | default(true) }}
-        vault_allow_bare_domains: {{ vault_pki.allow_bare_domains | default(false) }}
-        vault_allow_wildcards: {{ vault_pki.allow_wildcard_certificates | default(true) }}
+        vault_allowed_domains: "{{ vault_pki.role_allowed_domains | default([pki_subdomain]) }}"
+        vault_allow_subdomains: "{{ vault_pki.allow_subdomains | default(true) }}"
+        vault_allow_bare_domains: "{{ vault_pki.allow_bare_domains | default(false) }}"
+        vault_allow_wildcards: "{{ vault_pki.allow_wildcard_certificates | default(true) }}"
 
     - name: Create PKI role for {{ pki_subdomain }}
       uri:
@@ -171,11 +171,11 @@
           X-Vault-Token: "{{ vault_root_token }}"
         body_format: json
         body:
-          allowed_domains: {{ vault_allowed_domains | tojson }}
-          allow_subdomains: {{ vault_allow_subdomains | bool | tojson }}
+          allowed_domains: "{{ vault_allowed_domains | tojson }}"
+          allow_subdomains: "{{ vault_allow_subdomains | bool | tojson }}"
           allow_glob_domains: true
-          allow_bare_domains: {{ vault_allow_bare_domains | bool | tojson }}
-          allow_wildcard_certificates: {{ vault_allow_wildcards | bool | tojson }}
+          allow_bare_domains: "{{ vault_allow_bare_domains | bool | tojson }}"
+          allow_wildcard_certificates: "{{ vault_allow_wildcards | bool | tojson }}"
           max_ttl: "{{ cert_ttl }}"
           key_type: "ec"
           key_bits: 256
@@ -225,7 +225,7 @@
 
     - name: Determine namespaces for ESO role
       set_fact:
-        vault_eso_namespaces: {{ vault_pki.k8s_service_account_namespaces | default(['external-secrets']) }}
+        vault_eso_namespaces: "{{ vault_pki.k8s_service_account_namespaces | default(['external-secrets']) }}"
 
     - name: Create Kubernetes auth role for External Secrets
       uri:
@@ -237,7 +237,7 @@
         body_format: json
         body:
           bound_service_account_names: ["external-secrets"]
-          bound_service_account_namespaces: {{ vault_eso_namespaces | tojson }}
+          bound_service_account_namespaces: "{{ vault_eso_namespaces | tojson }}"
           policies: ["eso-pki-policy"]
           ttl: "24h"
         status_code: [200, 204]
