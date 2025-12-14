@@ -1,0 +1,18 @@
+{% set ns = namespace(folders=['general']) %}
+{% for item in monitoring_grafana_dashboards %}
+{% set folder = item.folder | default('general') %}
+{% if folder not in ns.folders %}
+{% set _ = ns.folders.append(folder) %}
+{% endif %}
+{% endfor %}
+apiVersion: 1
+providers:
+{% for folder in ns.folders %}
+  - name: "{{ (folder | capitalize) if folder != 'general' else 'General' }}"
+    folder: "{{ (folder | capitalize) if folder != 'general' else 'General' }}"
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards/{{ folder }}
+{% endfor %}

@@ -1,0 +1,40 @@
+---
+monitoring_loki_version: "2.9.17"
+monitoring_loki_arch: "linux-amd64"
+monitoring_loki_archive_format: zip
+monitoring_loki_archive_filename: "loki-{{ monitoring_loki_arch }}.{{ monitoring_loki_archive_format }}"
+monitoring_loki_download_url: "https://github.com/grafana/loki/releases/download/v{{ monitoring_loki_version }}/{{ monitoring_loki_archive_filename }}"
+monitoring_loki_extracted_binary: "loki-{{ monitoring_loki_arch }}"
+monitoring_loki_user: loki
+monitoring_loki_listen_address: "0.0.0.0:3100"
+monitoring_loki_storage_path: /var/lib/loki
+monitoring_loki_config:
+  auth_enabled: false
+  server:
+    http_listen_address: 0.0.0.0
+    http_listen_port: 3100
+  common:
+    instance_addr: 127.0.0.1
+    path_prefix: /var/lib/loki
+    ring:
+      instance_addr: 127.0.0.1
+      kvstore:
+        store: inmemory
+  schema_config:
+    configs:
+      - from: "2020-10-15"
+        store: boltdb-shipper
+        object_store: filesystem
+        schema: v11
+        index:
+          prefix: loki_index_
+          period: 24h
+  storage_config:
+    boltdb_shipper:
+      shared_store: filesystem
+      active_index_directory: /var/lib/loki/index
+      cache_location: /var/lib/loki/cache
+    filesystem:
+      directory: /var/lib/loki/chunks
+  limits_config:
+    retention_period: 168h

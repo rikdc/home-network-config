@@ -84,6 +84,20 @@
         status_code: [200, 404]
       register: root_ca_check
 
+    - name: Upload existing root CA (if provided)
+      uri:
+        url: "{{ vault_addr }}/v1/pki_homelab/config/ca"
+        method: POST
+        validate_certs: false
+        headers:
+          X-Vault-Token: "{{ vault_root_token }}"
+        body_format: json
+        body:
+          pem_bundle: "{{ vault_tls.root_ca_pem }}"
+      when:
+        - vault_tls is defined
+        - vault_tls.root_ca_pem is defined
+
     - name: Generate root CA certificate
       uri:
         url: "{{ vault_addr }}/v1/pki_homelab/root/generate/internal"
@@ -101,7 +115,52 @@
           organization: "Home Lab"
           ou: "Home Lab Root CA"
       register: root_ca_result
-      when: root_ca_check.status == 404
+      when:
+        - root_ca_check.status == 404
+        - not (vault_tls is defined and vault_tls.root_ca_pem is defined)
+
+    - name: Fetch root CA certificate (post configuration)
+      uri:
+        url: "{{ vault_addr }}/v1/pki_homelab/cert/ca"
+        method: GET
+        validate_certs: false
+        headers:
+          X-Vault-Token: "{{ vault_root_token }}"
+      register: vault_root_ca
+
+    - name: Publish root CA to Vault KV
+      uri:
+        url: "{{ vault_addr }}/v1/secrets/data/platform/vault-root-ca"
+        method: POST
+        validate_certs: false
+        headers:
+          X-Vault-Token: "{{ vault_root_token }}"
+        body_format: json
+        body:
+          data:
+            ca_crt: "{{ vault_root_ca.json.data.certificate }}"
+
+    - name: Publish server certificate bundle to Vault KV (optional)
+      uri:
+        url: "{{ vault_addr }}/v1/secrets/data/platform/vault-server-ca"
+        method: POST
+        validate_certs: false
+        headers:
+          X-Vault-Token: "{{ vault_root_token }}"
+        body_format: json
+        body:
+          data:
+            ca_crt: "{{ vault_tls.server_fullchain_pem }}"
+      when:
+        - vault_tls is defined
+        - vault_tls.server_fullchain_pem is defined
+
+    - name: Define PKI role inputs
+      set_fact:
+        vault_allowed_domains: "{{ vault_pki.role_allowed_domains | default([pki_subdomain]) }}"
+        vault_allow_subdomains: "{{ vault_pki.allow_subdomains | default(true) }}"
+        vault_allow_bare_domains: "{{ vault_pki.allow_bare_domains | default(false) }}"
+        vault_allow_wildcards: "{{ vault_pki.allow_wildcard_certificates | default(true) }}"
 
     - name: Create PKI role for {{ pki_subdomain }}
       uri:
@@ -112,10 +171,11 @@
           X-Vault-Token: "{{ vault_root_token }}"
         body_format: json
         body:
-          allowed_domains: "{{ pki_subdomain }}"
-          allow_subdomains: true
+          allowed_domains: "{{ vault_allowed_domains | tojson }}"
+          allow_subdomains: "{{ vault_allow_subdomains | bool | tojson }}"
           allow_glob_domains: true
-          allow_wildcard_certificates: true
+          allow_bare_domains: "{{ vault_allow_bare_domains | bool | tojson }}"
+          allow_wildcard_certificates: "{{ vault_allow_wildcards | bool | tojson }}"
           max_ttl: "{{ cert_ttl }}"
           key_type: "ec"
           key_bits: 256
@@ -163,6 +223,10 @@
             }
         status_code: [200, 204]
 
+    - name: Determine namespaces for ESO role
+      set_fact:
+        vault_eso_namespaces: "{{ vault_pki.k8s_service_account_namespaces | default(['external-secrets']) }}"
+
     - name: Create Kubernetes auth role for External Secrets
       uri:
         url: "{{ vault_addr }}/v1/auth/kubernetes/role/eso"
@@ -173,48 +237,10 @@
         body_format: json
         body:
           bound_service_account_names: ["external-secrets"]
-          bound_service_account_namespaces: ["{{ external_secrets_namespace | default('external-secrets') }}"]
+          bound_service_account_namespaces: "{{ vault_eso_namespaces | tojson }}"
           policies: ["eso-pki-policy"]
           ttl: "24h"
         status_code: [200, 204]
-
-    - name: Get root CA certificate for distribution
-      delegate_to: localhost
-      uri:
-        url: "{{ vault_addr }}/v1/pki_homelab/cert/ca"
-        method: GET
-        validate_certs: false
-        headers:
-          X-Vault-Token: "{{ vault_root_token }}"
-      register: vault_ca_cert
-
-    - name: Save root CA certificate locally
-      delegate_to: localhost
-      copy:
-        content: "{{ vault_ca_cert.json.data.certificate }}"
-        dest: "{{ playbook_dir }}/../vault-ca.pem"
-        mode: '0644'
-
-    - name: Create base64 encoded CA certificate for Kubernetes
-      delegate_to: localhost
-      shell: cat "{{ playbook_dir }}/../vault-ca.pem" | base64 | tr -d '\n' > "{{ playbook_dir }}/../vault-ca-b64.txt"
-      args:
-        creates: "{{ playbook_dir }}/../vault-ca-b64.txt"
-
-    - name: Read base64 CA certificate
-      delegate_to: localhost
-      slurp:
-        src: "{{ playbook_dir }}/../vault-ca-b64.txt"
-      register: vault_ca_b64_content
-
-    - name: Generate ClusterSecretStore from template
-      delegate_to: localhost
-      template:
-        src: "{{ playbook_dir }}/../../k3s/platform/ssl-certificates/templates/cluster-secret-store.yaml.j2"
-        dest: "{{ playbook_dir }}/../../k3s/platform/ssl-certificates/01-cluster-secret-store.yaml"
-        mode: '0644'
-      vars:
-        vault_ca_bundle_b64: "{{ vault_ca_b64_content.content | b64decode | trim }}"
 
     - name: Display setup completion message
       debug:
@@ -228,7 +254,8 @@
           - PKI role '{{ pki_subdomain | replace('.', '-') }}' configured for *.{{ pki_subdomain }}
           - Kubernetes auth method configured
           - External Secrets Operator policy and role created
-          - Root CA certificate saved to vault-ca.pem
+          - Root CA published to secrets/data/platform/vault-root-ca
+          - Server bundle stored to secrets/data/platform/vault-server-ca (if provided)
 
           Next steps:
           1. Deploy External Secrets configuration

@@ -1,0 +1,30 @@
+---
+- name: Prepare monitoring hosts
+  hosts: monitoring
+  become: true
+  roles:
+    - monitoring_common
+
+- name: Install Prometheus and Alertmanager
+  hosts: prom
+  become: true
+  roles:
+    - monitoring_prometheus
+
+- name: Install Loki
+  hosts: logs
+  become: true
+  roles:
+    - monitoring_loki
+
+- name: Install Grafana
+  hosts: grafana
+  become: true
+  roles:
+    - monitoring_grafana
+
+- name: Install logging agents on monitoring hosts
+  hosts: monitoring
+  become: true
+  roles:
+    - logging_agent

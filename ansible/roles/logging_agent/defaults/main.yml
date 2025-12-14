@@ -1,0 +1,20 @@
+---
+logging_agent_variant: promtail
+logging_agent_version: "2.9.17"
+logging_agent_arch: "linux-amd64"
+logging_agent_archive_format: zip
+logging_agent_archive_filename: "promtail-{{ logging_agent_arch }}.{{ logging_agent_archive_format }}"
+logging_agent_download_url: "https://github.com/grafana/loki/releases/download/v{{ logging_agent_version }}/{{ logging_agent_archive_filename }}"
+logging_agent_extracted_binary: "promtail-{{ logging_agent_arch }}"
+logging_agent_user: promtail
+logging_agent_positions_path: /var/lib/promtail/positions.yaml
+logging_agent_client_urls:
+  - http://loki.home.lan/loki/api/v1/push
+logging_agent_scrape_configs:
+  - job_name: "varlogs"
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: varlogs
+          __path__: /var/log/*.log

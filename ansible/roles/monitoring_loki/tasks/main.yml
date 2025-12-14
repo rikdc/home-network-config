@@ -1,0 +1,88 @@
+---
+- name: Define archive paths
+  ansible.builtin.set_fact:
+    monitoring_loki_archive_tmp: "/tmp/{{ monitoring_loki_archive_filename }}"
+    monitoring_loki_extract_dir: "/opt/loki-{{ monitoring_loki_version }}"
+
+- name: Create loki user
+  become: true
+  ansible.builtin.user:
+    name: "{{ monitoring_loki_user }}"
+    shell: /usr/sbin/nologin
+    system: true
+    create_home: false
+    state: present
+
+- name: Create Loki directories
+  become: true
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ monitoring_loki_user }}"
+    group: "{{ monitoring_loki_user }}"
+    mode: "0755"
+  loop:
+    - /etc/loki
+    - "{{ monitoring_loki_storage_path }}"
+
+- name: Download Loki archive
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ monitoring_loki_download_url }}"
+    dest: "{{ monitoring_loki_archive_tmp }}"
+    mode: "0644"
+
+- name: Ensure Loki extract directory exists
+  become: true
+  ansible.builtin.file:
+    path: "{{ monitoring_loki_extract_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Extract Loki archive
+  become: true
+  ansible.builtin.unarchive:
+    src: "{{ monitoring_loki_archive_tmp }}"
+    dest: "{{ monitoring_loki_extract_dir }}"
+    remote_src: true
+    creates: "{{ monitoring_loki_extract_dir }}/{{ monitoring_loki_extracted_binary }}"
+
+- name: Install Loki binary
+  become: true
+  ansible.builtin.copy:
+    src: "{{ monitoring_loki_extract_dir }}/{{ monitoring_loki_extracted_binary }}"
+    dest: /usr/local/bin/loki
+    remote_src: true
+    mode: "0755"
+
+- name: Template Loki configuration
+  become: true
+  ansible.builtin.template:
+    src: loki-config.yml.j2
+    dest: /etc/loki/loki-config.yml
+    owner: "{{ monitoring_loki_user }}"
+    group: "{{ monitoring_loki_user }}"
+    mode: "0640"
+  notify: Restart Loki
+
+- name: Template Loki systemd unit
+  become: true
+  ansible.builtin.template:
+    src: loki.service.j2
+    dest: /etc/systemd/system/loki.service
+    mode: "0644"
+  notify: Restart Loki
+
+- name: Reload systemd
+  become: true
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Ensure Loki is running
+  become: true
+  ansible.builtin.service:
+    name: loki
+    enabled: true
+    state: started

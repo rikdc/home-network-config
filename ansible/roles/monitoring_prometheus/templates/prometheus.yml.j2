@@ -1,0 +1,22 @@
+global:
+  scrape_interval: {{ monitoring_prometheus_global.scrape_interval }}
+  evaluation_interval: {{ monitoring_prometheus_global.evaluation_interval }}
+
+rule_files: []
+
+scrape_configs:
+{{ monitoring_prometheus_scrape_configs | to_nice_yaml(indent=2) | indent(2, True) }}
+
+alerting:
+  alertmanagers:
+{% for url in monitoring_prometheus_alertmanager_urls %}
+{% set scheme = 'http' %}
+{% if '://' in url %}
+{% set scheme = url.split('://')[0] %}
+{% endif %}
+{% set target = url | regex_replace('^https?://', '') %}
+      - static_configs:
+          - targets:
+              - "{{ target }}"
+        scheme: "{{ scheme }}"
+{% endfor %}

@@ -1,0 +1,28 @@
+---
+monitoring_prometheus_version: "2.51.0"
+monitoring_prometheus_arch: "linux-amd64"
+monitoring_prometheus_listen_address: "0.0.0.0:9090"
+monitoring_prometheus_storage_retention: "15d"
+monitoring_prometheus_storage_path: /var/lib/prometheus
+monitoring_prometheus_global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+monitoring_prometheus_scrape_configs:
+  - job_name: node
+    static_configs:
+      - targets:
+          - "localhost:9100"
+monitoring_prometheus_alertmanager_urls:
+  - "http://localhost:9093"
+monitoring_prometheus_extra_flags: []
+
+monitoring_alertmanager_version: "0.26.0"
+monitoring_alertmanager_arch: "linux-amd64"
+monitoring_alertmanager_listen_address: "0.0.0.0:9093"
+monitoring_alertmanager_config:
+  global:
+    resolve_timeout: 5m
+  route:
+    receiver: default
+  receivers:
+    - name: default
