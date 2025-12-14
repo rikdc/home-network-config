@@ -140,6 +140,10 @@ nextcloud:
     type: cronjob
     cronjob:
       schedule: "*/5 * * * *"
+      securityContext:
+        runAsUser: 33
+        runAsGroup: 33
+        runAsNonRoot: true
 
   mariadb:
     enabled: false
