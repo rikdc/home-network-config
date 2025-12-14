@@ -1,0 +1,185 @@
+---
+storage:
+  pv:
+    name: nextcloud-data-pv
+    labels:
+      type: data
+      app: nextcloud
+    capacity: 200Gi
+    accessModes: ReadWriteMany
+    reclaimPolicy: Retain
+    storageClassName: nfs-storage
+    nfs:
+      server: nas.home.lan
+      path: /volume1/docker/nextcloud/data
+  pvc:
+    name: nextcloud-data-pvc
+    namespace: tools
+    accessModes: ReadWriteMany
+    requests:
+      storage: 200Gi
+    storageClassName: nfs-storage
+
+externalSecret:
+  name: nextcloud-external-secret
+  namespace: tools
+  refreshInterval: "15s"
+  secretStoreRef:
+    name: vault-kv
+    kind: ClusterSecretStore
+  target:
+    name: nextcloud-secrets
+  data:
+    - secretKey: nextcloud-username
+      remoteRef:
+        key: nextcloud
+        property: NEXTCLOUD_ADMIN_USER
+    - secretKey: nextcloud-password
+      remoteRef:
+        key: nextcloud
+        property: NEXTCLOUD_ADMIN_PASSWORD
+    - secretKey: redis-password
+      remoteRef:
+        key: nextcloud
+        property: REDIS_PASSWORD
+    - secretKey: db-username
+      remoteRef:
+        key: nextcloud
+        property: NEXTCLOUD_DB_USERNAME
+    - secretKey: db-password
+      remoteRef:
+        key: nextcloud
+        property: NEXTCLOUD_DB_PASSWORD
+    - secretKey: username
+      remoteRef:
+        key: nextcloud
+        property: COLLABORA_ADMIN_USER
+    - secretKey: password
+      remoteRef:
+        key: nextcloud
+        property: COLLABORA_ADMIN_PASSWORD
+
+nextcloud:
+  nextcloud:
+    host: docs.home.lan
+    existingSecret:
+      enabled: true
+      secretName: nextcloud-secrets
+      usernameKey: nextcloud-username
+      passwordKey: nextcloud-password
+    trustedDomains:
+      - docs.home.lan
+
+  ingress:
+    enabled: true
+    className: traefik
+    annotations:
+      traefik.ingress.kubernetes.io/router.entrypoints: web, websecure
+    hosts:
+      - host: docs.home.lan
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+
+  persistence:
+    enabled: true
+    existingClaim: nextcloud-data-pvc
+    accessMode: ReadWriteMany
+    size: 200Gi
+
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+
+  startupProbe:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 30
+    successThreshold: 1
+
+  internalDatabase:
+    enabled: false
+
+  externalDatabase:
+    enabled: true
+    type: postgresql
+    host: 192.168.88.30:5432
+    user: nextcloud
+    database: nextcloud
+    existingSecret:
+      enabled: true
+      secretName: nextcloud-secrets
+      usernameKey: db-username
+      passwordKey: db-password
+
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+
+  cronjob:
+    enabled: true
+    type: cronjob
+    cronjob:
+      schedule: "*/5 * * * *"
+
+  mariadb:
+    enabled: false
+
+  redis:
+    enabled: true
+    auth:
+      enabled: true
+      existingSecret: nextcloud-secrets
+      existingSecretPasswordKey: redis-password
+    global:
+      storageClass: local-path
+    master:
+      persistence:
+        enabled: true
+        storageClass: local-path
+        size: 2Gi
+    replica:
+      replicaCount: 0
+
+  collabora:
+    enabled: true
+    collabora:
+      aliasgroups:
+        - host: "https://docs.home.lan"
+      extra_params: --o:ssl.enable=false --o:ssl.termination=true
+      server_name: collabora.home.lan
+      existingSecret:
+        enabled: true
+        secretName: nextcloud-secrets
+        usernameKey: username
+        passwordKey: password
+    ingress:
+      enabled: true
+      className: traefik
+      annotations:
+        traefik.ingress.kubernetes.io/router.entrypoints: web, websecure
+      hosts:
+        - host: collabora.home.lan
+          paths:
+            - path: /
+              pathType: Prefix
+      tls: []

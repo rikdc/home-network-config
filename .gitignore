@@ -5,3 +5,4 @@ ansible/roles/robertdebock*
 ansible/.ansible/*
 vault/
 .vault_pass
+.claude/settings.local.json
