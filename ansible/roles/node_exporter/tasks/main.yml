@@ -1,0 +1,56 @@
+---
+- name: Define archive directory name
+  ansible.builtin.set_fact:
+    node_exporter_dir: "node_exporter-{{ node_exporter_version }}.{{ node_exporter_arch }}"
+
+- name: Create node_exporter user
+  become: true
+  ansible.builtin.user:
+    name: node_exporter
+    shell: /usr/sbin/nologin
+    create_home: false
+    system: true
+    state: present
+
+- name: Download node_exporter archive
+  become: true
+  ansible.builtin.get_url:
+    url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/{{ node_exporter_dir }}.tar.gz"
+    dest: "/tmp/{{ node_exporter_dir }}.tar.gz"
+    mode: "0644"
+
+- name: Extract node_exporter archive
+  become: true
+  ansible.builtin.unarchive:
+    src: "/tmp/{{ node_exporter_dir }}.tar.gz"
+    dest: /opt
+    remote_src: true
+    creates: "/opt/{{ node_exporter_dir }}"
+
+- name: Install node_exporter binary
+  become: true
+  ansible.builtin.copy:
+    src: "/opt/{{ node_exporter_dir }}/node_exporter"
+    dest: "/usr/local/bin/node_exporter"
+    remote_src: true
+    mode: "0755"
+
+- name: Template node_exporter systemd unit
+  become: true
+  ansible.builtin.template:
+    src: node_exporter.service.j2
+    dest: /etc/systemd/system/node_exporter.service
+    mode: "0644"
+  notify: Restart node_exporter
+
+- name: Reload systemd daemon
+  become: true
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Ensure node_exporter is enabled and running
+  become: true
+  ansible.builtin.service:
+    name: node_exporter
+    enabled: true
+    state: started

@@ -1,0 +1,82 @@
+---
+# UniFi Poller - Binary installation
+# Using golift/unifi-poller (https://github.com/unpoller/unpoller)
+
+- name: Download UniFi Poller archive
+  become: true
+  ansible.builtin.get_url:
+    url: "https://github.com/unpoller/unpoller/releases/download/v{{ monitoring_unifi_poller_version }}/unpoller_{{ monitoring_unifi_poller_version }}_linux_amd64.tar.gz"
+    dest: "/tmp/unpoller_{{ monitoring_unifi_poller_version }}_linux_amd64.tar.gz"
+    mode: "0644"
+
+- name: Create temporary extraction directory
+  become: true
+  ansible.builtin.file:
+    path: /tmp/unpoller_extract
+    state: directory
+    mode: "0755"
+
+- name: Extract UniFi Poller archive
+  become: true
+  ansible.builtin.unarchive:
+    src: "/tmp/unpoller_{{ monitoring_unifi_poller_version }}_linux_amd64.tar.gz"
+    dest: /tmp/unpoller_extract
+    remote_src: true
+
+- name: Install UniFi Poller binary
+  become: true
+  ansible.builtin.copy:
+    src: /tmp/unpoller_extract/unpoller
+    dest: /usr/local/bin/unpoller
+    remote_src: true
+    mode: "0755"
+    owner: root
+    group: root
+
+- name: Clean up temporary files
+  become: true
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /tmp/unpoller_extract
+    - "/tmp/unpoller_{{ monitoring_unifi_poller_version }}_linux_amd64.tar.gz"
+
+- name: Create UniFi Poller config directory
+  become: true
+  ansible.builtin.file:
+    path: /etc/unpoller
+    state: directory
+    owner: exporters
+    group: exporters
+    mode: "0755"
+
+- name: Template UniFi Poller config
+  become: true
+  ansible.builtin.template:
+    src: unifi-poller.conf.j2
+    dest: /etc/unpoller/up.conf
+    owner: exporters
+    group: exporters
+    mode: "0644"
+  notify: Restart UniFi Poller
+
+- name: Template UniFi Poller systemd unit
+  become: true
+  ansible.builtin.template:
+    src: unifi_poller.service.j2
+    dest: /etc/systemd/system/unpoller.service
+    mode: "0644"
+  notify: Restart UniFi Poller
+
+- name: Reload systemd daemon
+  become: true
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Ensure UniFi Poller is enabled and running
+  become: true
+  ansible.builtin.service:
+    name: unpoller
+    enabled: true
+    state: started

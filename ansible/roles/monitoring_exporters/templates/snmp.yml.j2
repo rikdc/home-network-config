@@ -1,0 +1,36 @@
+# This file is managed by Ansible - do not edit manually
+{% set base_lines = snmp_base_config.split('\n') %}
+{% set in_auths = namespace(value=false) %}
+{% for line in base_lines %}
+{% if line.strip().startswith('auths:') %}
+{% set in_auths.value = true %}
+auths:
+{% if monitoring_snmp_exporter_auths | length > 0 %}
+  # Custom authentication configurations
+{% for auth in monitoring_snmp_exporter_auths %}
+  {{ auth.name }}:
+    version: {{ auth.version }}
+{% if auth.version == 3 %}
+    username: {{ auth.username }}
+    security_level: {{ auth.security_level }}
+{% if auth.security_level in ['authNoPriv', 'authPriv'] %}
+    password: {{ auth.password }}
+    auth_protocol: {{ auth.auth_protocol }}
+{% endif %}
+{% if auth.security_level == 'authPriv' %}
+    priv_protocol: {{ auth.priv_protocol }}
+    priv_password: {{ auth.priv_password }}
+{% endif %}
+{% else %}
+    community: {{ auth.community | default('public') }}
+{% endif %}
+{% endfor %}
+  # Default authentication configurations from base
+{% endif %}
+{% elif in_auths.value and line.strip() and not line.startswith(' ') and not line.startswith('\t') %}
+{% set in_auths.value = false %}
+{{ line }}
+{% else %}
+{{ line }}
+{% endif %}
+{% endfor %}

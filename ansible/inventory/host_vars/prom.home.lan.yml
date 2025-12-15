@@ -1,8 +1,64 @@
-$ANSIBLE_VAULT;1.1;AES256
-62636430643832333233666463356331646364306364616233666134383335656539323135643431
-3436306139376632663561616237646163626535356433340a356565636137323664333331636134
-31643662346334346436643732343235616562366536343861386264636163326263303334616134
-3563636432623162320a356366303933333131316133626536363936633637663035623634303361
-34643936663861383636633635613363623531343663613231383565633534643836363265303331
-65373835613263313661313132636264613138633264643265386665613364333465613261366535
-353130366232386565656363613063313833
+ansible_host: 192.168.88.220
+ansible_user: root
+
+monitoring_unifi_poller_enabled: true
+monitoring_unifi_poller_controller_url: "{{ unifi_controller_url }}"
+monitoring_unifi_poller_controller_user: "{{ unifi_monitoring_user }}"
+monitoring_unifi_poller_controller_pass: "{{ unifi_monitoring_password }}"
+monitoring_unifi_poller_controller_verify_ssl: false
+
+monitoring_snmp_exporter_auths:
+  - name: snmpv3
+    version: 3
+    username: "{{ synology_snmp_username }}"
+    security_level: authPriv
+    password: "{{ synology_snmp_auth_password }}"
+    auth_protocol: SHA
+    priv_protocol: AES
+    priv_password: "{{ synology_snmp_priv_password }}"
+
+monitoring_prometheus_scrape_configs:
+  - job_name: node
+    static_configs:
+      - targets:
+          - "localhost:9100"
+          - "loki.home.lan:9100"
+          - "graf.home.lan:9100"
+  - job_name: 'blocky-dns'
+    static_configs:
+      - targets:
+          - '192.168.88.2:4000'
+          - '192.168.88.3:4000'
+  - job_name: 'loki'
+    static_configs:
+      - targets:
+          - 'loki.home.lan:3100'
+  - job_name: 'vault'
+    metrics_path: '/v1/sys/metrics'
+    params:
+      format: ['prometheus']
+    static_configs:
+      - targets:
+          - 'vault.home.lan:8200'
+  - job_name: 'snmp'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['192.168.88.211']
+    metrics_path: /snmp
+    params:
+      module: [synology]
+      auth: [snmpv3]
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - source_labels: [__param_target]
+        regex: (.*)
+        replacement: localhost:9116
+        target_label: __address__
+
+  - job_name: 'unifi'
+    static_configs:
+      - targets:
+          - 'localhost:9130'

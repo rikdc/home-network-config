@@ -1,0 +1,17 @@
+[Unit]
+Description=Prometheus SNMP Exporter
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=exporters
+Group=exporters
+ExecStart=/usr/local/bin/snmp_exporter \
+  --config.file=/etc/exporters/snmp.yml \
+  --web.listen-address={{ monitoring_snmp_exporter_listen_address }}
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

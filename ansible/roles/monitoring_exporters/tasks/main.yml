@@ -1,0 +1,22 @@
+---
+- name: Create exporters user
+  become: true
+  ansible.builtin.user:
+    name: exporters
+    shell: /usr/sbin/nologin
+    create_home: false
+    system: true
+    state: present
+
+- name: Create exporters configuration directory
+  become: true
+  ansible.builtin.file:
+    path: /etc/exporters
+    state: directory
+    owner: exporters
+    group: exporters
+    mode: "0755"
+
+- import_tasks: snmp_exporter.yml
+- import_tasks: unifi_poller.yml
+  when: monitoring_unifi_poller_enabled
