@@ -1,0 +1,29 @@
+[poller]
+  debug = false
+  quiet = false
+  plugins = []
+
+[prometheus]
+  disable = false
+  namespace = "unifipoller"
+  http_listen = "0.0.0.0:9130"
+
+[unifi]
+  dynamic = false
+
+[unifi.defaults]
+  verify_ssl = {{ monitoring_unifi_poller_controller_verify_ssl | lower }}
+  save_sites = true
+  save_dpi = false
+
+[[unifi.controller]]
+  url = "{{ monitoring_unifi_poller_controller_url }}"
+  user = "{{ monitoring_unifi_poller_controller_user }}"
+  pass = "{{ monitoring_unifi_poller_controller_pass }}"
+  verify_ssl = {{ monitoring_unifi_poller_controller_verify_ssl | lower }}
+  save_sites = true
+  save_ids = false
+  save_dpi = false
+  save_alarms = true
+  save_anomalies = true
+  save_events = false

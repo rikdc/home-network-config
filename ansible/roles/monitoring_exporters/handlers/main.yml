@@ -1,0 +1,13 @@
+---
+- name: Restart SNMP exporter
+  become: true
+  ansible.builtin.service:
+    name: snmp_exporter
+    state: restarted
+
+- name: Restart UniFi Poller
+  become: true
+  ansible.builtin.service:
+    name: unpoller
+    state: restarted
+  when: monitoring_unifi_poller_enabled

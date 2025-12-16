@@ -1,0 +1,41 @@
+---
+# SNMP Exporter
+monitoring_snmp_exporter_version: "0.26.0"
+monitoring_snmp_exporter_arch: "linux-amd64"
+monitoring_snmp_exporter_listen_address: "0.0.0.0:9116"
+monitoring_snmp_exporter_config_url: "https://raw.githubusercontent.com/prometheus/snmp_exporter/v{{ monitoring_snmp_exporter_version }}/snmp.yml"
+
+# SNMPv3 Authentication configs
+monitoring_snmp_exporter_auths: []
+# Example SNMPv3 config:
+# monitoring_snmp_exporter_auths:
+#   - name: snmpv3
+#     version: 3
+#     username: "monitoring"
+#     security_level: authPriv  # noAuthNoPriv, authNoPriv, authPriv
+#     password: "auth_password"
+#     auth_protocol: SHA  # MD5, SHA, SHA224, SHA256, SHA384, SHA512
+#     priv_protocol: AES  # DES, AES, AES192, AES192C, AES256, AES256C
+#     priv_password: "priv_password"
+
+# IoTaWatt Exporter (requires separate implementation)
+monitoring_iotawatt_exporter_enabled: false
+monitoring_iotawatt_exporter_targets: []
+# Example:
+# monitoring_iotawatt_exporter_targets:
+#   - host: "iotawatt.local"
+#     name: "iotawatt-main"
+
+# UniFi Poller
+monitoring_unifi_poller_enabled: false
+monitoring_unifi_poller_version: "2.19.0"
+monitoring_unifi_poller_listen_address: "0.0.0.0:9130"
+# UniFi Controller settings
+monitoring_unifi_poller_controller_url: ""
+monitoring_unifi_poller_controller_user: ""
+monitoring_unifi_poller_controller_pass: ""
+monitoring_unifi_poller_controller_verify_ssl: false
+# Example:
+# monitoring_unifi_poller_controller_url: "https://unifi.home.lan:8443"
+# monitoring_unifi_poller_controller_user: "{{ unifi_monitoring_user }}"
+# monitoring_unifi_poller_controller_pass: "{{ unifi_monitoring_password }}"

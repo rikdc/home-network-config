@@ -1,0 +1,72 @@
+---
+- name: Define SNMP exporter archive directory name
+  ansible.builtin.set_fact:
+    monitoring_snmp_exporter_dir: "snmp_exporter-{{ monitoring_snmp_exporter_version }}.{{ monitoring_snmp_exporter_arch }}"
+
+- name: Download SNMP exporter archive
+  become: true
+  ansible.builtin.get_url:
+    url: "https://github.com/prometheus/snmp_exporter/releases/download/v{{ monitoring_snmp_exporter_version }}/{{ monitoring_snmp_exporter_dir }}.tar.gz"
+    dest: "/tmp/{{ monitoring_snmp_exporter_dir }}.tar.gz"
+    mode: "0644"
+
+- name: Extract SNMP exporter archive
+  become: true
+  ansible.builtin.unarchive:
+    src: "/tmp/{{ monitoring_snmp_exporter_dir }}.tar.gz"
+    dest: /opt
+    remote_src: true
+    creates: "/opt/{{ monitoring_snmp_exporter_dir }}"
+
+- name: Install SNMP exporter binary
+  become: true
+  ansible.builtin.copy:
+    src: "/opt/{{ monitoring_snmp_exporter_dir }}/snmp_exporter"
+    dest: "/usr/local/bin/snmp_exporter"
+    remote_src: true
+    mode: "0755"
+
+- name: Download SNMP exporter base config
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ monitoring_snmp_exporter_config_url }}"
+    dest: /tmp/snmp_base.yml
+    mode: "0644"
+    force: true
+
+- name: Read SNMP base config
+  ansible.builtin.slurp:
+    src: /tmp/snmp_base.yml
+  register: snmp_base_config_raw
+
+- name: Template SNMP exporter config
+  become: true
+  ansible.builtin.template:
+    src: snmp.yml.j2
+    dest: /etc/exporters/snmp.yml
+    owner: exporters
+    group: exporters
+    mode: "0644"
+  vars:
+    snmp_base_config: "{{ snmp_base_config_raw.content | b64decode }}"
+  notify: Restart SNMP exporter
+
+- name: Template SNMP exporter systemd unit
+  become: true
+  ansible.builtin.template:
+    src: snmp_exporter.service.j2
+    dest: /etc/systemd/system/snmp_exporter.service
+    mode: "0644"
+  notify: Restart SNMP exporter
+
+- name: Reload systemd daemon
+  become: true
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Ensure SNMP exporter is enabled and running
+  become: true
+  ansible.builtin.service:
+    name: snmp_exporter
+    enabled: true
+    state: started

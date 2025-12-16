@@ -1,0 +1,4 @@
+---
+node_exporter_version: "1.8.2"
+node_exporter_arch: "linux-amd64"
+node_exporter_listen_address: "0.0.0.0:9100"

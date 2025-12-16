@@ -1,0 +1,16 @@
+[Unit]
+Description=UniFi Poller Prometheus Exporter
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=exporters
+Group=exporters
+ExecStart=/usr/local/bin/unpoller \
+  --config /etc/unpoller/up.conf
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
