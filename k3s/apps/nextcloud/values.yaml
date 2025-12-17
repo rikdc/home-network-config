@@ -69,12 +69,27 @@ nextcloud:
       passwordKey: nextcloud-password
     trustedDomains:
       - docs.home.lan
+    configs:
+      logging.config.php: |-
+        <?php
+        $CONFIG = array (
+          'log_type' => 'errorlog',
+          'loglevel' => 2,
+        );
+    phpConfigs:
+      uploadLimit.ini: |
+        upload_max_filesize = 16G
+        post_max_size = 16G
+        memory_limit = 512M
+        max_execution_time = 3600
+        max_input_time = 3600
 
   ingress:
     enabled: true
     className: traefik
     annotations:
       traefik.ingress.kubernetes.io/router.entrypoints: web, websecure
+      traefik.ingress.kubernetes.io/router.middlewares: tools-nextcloud-chain@kubernetescrd
     hosts:
       - host: docs.home.lan
         paths:
@@ -181,6 +196,7 @@ nextcloud:
       className: traefik
       annotations:
         traefik.ingress.kubernetes.io/router.entrypoints: web, websecure
+        traefik.ingress.kubernetes.io/router.middlewares: tools-nextcloud-chain@kubernetescrd
       hosts:
         - host: collabora.home.lan
           paths:

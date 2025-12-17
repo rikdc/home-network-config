@@ -1,0 +1,13 @@
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: nextcloud-buffering
+  namespace: {{ .Release.Namespace | default "tools" }}
+spec:
+  buffering:
+    maxRequestBodyBytes: 17179869184  # 16GB
+    memRequestBodyBytes: 104857600    # 100MB in memory
+    maxResponseBodyBytes: 17179869184 # 16GB
+    memResponseBodyBytes: 104857600   # 100MB in memory
+    retryExpression: "IsNetworkError() && Attempts() < 3"

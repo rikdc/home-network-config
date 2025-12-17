@@ -1,0 +1,23 @@
+---
+# HelmChartConfig to fix Traefik readTimeout issue
+# Traefik v2.11.2+ changed readTimeout from 0 (unlimited) to 60s
+# This causes large file uploads to fail when they take > 60 seconds
+#
+# References:
+# - https://github.com/k3s-io/k3s/issues/11107
+# - https://help.nextcloud.com/t/badrequest-expected-filesize-of-x-bytes-but-read-from-nextcloud-client-and-wrote-to-nextcloud-storage-y-bytes/213374
+#
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    additionalArguments:
+      # Set readTimeout to 0 (unlimited) for large file uploads
+      - "--entrypoints.web.transport.respondingtimeouts.readtimeout=0"
+      - "--entrypoints.websecure.transport.respondingtimeouts.readtimeout=0"
+      # Also increase writeTimeout for large downloads
+      - "--entrypoints.web.transport.respondingtimeouts.writetimeout=0"
+      - "--entrypoints.websecure.transport.respondingtimeouts.writetimeout=0"

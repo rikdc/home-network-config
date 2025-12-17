@@ -1,0 +1,23 @@
+---
+# Increase in-flight request limit for concurrent uploads
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: nextcloud-inflightreq
+  namespace: {{ .Release.Namespace | default "tools" }}
+spec:
+  inFlightReq:
+    amount: 100
+
+---
+# Chain all middlewares together
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: nextcloud-chain
+  namespace: {{ .Release.Namespace | default "tools" }}
+spec:
+  chain:
+    middlewares:
+      - name: nextcloud-inflightreq
+      - name: nextcloud-buffering
