@@ -1,0 +1,100 @@
+---
+alloy:
+  # Run as DaemonSet to collect logs from all nodes
+  alloy:
+    # Alloy configuration in River format
+    configMap:
+      content: |-
+        // Discover Kubernetes pods on this node
+        discovery.kubernetes "pods" {
+          role = "pod"
+
+          // Only discover pods on the same node as this Alloy instance
+          selectors {
+            role = "pod"
+            field = "spec.nodeName=" + env("HOSTNAME")
+          }
+        }
+
+        // Relabel discovered pods to extract useful labels
+        discovery.relabel "pods" {
+          targets = discovery.kubernetes.pods.targets
+
+          // Add namespace label
+          rule {
+            source_labels = ["__meta_kubernetes_namespace"]
+            target_label  = "namespace"
+          }
+
+          // Add pod name label
+          rule {
+            source_labels = ["__meta_kubernetes_pod_name"]
+            target_label  = "pod"
+          }
+
+          // Add container name label
+          rule {
+            source_labels = ["__meta_kubernetes_pod_container_name"]
+            target_label  = "container"
+          }
+
+          // Add node name label
+          rule {
+            source_labels = ["__meta_kubernetes_pod_node_name"]
+            target_label  = "node_name"
+          }
+
+          // Add app label if present
+          rule {
+            source_labels = ["__meta_kubernetes_pod_label_app"]
+            target_label  = "app"
+          }
+
+          // Set path to pod logs
+          rule {
+            source_labels = ["__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
+            separator     = "/"
+            target_label  = "__path__"
+            replacement   = "/var/log/pods/*$1/*.log"
+          }
+        }
+
+        // Read logs from discovered pods
+        loki.source.kubernetes "pods" {
+          targets    = discovery.relabel.pods.output
+          forward_to = [loki.write.loki.receiver]
+        }
+
+        // Write logs to Loki
+        loki.write "loki" {
+          endpoint {
+            url = "http://loki.home.lan:3100/loki/api/v1/push"
+          }
+        }
+
+  # Deploy as DaemonSet
+  controller:
+    type: "daemonset"
+
+  # Resource limits
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+  # Mount necessary paths from host
+  mounts:
+    # Mount /var/log/pods for pod logs
+    varlog: true
+    # Mount Docker socket if using Docker
+    dockercontainers: false
+
+  # Service account with cluster-wide read access
+  rbac:
+    create: true
+
+  serviceAccount:
+    create: true
