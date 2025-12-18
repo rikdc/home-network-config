@@ -51,7 +51,7 @@ persistence:
   pvName: docmost-data-pv
   pvcName: docmost-data-pv-pvc
   nfs:
-    server: 192.168.88.211
+    server: nas.home.lan
     path: /volume1/docker/docmost
 
 redis:

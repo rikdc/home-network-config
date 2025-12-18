@@ -10,7 +10,7 @@ storage:
     reclaimPolicy: Retain
     storageClassName: nfs-storage
     nfs:
-      server: 192.168.88.211
+      server: nas.home.lan
       path: /volume1/docker/openwebui
   pvc:
     name: openwebui-config-pvc
