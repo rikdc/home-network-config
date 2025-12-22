@@ -10,7 +10,7 @@ spec:
     namespace: video
   source:
     repoURL: https://github.com/rikdc/home-network-config.git
-    targetRevision: frigate_update
+    targetRevision: main
     path: k3s/apps/frigate
   syncPolicy:
     syncOptions:
