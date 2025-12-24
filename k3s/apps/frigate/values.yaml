@@ -51,7 +51,7 @@ app-template:
         main:
           image:
             repository: ghcr.io/blakeblackshear/frigate
-            tag: "0.16.1"
+            tag: "0.16.3"
             pullPolicy: IfNotPresent
           env:
             LIBCEC_ENABLED: "false"
@@ -76,9 +76,9 @@ app-template:
           resources:
             requests:
               cpu: 100m
-              memory: 256Mi
+              memory: 2Gi
             limits:
-              memory: 4Gi
+              memory: 6Gi
           securityContext:
             privileged: true
           probes:
@@ -123,11 +123,11 @@ app-template:
       tls: []
 
   persistence:
-    # Read-only config from ConfigMap mounted as a file at /config/config.yml
+    # Read-only config from external ConfigMap mounted as a file at /config/config.yml
     config-tpl:
       enabled: true
       type: configMap
-      identifier: frigate-config
+      identifier: frigate
       defaultMode: 292
       globalMounts:
         - path: /config/config.yml

@@ -1,0 +1,8 @@
+apiVersion: v2
+name: frigate
+description: Frigate NVR Helm Chart for home network surveillance
+version: 1.0.0
+dependencies:
+  - name: app-template
+    repository: https://bjw-s-labs.github.io/helm-charts/
+    version: 4.5.0
