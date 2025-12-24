@@ -1,70 +1,45 @@
 ---
-storage:
-  pv:
-    name: prometheus-storage-pv
-    labels:
-      type: config
-      app: openwebui
-    capacity: 1Gi
-    accessModes: ReadWriteMany
-    reclaimPolicy: Retain
-    storageClassName: nfs-storage
-    nfs:
-      server: 192.168.88.211
-      path: /volume1/docker/prometheus
+# kube-state-metrics configuration
+# Exposes Kubernetes object state metrics for external Prometheus scraping
+kube-state-metrics:
+  # Prometheus service annotations for auto-discovery
+  prometheusScrape: true
 
-kube-prometheus-stack:
-  grafana:
-    enabled: true
-    ingress:
-      enabled: true
-      ingressClassName: traefik
-      annotations:
-        kubernetes.io/ingress.class: traefik
-        traefik.ingress.kubernetes.io/router.entrypoints: web
-      hosts:
-        - grafana.home.lan
-      path: /
-      pathType: Prefix
-    forceDeployDatasources: true
-    forceDeployDashboards: true
-    additionalDataSources:
-      - name: Loki
-        type: loki
-        url: http://loki.loki:3100
+  # Service configuration - expose via NodePort for external Prometheus
+  service:
+    type: NodePort
+    nodePort: 30080
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "8080"
 
-  prometheus:
-    prometheusSpec:
-      ruleSelectorNilUsesHelmValues: false
-      serviceMonitorSelectorNilUsesHelmValues: false
-      podMonitorSelectorNilUsesHelmValues: false
-      probeSelectorNilUsesHelmValues: false
-      storageSpec:
-        volumeClaimTemplate:
-          spec:
-            volumeName: prometheus-storage-pv
-            accessModes:
-              - ReadWriteMany
-            storageClassName: nfs-storage
-            resources:
-              requests:
-                storage: 1Gi
+  # Resource limits
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
 
-  alertmanager:
-    config:
-      route:
-        receiver: ntfy
-        group_by:
-          - namespace
-        group_wait: 30s
-        group_interval: 5m
-        repeat_interval: 12h
-        routes:
-          - receiver: ntfy
-            matchers:
-              - alertname = "Watchdog"
-      receivers:
-        - name: ntfy
-          webhook_configs:
-            - url: http://localhost:8081
-              send_resolved: true
+# prometheus-node-exporter configuration
+# Runs as a DaemonSet on each node to export hardware/OS metrics
+prometheus-node-exporter:
+  # Deploy on all nodes
+  hostNetwork: true
+  hostPID: true
+
+  # Prometheus service annotations for auto-discovery
+  service:
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "9100"
+
+  # Resource limits
+  resources:
+    requests:
+      cpu: 10m
+      memory: 24Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
